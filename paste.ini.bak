@@ -1,0 +1,15 @@
+[composite:api]
+use = call:nova.api.openstack.urlmap:urlmap_factory
+/v1 : api_v1
+
+[composite:api_v1]
+use = call:api.auth:pipeline_factory
+#auth = authtoken api_v1
+auth = api_v1
+
+[filter:authtoken]
+paste.filter_factory = middleware.AuthtokenMiddleware.factory
+
+[app:api_v1]
+paste.app_factory = route:Router.factory
+
