@@ -5,7 +5,7 @@ from sqlalchemy.orm import *
 
 class DBAPI():
     def __init__(self):
-        self.engine = create_engine('mysql://root:root@localhost:3306/jaecpn')
+        self.engine = create_engine('mysql://root:root@localhost:3306/jaecpn',convert_unicode=True)
         self.metadata=MetaData(self.engine)
         self.engine.echo=True
     def insert_image(self,image_id,image_name,image_size,image_desc,image_created,created_by):
