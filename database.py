@@ -8,10 +8,23 @@ class DBAPI():
         self.engine = create_engine('mysql://root:root@localhost:3306/jaecpn')
         self.metadata=MetaData(self.engine)
         self.engine.echo=True
-    def insert(self,table):
-        table=Table(table,self.metadata,autoload=True) 
+    def insert_image(self,image_id,image_name,image_size,image_desc,image_created,created_by):
+        table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
-        i.execute()
+        #i=table.insert(
+        #        ImageId=image_id,
+        #        ImageName=image_name,
+        #        ImageSize=image_size,
+        #        ImageDesc=image_desc,
+        #        CreatedTime=image_created,
+        #        CreatedBy=created_by
+        #        )
+        i.execute(ImageId=image_id,ImageName=image_name,ImageSize=image_size,ImageDesc=image_desc,CreatedTime=image_created,CreatedBy=created_by)
+    def select_images(self):
+        table=Table('images',self.metadata,autoload=True) 
+        s=table.select()
+        r=s.execute() 
+        return r
 
 
 if __name__ == '__main__':
