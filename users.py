@@ -11,10 +11,10 @@ import time
 
 
 
-class ProjectAPI():
+class UserAPI():
     def __init__(self):
         self.url="http://{}:{}".format(config.docker_host,config.docker_port)
-        self.mercurial = MercurialControl()
+        self.db_api = DBAPI()
     def get_images(self):
         headers={'Content-Type':'application/json'}
         result=requests.get("{}/images/json".format(self.url),headers=headers)  
@@ -26,23 +26,8 @@ class ProjectAPI():
     def inspect_image(self,image_id):
         result=requests.get("{}/images/{}/json".format(self.url,image_id))
         return result
-    def create_image_from_file(self,image_name,repo_path):
-
-        repo_name=os.path.basename(repo_path)
-        if utils.repo_exist(repo_name):
-            self.mercurial.pull(repo_path)
-        else:
-            self.mercurial.clone(repo_path)
-        file_path=utils.get_file_path(repo_name)
-        tar_path=utils.make_zip_tar(file_path)
-        print tar_path
-        data=open(tar_path,'rb')
-        headers={'Content-Type':'application/tar'}
-        result=requests.post("{}/build?t={}".format(self.url,image_name),headers=headers,data=data)
-        #url='http://localhost:2375/build?t=test33&nocache'
-        #files=open('/tmp/httpd/httpd.tar.gz','rb')
-
-        #r=requests.post(url,data=files,headers=headers)
+    def create_user(self,user_name,cn_name,department,email):
+        result = {} 
         return result
     def delete_image(self,image_id):
         result=requests.delete("{}/images/{}".format(self.url,image_id))
@@ -51,7 +36,7 @@ class ProjectAPI():
 
 
 
-class ProjectController(object):
+class UserController(object):
     @webob.dec.wsgify
     def __call__(self,request):
         method=request.environ['wsgiorg.routing_args'][1]['action']
@@ -61,22 +46,21 @@ class ProjectController(object):
         response.json=result_json
         return response
     def __init__(self):
-        self.project_api=ProjectAPI()
+        self.user_api=UserAPI()
         self.db_api=DBAPI()
     def index(self,request):
         result_json=[]
-        rs = self.db_api.get_projects()
+        rs = self.db_api.get_users()
         for item in rs.fetchall():
-            project={
-                'ProjectId':item[0],
-                'ProjectName':item[1],
-                'ProjectDesc':item[2],
-                'ProjectImage':item[3],
-                'ProjectAdmin':item[4],
-                'ProjectMembers':item[5],
-                'CreatedTime':item[6],
+            user={
+                'UserId':item[0],
+                'UserName':item[1],
+                'CNName':item[2],
+                'DepartMent':item[3],
+                'Email':item[4],
+                'Created':item[5],
                 }
-            result_json.append(project)
+            result_json.append(user)
         #result=self.image_api.get_images()
         #if result.status_code == 200:
         #    result_json=result.json()
@@ -101,24 +85,13 @@ class ProjectController(object):
             result_json=errors
         return result_json
     def create(self,request):
-        project_name=request.json.pop('project_name')
-        project_image=request.json.pop('project_image')
-        project_admin=request.json.pop('project_admin')
-        project_desc=request.json.pop('project_desc')
-        created_time = utils.human_readable_time(time.time())
-        created_by = request.json.pop('created_by') 
-
-        print project_name,project_image,project_admin,project_desc
-        self.db_api.add_project(
-                project_name,
-                project_image,
-                project_admin,
-                project_desc,
-                created_time,
-                created_by
-                )
-
-        result_json={}
+        user_name=request.json.pop('user_name')
+        cn_name=request.json.pop('cn_name')
+        department=request.json.pop('department')
+        email=request.json.pop('email')
+        created=utils.human_readable_time(time.time()) 
+        self.db_api.add_user(user_name,cn_name,department,email,created)
+        result_json = {}
         return result_json
     def delete(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
@@ -137,4 +110,4 @@ class ProjectController(object):
         return result_json
 
 def create_resource():
-    return ProjectController()
+    return ImageController()
