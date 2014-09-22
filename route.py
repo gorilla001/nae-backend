@@ -1,5 +1,6 @@
 from containers import ContainerController
 from images import ImageController
+from projects import ProjectController
 from misc   import MiscController
 
 import routes
@@ -12,6 +13,7 @@ class Router (object):
         self.mapper=routes.Mapper()
         self.container_controller=ContainerController()
         self.image_controller=ImageController()
+        self.project_controller=ProjectController()
         self.misc_controller=MiscController()
 
         #self.mapper.redirect("","/")
@@ -101,6 +103,14 @@ class Router (object):
 				action='delete',
 				conditions={'method':['DELETE']},
 		)
+
+        self.mapper.connect('/projects',
+				controller=self.project_controller,
+				action='index',
+				conditions={'method':['GET']},
+		)
+
+
 
         self.mapper.connect('/info',
 				controller=self.misc_controller,

@@ -25,6 +25,11 @@ class DBAPI():
         s=table.select()
         r=s.execute() 
         return r
+    def get_projects(self):
+        table=Table('projects',self.metadata,autoload=True)
+        s=table.select()
+        r=s.execute()
+        return r
 
 
 if __name__ == '__main__':
@@ -40,6 +45,18 @@ if __name__ == '__main__':
             Column('CreatedBy',String(30)),
     )
 
+    projects_table = Table('projects',metadata,
+            Column('ProjectID',String(30)),
+            Column('ProjectName',String(50)),
+            Column('ProjectDesc',String(300)),
+            Column('ProjectImage',String(50)),
+            Column('ProjectAdmin',String(30)),
+            Column('ProjectMembers',String(500)),
+            Column('CreatedTime',String(150)),
+    )
+
+
     engine.echo=True
-    images_table.create()
+    images_table.create(checkfirst=True)
+    projects_table.create(checkfirst=True)
     print 'ok'
