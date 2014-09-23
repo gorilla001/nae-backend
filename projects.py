@@ -71,7 +71,7 @@ class ProjectController(object):
                 'ProjectId':item[0],
                 'ProjectName':item[1],
                 'ProjectDesc':item[2],
-                'ProjectImage':item[3],
+                'ProjectHgs':item[3],
                 'ProjectAdmin':item[4],
                 'ProjectMembers':item[5],
                 'CreatedTime':item[6],
@@ -102,38 +102,41 @@ class ProjectController(object):
         return result_json
     def create(self,request):
         project_name=request.json.pop('project_name')
-        project_image=request.json.pop('project_image')
+        project_hgs=request.json.pop('project_hgs')
         project_admin=request.json.pop('project_admin')
+        project_members=request.json.pop('project_members')
         project_desc=request.json.pop('project_desc')
         created_time = utils.human_readable_time(time.time())
-        created_by = request.json.pop('created_by') 
 
-        print project_name,project_image,project_admin,project_desc
+        print project_name,project_hgs,project_members,project_admin,project_desc
+        #add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time)
         self.db_api.add_project(
-                project_name,
-                project_image,
-                project_admin,
-                project_desc,
-                created_time,
-                created_by
+                str(project_name),
+                ' '.join(project_hgs),
+                str(project_admin),
+                ' '.join(project_members),
+                str(project_desc),
+                str(created_time),
                 )
 
         result_json={}
         return result_json
     def delete(self,request):
-        image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result=self.image_api.delete_image(image_id)
-        if result.status_code == 200:
-            result_json = result.json() 
-        if result.status_code == 404:
-            errors={"errors":"404 Not Found:no such image {}".format(image_id)}
-            result_json=errors
-        if result.status_code == 409:
-            errors={"errors":"409 conflict"}
-            result_json=errors
-        if result.status_code == 500:
-            errors={"errors":"500 internal server error"}
-            result_json=errors
+        project_id=request.environ['wsgiorg.routing_args'][1]['id']
+        self.db_api.delete_project(project_id)
+        #result=self.image_api.delete_image(image_id)
+        #if result.status_code == 200:
+        #    result_json = result.json() 
+        #if result.status_code == 404:
+        #    errors={"errors":"404 Not Found:no such image {}".format(image_id)}
+        #    result_json=errors
+        #if result.status_code == 409:
+        #    errors={"errors":"409 conflict"}
+        #    result_json=errors
+        #if result.status_code == 500:
+        #    errors={"errors":"500 internal server error"}
+        #    result_json=errors
+        result_json={}
         return result_json
 
 def create_resource():

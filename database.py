@@ -30,18 +30,21 @@ class DBAPI():
         s=table.select()
         r=s.execute()
         return r
-    def add_project(self,project_name,project_image,project_admin,project_desc,created_time,created_by):
+    def add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time):
         table=Table('projects',self.metadata,autoload=True)
         i=table.insert()
         i.execute(
                 ProjectName=project_name,
                 ProjectDesc=project_desc,
-                ProjectImage=project_image,
+                ProjectHgs=project_hgs,
                 ProjectAdmin=project_admin,
+                ProjectMembers=project_members,
                 CreatedTime=created_time,
-                CreatedBy=created_by,
                 )
-        print 'image:',project_image
+    def delete_project(self,project_id):
+        table=Table('projects',self.metadata,autoload=True)
+        d=table.delete(table.c.ProjectID == project_id)
+        d.execute()
     def get_users(self):
         table=Table('users',self.metadata,autoload=True)
         s=table.select()
@@ -71,11 +74,10 @@ if __name__ == '__main__':
             Column('ProjectID',Integer,primary_key=True,autoincrement=True),
             Column('ProjectName',String(50)),
             Column('ProjectDesc',String(300),default=''),
-            Column('ProjectImage',String(50)),
+            Column('ProjectHgs',String(500)),
             Column('ProjectAdmin',String(30)),
-            Column('ProjectMembers',String(500)),
+            Column('ProjectMembers',String(500),default=''),
             Column('CreatedTime',String(150)),
-            Column('CreatedBy',String(150)),
     )
 
     users_table = Table('users',metadata,

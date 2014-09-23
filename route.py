@@ -118,6 +118,13 @@ class Router (object):
 				conditions={'method':['POST']},
 		)
 
+        self.mapper.connect('/projects/{id}',
+				controller=self.project_controller,
+				action='delete',
+				conditions={'method':['DELETE']},
+		)
+
+
         self.mapper.connect('/users',
 				controller=self.user_controller,
 				action='index',
