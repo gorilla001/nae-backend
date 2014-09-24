@@ -43,8 +43,8 @@ class ImageAPI():
 
         #r=requests.post(url,data=files,headers=headers)
         return result
-    def delete_image(self,image_id):
-        result=requests.delete("{}/images/{}".format(self.url,image_id))
+    def delete_image(self,image_id,f_id):
+        result=requests.delete("{}/images/{}?force={}".format(self.url,image_id,f_id))
         return result
         
 
@@ -137,7 +137,8 @@ class ImageController(object):
         return result_json
     def delete(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result=self.image_api.delete_image(image_id)
+        f_id=request.GET['force']
+        result=self.image_api.delete_image(image_id,f_id)
         if result.status_code == 200:
             self.db_api.delete_image(image_id)
             result_json = result.json() 
