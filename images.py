@@ -139,6 +139,7 @@ class ImageController(object):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
         result=self.image_api.delete_image(image_id)
         if result.status_code == 200:
+            self.db_api.delete_image(image_id)
             result_json = result.json() 
         if result.status_code == 404:
             errors={"errors":"404 Not Found:no such image {}".format(image_id)}

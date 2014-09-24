@@ -24,6 +24,10 @@ class DBAPI():
         s=table.select()
         r=s.execute() 
         return r
+    def delete_image(self,image_id):
+        table=Table('images',self.metadata,autoload=True)
+        d=table.delete(table.c.ImageId == image_id)
+        d.execute()
     def get_projects(self,project_id=None):
         print "database:" ,project_id
         table=Table('projects',self.metadata,autoload=True)
