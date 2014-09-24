@@ -8,26 +8,28 @@ class DBAPI():
         self.engine = create_engine('mysql://root:root@localhost:3306/jaecpn',convert_unicode=True)
         self.metadata=MetaData(self.engine)
         self.engine.echo=True
-    def insert_image(self,image_id,image_name,image_size,image_desc,image_created,created_by):
+    def add_image(self,image_id,image_name,image_size,image_desc,image_project,image_created,created_by):
         table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
-        #i=table.insert(
-        #        ImageId=image_id,
-        #        ImageName=image_name,
-        #        ImageSize=image_size,
-        #        ImageDesc=image_desc,
-        #        CreatedTime=image_created,
-        #        CreatedBy=created_by
-        #        )
-        i.execute(ImageId=image_id,ImageName=image_name,ImageSize=image_size,ImageDesc=image_desc,CreatedTime=image_created,CreatedBy=created_by)
-    def select_images(self):
+        i=table.insert()
+        i.execute(ImageId=image_id,
+                  ImageName=image_name,
+                  ImageSize=image_size,
+                  ImageDesc=image_desc,
+                  ImageProject=image_project,
+                  CreatedTime=image_created,
+                  CreatedBy=created_by)
+    def get_images(self):
         table=Table('images',self.metadata,autoload=True) 
         s=table.select()
         r=s.execute() 
         return r
-    def get_projects(self):
+    def get_projects(self,project_id=None):
+        print "database:" ,project_id
         table=Table('projects',self.metadata,autoload=True)
         s=table.select()
+        if project_id is not None:
+            s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
     def add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time):
@@ -66,6 +68,7 @@ if __name__ == '__main__':
             Column('ImageName',String(50)),
             Column('ImageSize',String(50)),
             Column('ImageDesc',String(300)),
+            Column('ImageProject',String(300)),
             Column('CreatedTime',String(150)),
             Column('CreatedBy',String(30)),
     )

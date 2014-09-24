@@ -75,7 +75,8 @@ class MercurialControl(object):
         self._ui = mercurial.ui.ui()
         self.path=os.path.join(os.path.dirname(__file__),'files')
     def clone(self,repo_path):
-        source = 'ssh://localhost/%s' % repo_path
+        #source = 'ssh://localhost/%s' % repo_path
+        source = repo_path
         dest = os.path.join(self.path,os.path.basename(repo_path)) 
         try:
             mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
@@ -84,8 +85,10 @@ class MercurialControl(object):
             logging.error('could not clone repo:%s' % repo_path)
             logging.error(error)
     def pull(self,repo_path):
-        source = 'ssh://localhost/%s' % repo_path
-        repo=mercurial.hg.repository(self._ui,repo_path)
+        #source = 'ssh://localhost/%s' % repo_path
+        source = repo_path
+        local_repo_path = os.path.join(self.path,os.path.basename(repo_path)) 
+        repo=mercurial.hg.repository(self._ui,local_repo_path)
         mercurial.commands.pull(self._ui,repo,source=source)
 
 

@@ -123,6 +123,11 @@ class Router (object):
 				action='delete',
 				conditions={'method':['DELETE']},
 		)
+        self.mapper.connect('/projects/{id}',
+				controller=self.project_controller,
+				action='show',
+				conditions={'method':['GET']},
+		)
 
 
         self.mapper.connect('/users',

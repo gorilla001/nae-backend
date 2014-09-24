@@ -64,15 +64,16 @@ class ImageController(object):
         self.db_api=DBAPI()
     def index(self,request):
         result_json=[]
-        rs = self.db_api.select_images()
+        rs = self.db_api.get_images()
         for item in rs.fetchall():
             image={
                 'ImageId':item[0],
                 'ImageName':item[1],
                 'ImageSize':item[2],
                 'ImageDesc':item[3],
-                'CreatedTime':item[4],
-                'CreatedBy':item[5],
+                'ImageProject':item[4],
+                'CreatedTime':item[5],
+                'CreatedBy':item[6],
                 }
             result_json.append(image)
         #result=self.image_api.get_images()
@@ -101,12 +102,14 @@ class ImageController(object):
     def create(self,request):
         image_name=request.json.pop('image_name')
         image_desc=request.json.pop('image_desc')
+        image_proj=request.json.pop('image_proj')
         repo_path=request.json.pop('repo_path')
         user_name=request.json.pop('user_name')
 
-        print image_name,image_desc,repo_path,user_name
+        print image_name,image_desc,image_proj,repo_path,user_name
+
         result_json={}
-        result=self.image_api.create_image_from_file(image_name,repo_path)
+        result=self.image_api.create_image_from_file(image_name,str(repo_path))
         if result.status_code == 200:
             print 'image create ok'
             result_json={"ok":"200 create image successful"}
@@ -121,7 +124,13 @@ class ImageController(object):
             created_time = utils.human_readable_time(created_time)
             created_by = user_name
             print image_id,image_name,image_size,image_desc,created_time,created_by
-            self.db_api.insert_image(image_id,image_name,image_size,image_desc,created_time,created_by)
+            self.db_api.add_image(image_id,
+                                  image_name,
+                                  image_size,
+                                  image_desc,
+                                  image_proj,
+                                  created_time,
+                                  created_by)
         if result.status_code == 500:
             errors={"errors":"500 internal server error"} 
             result_json=errors

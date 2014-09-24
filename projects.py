@@ -83,12 +83,16 @@ class ProjectController(object):
         return result_json
     def show(self,request):
         result_json={}
-        image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result = self.image_api.get_image_by_id(image_id)
-        if result.status_code == 200:
-            for res in result.json():
-                if image_id in res['Id']:
-                    result_json = res   
+        project_id=request.environ['wsgiorg.routing_args'][1]['id']
+        result = self.db_api.get_projects(project_id=project_id)
+        result_json = {
+                    'hgs':result.fetchone()[3],
+                    }
+        print result_json
+        #if result.status_code == 200:
+        #    for res in result.json():
+        #        if image_id in res['Id']:
+        #            result_json = res   
         return result_json
     def inspect(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
