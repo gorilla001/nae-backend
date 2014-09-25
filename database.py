@@ -19,9 +19,11 @@ class DBAPI():
                   ImageProject=image_project,
                   CreatedTime=image_created,
                   CreatedBy=created_by)
-    def get_images(self):
+    def get_images(self,project_id=None):
         table=Table('images',self.metadata,autoload=True) 
         s=table.select()
+        if project_id is not None:
+            s=table.select(table.c.ImageProject == project_id)
         r=s.execute() 
         return r
     def delete_image(self,image_id):
@@ -29,7 +31,6 @@ class DBAPI():
         d=table.delete(table.c.ImageId == image_id)
         d.execute()
     def get_projects(self,project_id=None):
-        print "database:" ,project_id
         table=Table('projects',self.metadata,autoload=True)
         s=table.select()
         if project_id is not None:
@@ -47,6 +48,11 @@ class DBAPI():
                 ProjectMembers=project_members,
                 CreatedTime=created_time,
                 )
+    def update_project(self,project_id,project_name=None,project_hgs=None,project_imgs=None,project_admin=None,project_members=None,project_desc=None):
+        #table=Table('projects',self.metadata,autoload=True)
+        #u=table.update(table.c.ProjectID == project_id)
+        pass
+        
     def delete_project(self,project_id):
         table=Table('projects',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)
@@ -82,18 +88,24 @@ if __name__ == '__main__':
             Column('ProjectName',String(50)),
             Column('ProjectDesc',String(300),default=''),
             Column('ProjectHgs',String(500)),
+            Column('ProjectImgs',String(500),default=''),
             Column('ProjectAdmin',String(30)),
             Column('ProjectMembers',String(500),default=''),
             Column('CreatedTime',String(150)),
     )
 
+    #users_table = Table('users',metadata,
+    #        Column('Id',Integer,primary_key=True,autoincrement=True),
+    #        Column('Name',String(30)),
+    #        Column('UserName',String(30)),
+    #        Column('DepartMent',String(30)),
+    #        Column('Email',String(30)),
+    #        Column('Created',String(30)),
+    #)
     users_table = Table('users',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
             Column('Name',String(30)),
-            Column('UserName',String(30)),
-            Column('DepartMent',String(30)),
-            Column('Email',String(30)),
-            Column('Created',String(30)),
+            Column('Project',Integer),
     )
 
 

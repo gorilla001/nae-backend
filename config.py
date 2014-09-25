@@ -14,9 +14,11 @@ try:
         docker_host=parser.get("default","docker_host")
         docker_port=parser.get("default","docker_port")
 
-	PortRange = parser.get("default","PortRange")
+        PortRange = parser.get("default","PortRange")
 
-	DNS=parser.get("default","DNS")
+        DNS=parser.get("default","DNS")
+
+        HOST=parser.get("default","HOST")
 
     except ConfigParser.NoSectionError,error:
         pass

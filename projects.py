@@ -72,9 +72,10 @@ class ProjectController(object):
                 'ProjectName':item[1],
                 'ProjectDesc':item[2],
                 'ProjectHgs':item[3],
-                'ProjectAdmin':item[4],
-                'ProjectMembers':item[5],
-                'CreatedTime':item[6],
+                'ProjectImgs':item[4],
+                'ProjectAdmin':item[5],
+                'ProjectMembers':item[6],
+                'CreatedTime':item[7],
                 }
             result_json.append(project)
         #result=self.image_api.get_images()
@@ -85,8 +86,16 @@ class ProjectController(object):
         result_json={}
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
         result = self.db_api.get_projects(project_id=project_id)
+        project_hgs = result.fetchone()[3]
+        result = self.db_api.get_images(project_id=project_id)
+        project_imgs=[]
+        for item in result.fetchall():
+            img = item[1]
+            project_imgs.append(img)
+        print project_imgs
         result_json = {
-                    'hgs':result.fetchone()[3],
+                    'hgs':project_hgs,
+                    'imgs':project_imgs,
                     }
         print result_json
         #if result.status_code == 200:
@@ -122,7 +131,8 @@ class ProjectController(object):
                 str(project_desc),
                 str(created_time),
                 )
-
+        #self.db_api.add_user(
+        #        )
         result_json={}
         return result_json
     def delete(self,request):

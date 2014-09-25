@@ -7,6 +7,7 @@ from database import DBAPI
 from utils import MercurialControl
 import os
 import utils
+import time
 
 
 
@@ -66,12 +67,15 @@ class ImageController(object):
         result_json=[]
         rs = self.db_api.get_images()
         for item in rs.fetchall():
+            image_project = self.db_api.get_projects(project_id=item[4]) 
+            project_name = image_project.fetchone()[1]
+            print project_name
             image={
                 'ImageId':item[0],
                 'ImageName':item[1],
                 'ImageSize':item[2],
                 'ImageDesc':item[3],
-                'ImageProject':item[4],
+                'ImageProject':project_name,
                 'CreatedTime':item[5],
                 'CreatedBy':item[6],
                 }
@@ -119,9 +123,10 @@ class ImageController(object):
             for res in result.json():
                 if image_id in res['Id']:
                     image_size=res['VirtualSize']
-                    created_time = res['Created'] 
+            #        created_time = res['Created'] 
             image_size = utils.human_readable_size(image_size)
-            created_time = utils.human_readable_time(created_time)
+            #created_time = utils.human_readable_time(created_time)
+            created_time = utils.human_readable_time(time.time())
             created_by = user_name
             print image_id,image_name,image_size,image_desc,created_time,created_by
             self.db_api.add_image(image_id,
@@ -131,6 +136,7 @@ class ImageController(object):
                                   image_proj,
                                   created_time,
                                   created_by)
+            self.db_api.update_projects(image_id=image_id)
         if result.status_code == 500:
             errors={"errors":"500 internal server error"} 
             result_json=errors
