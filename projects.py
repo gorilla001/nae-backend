@@ -97,8 +97,8 @@ class ProjectController(object):
         result = self.db_api.get_images(project_id=project_id)
         project_imgs=[]
         for item in result.fetchall():
-            img = item[1]
-            project_imgs.append(img)
+            img_name = item[2]
+            project_imgs.append(img_name)
         print project_imgs
         result_json = {
                     'hgs':project_hgs,

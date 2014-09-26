@@ -8,6 +8,7 @@ from utils import MercurialControl
 import os
 import utils
 import time
+from pprint import pprint
 
 
 
@@ -67,18 +68,24 @@ class ImageController(object):
         result_json=[]
         rs = self.db_api.get_images()
         for item in rs.fetchall():
-            image_project = self.db_api.get_projects(project_id=item[4]) 
+            image_project = self.db_api.get_projects(project_id=item[5]) 
+            #print '-----------------------'
+            #print 'project_id',item[5]
+            #print image_project.fetchone()
+            #print '-----------------------'
             project_name = image_project.fetchone()[1]
             print project_name
             image={
-                'ImageId':item[0],
-                'ImageName':item[1],
-                'ImageSize':item[2],
-                'ImageDesc':item[3],
+                'ID':item[0],
+                'ImageId':item[1],
+                'ImageName':item[2],
+                'ImageSize':item[3],
+                'ImageDesc':item[4],
                 'ImageProject':project_name,
-                'CreatedTime':item[5],
-                'CreatedBy':item[6],
+                'CreatedTime':item[6],
+                'CreatedBy':item[7],
                 }
+            pprint(image)
             result_json.append(image)
         #result=self.image_api.get_images()
         #if result.status_code == 200:
@@ -136,7 +143,7 @@ class ImageController(object):
                                   image_proj,
                                   created_time,
                                   created_by)
-            self.db_api.update_projects(image_id=image_id)
+            #self.db_api.update_projects(image_id=image_id)
         if result.status_code == 500:
             errors={"errors":"500 internal server error"} 
             result_json=errors
@@ -150,6 +157,7 @@ class ImageController(object):
             result_json = result.json() 
         if result.status_code == 404:
             errors={"errors":"404 Not Found:no such image {}".format(image_id)}
+            self.db_api.delete_image(image_id)
             result_json=errors
         if result.status_code == 409:
             errors={"errors":"409 conflict"}

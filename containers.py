@@ -105,12 +105,16 @@ class ContainerController(object):
         for item in containers.json():
             container = {
                     'Id':item['Id'][:12],
+                    'Name':item['Names'][0][1:],
+                    'Status':item['Status'],
             }
             for i in item['Ports']:
                 try :
                     IP = i.get('IP')
-                    PORT = i.get('PublicPort')
-                    data = { 'Ports':'{}:{}'.format(IP,PORT)}
+                    PUB_PORT = i.get('PublicPort')
+                    PRI_PORT = i.get('PrivatePort')
+                    
+                    data = { 'Ports':'{}:{}->{}'.format(IP,PUB_PORT,PRI_PORT)}
                     container.update(data)
                     print i["State"]
                 except KeyError: 
