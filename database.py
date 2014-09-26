@@ -40,7 +40,7 @@ class DBAPI():
     def add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time):
         table=Table('projects',self.metadata,autoload=True)
         i=table.insert()
-        i.execute(
+        result=i.execute(
                 ProjectName=project_name,
                 ProjectDesc=project_desc,
                 ProjectHgs=project_hgs,
@@ -48,6 +48,7 @@ class DBAPI():
                 ProjectMembers=project_members,
                 CreatedTime=created_time,
                 )
+        return result.lastrowid  
     def update_project(self,project_id,project_name=None,project_hgs=None,project_imgs=None,project_admin=None,project_members=None,project_desc=None):
         #table=Table('projects',self.metadata,autoload=True)
         #u=table.update(table.c.ProjectID == project_id)
@@ -57,15 +58,22 @@ class DBAPI():
         table=Table('projects',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)
         d.execute()
-    def get_users(self):
+    def get_users(self,project_id=None):
         table=Table('users',self.metadata,autoload=True)
         s=table.select()
+        if project_id is not None:
+            s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
-    def add_user(self,user_name,cn_name,department,email,created):
+    def add_user(self,user_id,user_name,project_id,created):
         table=Table('users',self.metadata,autoload=True) 
         i=table.insert()
-        i.execute(Name=user_name,UserName=cn_name,DepartMent=department,Email=email,Created=created)
+        i.execute(
+                UserID=user_id,
+                Name=user_name,
+                ProjectID=project_id,
+                Created=created
+                )
 
 
 
@@ -104,8 +112,10 @@ if __name__ == '__main__':
     #)
     users_table = Table('users',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
+            Column('UserID',String(30)),
             Column('Name',String(30)),
-            Column('Project',Integer),
+            Column('ProjectID',Integer),
+            Column('Created',String(150)),
     )
 
 

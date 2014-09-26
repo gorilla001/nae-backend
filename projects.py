@@ -74,9 +74,16 @@ class ProjectController(object):
                 'ProjectHgs':item[3],
                 'ProjectImgs':item[4],
                 'ProjectAdmin':item[5],
-                'ProjectMembers':item[6],
+                'ProjectMembers':'',
                 'CreatedTime':item[7],
                 }
+            rs = self.db_api.get_users(project_id=item[0])
+            user_list =list()
+            for user in rs.fetchall():
+                user_list.append(user[1])
+            user_list=' '.join(user_list)
+            data =  { 'ProjectMembers':user_list}
+            project.update(data)
             result_json.append(project)
         #result=self.image_api.get_images()
         #if result.status_code == 200:
@@ -123,14 +130,22 @@ class ProjectController(object):
 
         print project_name,project_hgs,project_members,project_admin,project_desc
         #add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time)
-        self.db_api.add_project(
+        project_id=self.db_api.add_project(
                 str(project_name),
                 ' '.join(project_hgs),
                 str(project_admin),
-                ' '.join(project_members),
+                #' '.join(project_members),
+                '',
                 str(project_desc),
                 str(created_time),
                 )
+        for member in project_members:
+            self.db_api.add_user(
+                    user_id = member,
+                    user_name = '',
+                    project_id = project_id,
+                    created = created_time,
+                    )
         #self.db_api.add_user(
         #        )
         result_json={}
