@@ -9,6 +9,10 @@ import os
 import utils
 import time
 from pprint import pprint
+import webob
+
+import eventlet
+eventlet.monkey_patch()
 
 
 
@@ -16,6 +20,7 @@ class ImageAPI():
     def __init__(self):
         self.url="http://{}:{}".format(config.docker_host,config.docker_port)
         self.mercurial = MercurialControl()
+        self.db_api=DBAPI()
     def get_images(self):
         headers={'Content-Type':'application/json'}
         result=requests.get("{}/images/json".format(self.url),headers=headers)  
@@ -37,13 +42,42 @@ class ImageAPI():
         file_path=utils.get_file_path(repo_name)
         tar_path=utils.make_zip_tar(file_path)
         print tar_path
-        data=open(tar_path,'rb')
-        headers={'Content-Type':'application/tar'}
-        result=requests.post("{}/build?t={}".format(self.url,image_name),headers=headers,data=data)
+        def create_image(url,image_name,tar_path):
+            data=open(tar_path,'rb')
+            headers={'Content-Type':'application/tar'}
+            requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
+            result=self.inspect_image(image_name)
+            pprint(result)
+            image_id=result.json()['id'][:12]
+            result = self.get_image_by_id(image_id)
+            for res in result.json():
+                if image_id in res['Id']:
+                    image_size=res['VirtualSize']
+                    created_time = res['Created'] 
+            image_size = utils.human_readable_size(image_size)
+            created_time = utils.human_readable_time(created_time)
+            created_time = utils.human_readable_time(time.time())
+            status = 'ok'
+            self.db_api.update_image(
+                                  image_name=image_name,
+                                  image_id=image_id,
+                                  image_size=image_size,
+                                  image_desc='',
+                                  image_project='',
+                                  image_created=created_time,
+                                  created_by='',
+                                  status = status)
+            print 'create image end'
+            print 'send notify to ui'
+            requests.get('http://192.168.1.127:8000/images/update')
+            print 'done'
+
         #url='http://localhost:2375/build?t=test33&nocache'
         #files=open('/tmp/httpd/httpd.tar.gz','rb')
 
         #r=requests.post(url,data=files,headers=headers)
+        eventlet.spawn_n(create_image,self.url,image_name,tar_path)
+        result=webob.Response('{"status_code":200"}')
         return result
     def delete_image(self,image_id,f_id):
         result=requests.delete("{}/images/{}?force={}".format(self.url,image_id,f_id))
@@ -84,6 +118,7 @@ class ImageController(object):
                 'ImageProject':project_name,
                 'CreatedTime':item[6],
                 'CreatedBy':item[7],
+                'Status' : item[8],
                 }
             pprint(image)
             result_json.append(image)
@@ -122,27 +157,29 @@ class ImageController(object):
         result_json={}
         result=self.image_api.create_image_from_file(image_name,str(repo_path))
         if result.status_code == 200:
-            print 'image create ok'
-            result_json={"ok":"200 create image successful"}
-            result=self.image_api.inspect_image(image_name)
-            image_id=result.json()['id'][:12]
-            result = self.image_api.get_image_by_id(image_id)
-            for res in result.json():
-                if image_id in res['Id']:
-                    image_size=res['VirtualSize']
-            #        created_time = res['Created'] 
-            image_size = utils.human_readable_size(image_size)
+            print 'image create begin'
+            result_json={"ok":"200 create image begin"}
+            #result=self.image_api.inspect_image(image_name)
+            #pprint(result)
+            #image_id=result.json()['id'][:12]
+            #result = self.image_api.get_image_by_id(image_id)
+            #for res in result.json():
+            #    if image_id in res['Id']:
+            #        image_size=res['VirtualSize']
+            ##        created_time = res['Created'] 
+            #image_size = utils.human_readable_size(image_size)
             #created_time = utils.human_readable_time(created_time)
-            created_time = utils.human_readable_time(time.time())
+            #created_time = utils.human_readable_time(time.time())
             created_by = user_name
-            print image_id,image_name,image_size,image_desc,created_time,created_by
-            self.db_api.add_image(image_id,
-                                  image_name,
-                                  image_size,
-                                  image_desc,
-                                  image_proj,
-                                  created_time,
-                                  created_by)
+            #print image_id,image_name,image_size,image_desc,created_time,created_by
+            self.db_api.add_image(image_id='',
+                                  image_name=image_name,
+                                  image_size='',
+                                  image_desc=image_desc,
+                                  image_project=image_proj,
+                                  image_created='',
+                                  created_by=created_by,
+                                  status = 'building')
             #self.db_api.update_projects(image_id=image_id)
         if result.status_code == 500:
             errors={"errors":"500 internal server error"} 
