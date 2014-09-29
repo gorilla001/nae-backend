@@ -9,6 +9,10 @@ from images import ImageAPI
 import urllib
 from pprint import pprint
 import utils
+import os
+from database import DBAPI
+import time
+import ast
 
 class ContainerAPI():
     def __init__(self):
@@ -85,6 +89,7 @@ class ContainerController(object):
     def __init__(self):
         self.compute_api=ContainerAPI()
         self.image_api=ImageAPI()
+        self.db_api = DBAPI()
     @webob.dec.wsgify
     def __call__(self,request):
         print request.environ['wsgiorg.routing_args']
@@ -100,26 +105,37 @@ class ContainerController(object):
         response.json=result_json
         return response
     def index(self,request):
-        containers=self.compute_api.get_containers()
-        container_list=list()
-        for item in containers.json():
+        rs = self.db_api.get_containers()
+        container_list = list()
+        for item in rs.fetchall():
             container = {
-                    'Id':item['Id'][:12],
-                    'Name':item['Names'][0][1:],
-                    'Status':item['Status'],
-            }
-            for i in item['Ports']:
-                try :
-                    IP = i.get('IP')
-                    PUB_PORT = i.get('PublicPort')
-                    PRI_PORT = i.get('PrivatePort')
-                    
-                    data = { 'Ports':'{}:{}->{}'.format(IP,PUB_PORT,PRI_PORT)}
-                    container.update(data)
-                    print i["State"]
-                except KeyError: 
-                    continue
+                    'ID':item[0],
+                    'Name':item[2],
+                    'AccessMethod':' '.join(ast.literal_eval(item[7])),
+                    'Created':item[8],
+                    'Status':item[10],
+                    }
             container_list.append(container)
+        #containers=self.compute_api.get_containers()
+        #container_list=list()
+        #for item in containers.json():
+        #    container = {
+        #            'Id':item['Id'][:12],
+        #            'Name':item['Names'][0][1:],
+        #            'Status':item['Status'],
+        #    }
+        #    for i in item['Ports']:
+        #        try :
+        #            IP = i.get('IP')
+        #            PUB_PORT = i.get('PublicPort')
+        #            PRI_PORT = i.get('PrivatePort')
+        #            
+        #            data = { 'Ports':'{}:{}->{}'.format(IP,PUB_PORT,PRI_PORT)}
+        #            container.update(data)
+        #            print i["State"]
+        #        except KeyError: 
+        #            continue
+        #    container_list.append(container)
                     
         return container_list
     def show(self,request):
@@ -135,6 +151,7 @@ class ContainerController(object):
         #   errors={"errors":"404 Not Found:no such container {}".format(container_id)}
         #   response.json=errors
         #   
+        return result
     def delete(self,request):
         result_json={}
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
@@ -150,6 +167,7 @@ class ContainerController(object):
             result=self.compute_api.delete_container(container_id)
         if result.status_code == 204:
             result_json = {"succeed":"{} deleted".format(container_id)}
+            self.db_api.delete_container(container_id)
         if result.status_code == 400:
             result_json = {"error":"400 bad parameter"} 
         if result.status_code == 404:
@@ -158,8 +176,14 @@ class ContainerController(object):
             result_json = {"error":"500 internal server error"}
         return result_json
     def create(self,request):
-        image=request.json.pop('container_image')
+        container_hgs=request.json.pop('container_image')
+        container_env = request.json.pop('container_environ')
+        project_id = request.json.pop('container_project')
+        container_code = request.json.pop('container_code')
+        user_name = request.json.pop('user_name')
         #cmd=body.pop('Cmd')
+        #image=self.db_api.get_image_by_hgs(container_hgs).fetchone()[2]
+        image=os.path.basename(container_hgs)
         result = self.image_api.inspect_image(image)
         result_json={}
         if result.status_code == 200:
@@ -182,10 +206,25 @@ class ContainerController(object):
             result_json = resp.json() 
             #container_id=result_json['Id']
             resp = self.compute_api.start_container(result_json['Id'],port.keys()[0])
-            #result = self.compute_api.inspect_container(container_id)
+        
             #print result.json()['HostConfig']
             if resp.status_code == 204:
                 result_json={"succeed":"start ok"}
+                container_id = self.get_container_info(name)[0]
+                network_config = self.get_container_info(name)[1]
+                created_time = utils.human_readable_time(time.time())
+                self.db_api.add_container(
+                        container_id=container_id,
+                        container_name=name,
+                        container_env=container_env,
+                        project_id=project_id,
+                        container_hgs=container_hgs,
+                        container_code=container_code,
+                        access_method=str(network_config),
+                        created=created_time,
+                        created_by=user_name,
+                        status='ok')
+
             if resp.status_code == 304:
                 result_json={"error":"304 container already started"}
             if resp.status_code == 404:
@@ -229,4 +268,19 @@ class ContainerController(object):
             #if result.status_code == 500:
             #   error={"error":"500 internal server error"}
             #   response.json=error
+    def get_container_info(self,name):
+        result=self.compute_api.inspect_container(name)
+        container_id = result.json()['ID'][:12]
+        network_settings = result.json()['NetworkSettings']
+        ports=network_settings['Ports'] 
+        private_host = network_settings['IPAddress']
+        network_config=list()
+        for port in ports:
+            private_port = port 
+            for item in ports[port]:
+                host_ip=item['HostIp']
+                host_port=item['HostPort']
+            network_config.append("{}:{}->{}:{}".format(host_ip,host_port,private_host,private_port))
+        return (container_id,network_config,)
+
                 

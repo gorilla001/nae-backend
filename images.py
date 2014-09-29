@@ -64,12 +64,13 @@ class ImageAPI():
                                   image_size=image_size,
                                   image_desc='',
                                   image_project='',
+                                  image_hgs='',
                                   image_created=created_time,
                                   created_by='',
                                   status = status)
             print 'create image end'
-            print 'send notify to ui'
-            requests.get('http://192.168.1.127:8000/images/update')
+            #print 'send notify to ui'
+            #requests.get('http://192.168.1.127:8000/images/update')
             print 'done'
 
         #url='http://localhost:2375/build?t=test33&nocache'
@@ -177,6 +178,7 @@ class ImageController(object):
                                   image_size='',
                                   image_desc=image_desc,
                                   image_project=image_proj,
+                                  image_hgs = repo_path,
                                   image_created='',
                                   created_by=created_by,
                                   status = 'building')
