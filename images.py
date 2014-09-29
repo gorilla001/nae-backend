@@ -201,15 +201,17 @@ class ImageController(object):
             result_json=errors
         return result_json
     def delete(self,request):
-        image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
+        _image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
         f_id=request.GET['force']
+        image_info = self.db_api.get_image_by_id(_image_id).fetchone()
+        image_id=image_info[1]
         result=self.image_api.delete_image(image_id,f_id)
         if result.status_code == 200:
-            self.db_api.delete_image(image_id)
+            self.db_api.delete_image(_image_id)
             result_json = result.json() 
         if result.status_code == 404:
             errors={"errors":"404 Not Found:no such image {}".format(image_id)}
-            self.db_api.delete_image(image_id)
+            self.db_api.delete_image(_image_id)
             result_json=errors
         if result.status_code == 409:
             errors={"errors":"409 conflict"}
