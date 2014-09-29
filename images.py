@@ -32,7 +32,7 @@ class ImageAPI():
     def inspect_image(self,image_id):
         result=requests.get("{}/images/{}/json".format(self.url,image_id))
         return result
-    def create_image_from_file(self,image_name,repo_path):
+    def create_image_from_file(self,image_name,repo_path,project_id):
 
         repo_name=os.path.basename(repo_path)
         if utils.repo_exist(repo_name):
@@ -42,7 +42,7 @@ class ImageAPI():
         file_path=utils.get_file_path(repo_name)
         tar_path=utils.make_zip_tar(file_path)
         print tar_path
-        def create_image(url,image_name,tar_path):
+        def create_image(url,image_name,tar_path,repo_path,project_id):
             data=open(tar_path,'rb')
             headers={'Content-Type':'application/tar'}
             requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
@@ -68,16 +68,19 @@ class ImageAPI():
                                   image_created=created_time,
                                   created_by='',
                                   status = status)
-            print 'create image end'
+            self.db_api.add_hg(
+                            project_id = project_id,
+                            image_id = image_id,
+                            hg_name = repo_path,
+                            )
             #print 'send notify to ui'
             #requests.get('http://192.168.1.127:8000/images/update')
-            print 'done'
 
         #url='http://localhost:2375/build?t=test33&nocache'
         #files=open('/tmp/httpd/httpd.tar.gz','rb')
 
         #r=requests.post(url,data=files,headers=headers)
-        eventlet.spawn_n(create_image,self.url,image_name,tar_path)
+        eventlet.spawn_n(create_image,self.url,image_name,tar_path,repo_path,project_id)
         result=webob.Response('{"status_code":200"}')
         return result
     def delete_image(self,image_id,f_id):
@@ -117,9 +120,9 @@ class ImageController(object):
                 'ImageSize':item[3],
                 'ImageDesc':item[4],
                 'ImageProject':project_name,
-                'CreatedTime':item[6],
-                'CreatedBy':item[7],
-                'Status' : item[8],
+                'CreatedTime':item[7],
+                'CreatedBy':item[8],
+                'Status' : item[9],
                 }
             pprint(image)
             result_json.append(image)
@@ -128,14 +131,24 @@ class ImageController(object):
         #    result_json=result.json()
         return result_json
     def show(self,request):
-        result_json={}
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result = self.image_api.get_image_by_id(image_id)
-        if result.status_code == 200:
-            for res in result.json():
-                if image_id in res['Id']:
-                    result_json = res   
-        return result_json
+        #result = self.image_api.get_image_by_id(image_id)
+        result = self.db_api.get_image_by_id(image_id)
+        image_info=result.fetchone()
+        project_info= self.db_api.get_project_by_id(image_info[5]).fetchone()
+        image_hg = self.db_api.get_hg(image_info[1]).fetchone()[1]
+        image={
+                'ImageID':image_info[1],
+                'ImageName':image_info[2],
+                'ImageSize':image_info[3],
+                'ImageDesc':image_info[4],
+                'ProjectID':project_info[1],
+                'ImageHgs':image_hg,
+                'Created':image_info[7],
+                'CreatedBy':image_info[8],
+                'Status':image_info[9],
+        }
+        return image 
     def inspect(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
         result = self.image_api.inspect_image(image_id)
@@ -156,7 +169,7 @@ class ImageController(object):
         print image_name,image_desc,image_proj,repo_path,user_name
 
         result_json={}
-        result=self.image_api.create_image_from_file(image_name,str(repo_path))
+        result=self.image_api.create_image_from_file(image_name,str(repo_path),image_proj)
         if result.status_code == 200:
             print 'image create begin'
             result_json={"ok":"200 create image begin"}

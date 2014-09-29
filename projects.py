@@ -90,19 +90,35 @@ class ProjectController(object):
         #    result_json=result.json()
         return result_json
     def show(self,request):
-        result_json={}
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
         result = self.db_api.get_projects(project_id=project_id)
-        project_hgs = result.fetchone()[3]
+        project_info = result.fetchone()
+        project_name= project_info[1]
+        project_desc = project_info[2]
+        project_hgs = project_info[3]
+        project_admin = project_info[5]
+        _members = self.db_api.get_users(project_id=project_id)
+        project_members=list()
+        for memb in _members.fetchall():
+               project_members.append(memb[1]) 
+        project_members=' '.join(project_members)
+        project_created = project_info[7]
         result = self.db_api.get_images(project_id=project_id)
         project_imgs=[]
         for item in result.fetchall():
             img_name = item[2]
             project_imgs.append(img_name)
+        project_imgs=' '.join(project_imgs)
         print project_imgs
+        result_json={}
         result_json = {
-                    'hgs':project_hgs,
-                    'imgs':project_imgs,
+                    "name":project_name,
+                    "desc":project_desc,
+                    "admin":project_admin,
+                    "members":project_members,
+                    "hgs":project_hgs,
+                    "imgs":project_imgs,
+                    "created":project_created,
                     }
         print result_json
         #if result.status_code == 200:

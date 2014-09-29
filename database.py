@@ -42,6 +42,11 @@ class DBAPI():
             s=table.select(table.c.ProjectID == project_id)
         r=s.execute() 
         return r
+    def get_image_by_id(self,image_id):
+        table=Table('images',self.metadata,autoload=True)
+        s=table.select(table.c.ID == image_id)
+        r=s.execute()
+        return r
     def get_image_by_hgs(self,hgs):
         table=Table('images',self.metadata,autoload=True)
         s=table.select(table.c.ImageHgs == hgs)
@@ -71,9 +76,13 @@ class DBAPI():
         s=table.select()
         r=s.execute()
         return r
-    def delete_container(self,container_name):
+    def get_container(self,container_id):
         table=Table('containers',self.metadata,autoload=True)
-        d=table.delete(table.c.ContainerName == container_name)
+        s=table.select(table.c.Id == container_id)
+        return s.execute()
+    def delete_container(self,container_id):
+        table=Table('containers',self.metadata,autoload=True)
+        d=table.delete(table.c.Id == container_id)
         d.execute()
     def get_projects(self,project_id=None):
         table=Table('projects',self.metadata,autoload=True)
@@ -82,6 +91,14 @@ class DBAPI():
             s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
+    def get_project_by_id(self,project_id):
+        table=Table('projects',self.metadata,autoload=True)
+        s=table.select(table.c.ProjectID == project_id)
+        return s.execute()
+    def get_project(self,project_id):
+        table=Table('projects',self.metadata,autoload=True)
+        s=table.select(table.c.ProjectID == project_id)
+        return s.execute()
     def add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time):
         table=Table('projects',self.metadata,autoload=True)
         i=table.insert()
@@ -119,6 +136,19 @@ class DBAPI():
                 ProjectID=project_id,
                 Created=created
                 )
+    def add_hg(self,project_id,image_id,hg_name):
+        table=Table('hgs',self.metadata,autoload=True)
+        i=table.insert()
+        i.execute(
+                ProjectID = project_id,
+                ImageID = image_id,
+                Name = hg_name,
+                )
+    def get_hg(self,image_id):
+        table=Table('hgs',self.metadata,autoload=True)
+        s=table.select(table.c.ImageID == image_id)
+        return s.execute()
+
 
 
 
@@ -181,8 +211,9 @@ if __name__ == '__main__':
     )
     hgs_table = Table('hgs',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
+            Column('Name',String(300)),
             Column('ProjectID',Integer),
-            Column('ImageID',Integer),
+            Column('ImageID',String(30)),
     )
 
 

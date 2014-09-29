@@ -140,7 +140,22 @@ class ContainerController(object):
         return container_list
     def show(self,request):
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        container=self.compute_api.get_container_by_id(container_id)
+        #container=self.compute_api.get_container_by_id(container_id)
+        container_info = self.db_api.get_container(container_id).fetchone()
+        project_info=self.db_api.get_project(container_info[4]).fetchone()
+        container = {
+                'name':container_info[2],
+                'id':container_info[1],
+                'env':container_info[3],
+                'project':project_info[1],
+                'hgs':container_info[5],
+                'code':container_info[6],
+                'access':' '.join(ast.literal_eval(container_info[7])),
+                'created':container_info[8],
+                'createdby':container_info[9],
+                'status':container_info[10],
+                }
+        print container
         return container
     def inspect(self,request):
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
@@ -154,7 +169,9 @@ class ContainerController(object):
         return result
     def delete(self,request):
         result_json={}
-        container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+        _container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+        container_info = self.db_api.get_container(_container_id).fetchone()
+        container_id = container_info[1]
         result=self.compute_api.kill_container(container_id)
         if result.status_code == 204:
             result_json = {"succeed":"{} stopped".format(container_id)}
@@ -167,7 +184,7 @@ class ContainerController(object):
             result=self.compute_api.delete_container(container_id)
         if result.status_code == 204:
             result_json = {"succeed":"{} deleted".format(container_id)}
-            self.db_api.delete_container(container_id)
+            self.db_api.delete_container(_container_id)
         if result.status_code == 400:
             result_json = {"error":"400 bad parameter"} 
         if result.status_code == 404:
