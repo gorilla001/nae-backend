@@ -67,11 +67,16 @@ class ProjectController(object):
         result_json=[]
         rs = self.db_api.get_projects()
         for item in rs.fetchall():
+            hgs=self.db_api.get_hgs(project_id = item[0])
+            hg_list=list()
+            for _item in hgs.fetchall():
+                hg = _item[1]
+                hg_list.append(hg)
             project={
                 'ProjectId':item[0],
                 'ProjectName':item[1],
                 'ProjectDesc':item[2],
-                'ProjectHgs':item[3],
+                'ProjectHgs':' '.join(hg_list),
                 'ProjectImgs':item[4],
                 'ProjectAdmin':item[5],
                 'ProjectMembers':'',
@@ -95,7 +100,12 @@ class ProjectController(object):
         project_info = result.fetchone()
         project_name= project_info[1]
         project_desc = project_info[2]
-        project_hgs = project_info[3]
+        hgs=self.db_api.get_hgs(project_id = project_id)
+        hg_list=list()
+        for _item in hgs.fetchall():
+            hg = _item[1]
+            hg_list.append(hg)
+        project_hgs = ' '.join(hg_list) 
         project_admin = project_info[5]
         _members = self.db_api.get_users(project_id=project_id)
         project_members=list()
@@ -148,7 +158,8 @@ class ProjectController(object):
         #add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time)
         project_id=self.db_api.add_project(
                 str(project_name),
-                ' '.join(project_hgs),
+                #' '.join(project_hgs),
+                '',
                 str(project_admin),
                 #' '.join(project_members),
                 '',
@@ -162,6 +173,13 @@ class ProjectController(object):
                     project_id = project_id,
                     created = created_time,
                     )
+        for hg in project_hgs:
+            self.db_api.add_hg(
+                    project_id = project_id,
+                    hg_name = hg,
+                    image_id = '',
+            )
+
         #self.db_api.add_user(
         #        )
         result_json={}
@@ -183,6 +201,43 @@ class ProjectController(object):
         #    result_json=errors
         result_json={}
         return result_json
+    def update(self,request):
+        project_id=request.environ['wsgiorg.routing_args'][1]['id']
+        project_name = request.GET['name']
+        project_desc = request.GET['desc']
+        project_members = request.GET['members']
+        project_hgs = request.GET['hgs']
+        self.db_api.update_project(
+                project_id = project_id,
+                project_name = project_name,
+                project_desc = project_desc,
+                project_members = '',
+                project_hgs = '',
+                )
+        print 'project_desc',project_desc
+        print 'project_members',str(project_members).split()
+        members_list = str(project_members).split()
+        self.db_api.delete_users(project_id)
+        for member in members_list:
+            #print 'member:',self.db_api.user_exist(project_id,member)
+            #if not self.db_api.user_exist(project_id,member):
+                self.db_api.add_user(
+                    project_id = project_id,
+                    user_id = member,
+                    user_name = '',
+                    created = utils.human_readable_time(time.time()),
+
+                )
+        hg_list = str(project_hgs).split()
+        self.db_api.delete_hgs(project_id)
+        for hg in hg_list:
+            self.db_api.add_hg(
+                    project_id = project_id,
+                    hg_name = hg,
+                    image_id = ''
+                    )
+
+        return {"status":"200"}
 
 def create_resource():
     return ProjectController()

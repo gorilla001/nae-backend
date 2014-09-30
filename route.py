@@ -128,6 +128,11 @@ class Router (object):
 				action='show',
 				conditions={'method':['GET']},
 		)
+        self.mapper.connect('/projects/{id}',
+				controller=self.project_controller,
+				action='update',
+				conditions={'method':['PUT']},
+		)
 
 
         self.mapper.connect('/users',

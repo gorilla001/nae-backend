@@ -1,5 +1,6 @@
 from sqlalchemy import *
 from sqlalchemy.orm import *
+from sqlalchemy.sql import and_
 
 
 
@@ -112,9 +113,14 @@ class DBAPI():
                 )
         return result.lastrowid  
     def update_project(self,project_id,project_name=None,project_hgs=None,project_imgs=None,project_admin=None,project_members=None,project_desc=None):
-        #table=Table('projects',self.metadata,autoload=True)
-        #u=table.update(table.c.ProjectID == project_id)
-        pass
+        table=Table('projects',self.metadata,autoload=True)
+        u=table.update().\
+            where(table.c.ProjectID == project_id).\
+            values(ProjectName = project_name,
+                    ProjectDesc = project_desc,
+                    ProjectMembers = project_members,
+                    ProjectHgs = project_hgs)
+        return u.execute()
         
     def delete_project(self,project_id):
         table=Table('projects',self.metadata,autoload=True)
@@ -136,6 +142,21 @@ class DBAPI():
                 ProjectID=project_id,
                 Created=created
                 )
+    def delete_users(self,project_id):
+        table = Table('users',self.metadata,autoload=True)
+        d=table.delete(table.c.ProjectID == project_id)
+        d.execute()
+    def user_exist(self,project_id,user_id):
+        table = Table('users',self.metadata,autoload=True)
+        s = table.select().where(and_(
+                                    table.c.ProjectID == project_id,
+                                    table.c.UserID == user_id)
+                                    )
+        r = s.execute().fetchone()
+        print 's',r
+        if r is not None:
+            return True
+        return False
     def add_hg(self,project_id,image_id,hg_name):
         table=Table('hgs',self.metadata,autoload=True)
         i=table.insert()
@@ -148,7 +169,14 @@ class DBAPI():
         table=Table('hgs',self.metadata,autoload=True)
         s=table.select(table.c.ImageID == image_id)
         return s.execute()
-
+    def get_hgs(self,project_id):
+        table=Table('hgs',self.metadata,autoload=True)
+        s=table.select(table.c.ProjectID == project_id)
+        return s.execute()
+    def delete_hgs(self,project_id):
+        table=Table('hgs',self.metadata,autoload=True)
+        d=table.delete(table.c.ProjectID == project_id)
+        return d.execute()
 
 
 

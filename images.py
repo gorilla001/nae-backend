@@ -106,12 +106,12 @@ class ImageController(object):
         result_json=[]
         rs = self.db_api.get_images()
         for item in rs.fetchall():
-            image_project = self.db_api.get_projects(project_id=item[5]) 
+            project_info = self.db_api.get_projects(project_id=item[5]) 
             #print '-----------------------'
             #print 'project_id',item[5]
             #print image_project.fetchone()
             #print '-----------------------'
-            project_name = image_project.fetchone()[1]
+            project_name = project_info.fetchone()[1]
             print project_name
             image={
                 'ID':item[0],
