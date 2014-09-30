@@ -182,11 +182,15 @@ class ProjectController(object):
 
         #self.db_api.add_user(
         #        )
-        result_json={}
+        result_json={"status":200}
         return result_json
     def delete(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
         self.db_api.delete_project(project_id)
+        self.db_api.delete_containers(project_id)
+        self.db_api.delete_images(project_id)
+        self.db_api.delete_users(project_id)
+        self.db_api.delete_hgs(project_id)
         #result=self.image_api.delete_image(image_id)
         #if result.status_code == 200:
         #    result_json = result.json() 
