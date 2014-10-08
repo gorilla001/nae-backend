@@ -11,6 +11,8 @@ from random import Random
 
 import contextlib
 import time
+import stat
+import pwd
 
 def get_random_port():
 	port_range=config.PortRange.strip("'").split(':')	
@@ -32,9 +34,10 @@ def get_file_path(file_name):
 
     return os.path.join(base_dir,'files',file_name)
 
-def repo_exist(repo_name):
+def repo_exist(user_name,repo_name):
     base_dir=os.path.dirname(__file__)
-    repo_dir=os.path.join(base_dir,'files',repo_name)
+    user_dir=os.path.join(base_dir,'files',user_name)
+    repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
         return False 
     return True
@@ -48,6 +51,11 @@ def human_readable_time(timestamp):
     _time_format = "%Y-%m-%d %H:%M:%S"
 
     return time.strftime(_time_format,_localtime)
+
+def create_user_access(user_name):
+    user_home = make_user_home(user_name)
+    os.system('useradd -d {} -s /bin/bash {}'.format(user_home,user_name))
+    os.system('echo {} | passwd {} --stdin'.format(random_str(),user_name))
 
 @contextlib.contextmanager
 def cd_change(tmp_location):
@@ -69,29 +77,52 @@ def make_zip_tar(path):
     tar.close()
 
     return "/tmp/%s.tar.gz" % _str
+def make_user_home(user_name,user_key):
+    path = os.path.join(os.path.dirname(__file__),'files')
+    user_home = os.path.join(path,user_name)
+    if not os.path.exists(user_home):
+        os.mkdir(user_home)
+        os.chmod(user_home,stat.S_IRWXU+stat.S_IRGRP+stat.S_IXGRP+stat.S_IROTH+stat.S_IXOTH)
+        ssh_dir = os.path.join(user_home,'.ssh')
+        os.mkdir(ssh_dir)
+        authorized_keys_file = os.path.join(ssh_dir,'authorized_keys')
+        with open(authorized_keys_file,'a') as f:
+            f.write('{}\n'.format(user_key))
+    return user_home
+
+def change_dir_owner(home,user_name):
+    uid = pwd.getpwnam(user_name).pw_uid
+    gid = pwd.getpwnam(user_name).pw_gid
+    os.system('chown -R {}:{} {}'.format(uid,gid,home))
+        
+
+
 
 class MercurialControl(object):
     def __init__(self):
         self._ui = mercurial.ui.ui()
         self.path=os.path.join(os.path.dirname(__file__),'files')
-    def clone(self,repo_path):
+    def clone(self,user_name,repo_path):
         #source = 'ssh://localhost/%s' % repo_path
         source = repo_path
-        dest = os.path.join(self.path,os.path.basename(repo_path)) 
+        path = os.path.join(self.path,user_name)
+        dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
             mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
             logging.debug('clone docker file from %s' % repo_path)
         except Exception,error:
             logging.error('could not clone repo:%s' % repo_path)
             logging.error(error)
-    def pull(self,repo_path):
+    def pull(self,user_name,repo_path):
         #source = 'ssh://localhost/%s' % repo_path
         source = repo_path
-        local_repo_path = os.path.join(self.path,os.path.basename(repo_path)) 
+        path = os.path.join(self.path,user_name)
+        local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
         repo=mercurial.hg.repository(self._ui,local_repo_path)
         mercurial.commands.pull(self._ui,repo,source=source)
-    def update(self,repo_path,branch=None):
-        local_repo_path = os.path.join(self.path,os.path.basename(repo_path))
+    def update(self,user_name,repo_path,branch=None):
+        path = os.path.join(self.path,user_name)
+        local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
         repo=mercurial.hg.repository(self._ui,local_repo_path)
         mercurial.commands.update(self._ui,repo,rev=branch,clean=True)
 

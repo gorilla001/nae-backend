@@ -58,9 +58,10 @@ class ContainerAPI():
             #response.json = res    
                 pass
         return result 
-    def start_container(self,container_id,exposed_port,root_path,repo_name):
+    def start_container(self,container_id,exposed_port,root_path,repo_name,user_name):
         random_port=utils.get_random_port()
-        _path=os.path.join(os.path.dirname(__file__),'files')
+        path=os.path.join(os.path.dirname(__file__),'files')
+        _path = os.path.join(path,user_name)
         source_path = os.path.join(_path,repo_name)
         print 'source_path',source_path
         dest_path = root_path
@@ -207,17 +208,19 @@ class ContainerController(object):
         container_code = request.json.pop('container_code')
         root_path = request.json.pop('root_path')
         user_name = request.json.pop('user_name')
+        user_key = request.json.pop('user_key')
         #cmd=body.pop('Cmd')
         #image=self.db_api.get_image_by_hgs(container_hgs).fetchone()[2]
         repo_path = container_hgs
-        repo_name=os.path.basename(repo_path)
-        if utils.repo_exist(repo_name):
-            self.mercurial.pull(repo_path)
-            self.mercurial.update(repo_path)
+        repo_name=os.path.basename(container_hgs)
+        user_home=utils.make_user_home(user_name,user_key)
+        if utils.repo_exist(user_name,repo_name):
+            self.mercurial.pull(user_name,repo_path)
+            self.mercurial.update(user_name,repo_path)
         else:
-            self.mercurial.clone(repo_path)
+            self.mercurial.clone(user_name,repo_path)
         #self.mercurial.update(repo_path,container_code)
-
+        utils.change_dir_owner(user_home,user_name)
         image=os.path.basename(container_hgs)
         result = self.image_api.inspect_image(image)
         result_json={}
@@ -240,7 +243,7 @@ class ContainerController(object):
         if resp.status_code == 201:
             result_json = resp.json() 
             #container_id=result_json['Id']
-            resp = self.compute_api.start_container(result_json['Id'],port.keys()[0],root_path,repo_name)
+            resp = self.compute_api.start_container(result_json['Id'],port.keys()[0],root_path,repo_name,user_name)
         
             #print result.json()['HostConfig']
             if resp.status_code == 204:
@@ -259,6 +262,7 @@ class ContainerController(object):
                         created=created_time,
                         created_by=user_name,
                         status='ok')
+                #utils.create_user_access(user_name)
 
             if resp.status_code == 304:
                 result_json={"error":"304 container already started"}
