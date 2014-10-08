@@ -67,7 +67,6 @@ class ContainerAPI():
         print 'dest_path',dest_path
         data = {
             'Binds':['{}:{}'.format(source_path,dest_path)],
-            'Binds':[],
             'Links':[],
             'LxcConf':{},
             'PortBindings':{exposed_port:[{'HostPort':'{}'.format(random_port)}]},
@@ -78,6 +77,7 @@ class ContainerAPI():
             'CapAdd':[],
             'CapDrop':[],
         }
+        pprint(data)
         headers={"Content-Type":"application/json"}
         result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
         return result
