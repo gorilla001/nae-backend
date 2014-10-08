@@ -13,6 +13,7 @@ import os
 from database import DBAPI
 import time
 import ast
+from utils import MercurialControl
 
 class ContainerAPI():
     def __init__(self):
@@ -57,9 +58,15 @@ class ContainerAPI():
             #response.json = res    
                 pass
         return result 
-    def start_container(self,container_id,exposed_port):
+    def start_container(self,container_id,exposed_port,root_path,repo_name):
         random_port=utils.get_random_port()
+        _path=os.path.join(os.path.dirname(__file__),'files')
+        source_path = os.path.join(_path,repo_name)
+        print 'source_path',source_path
+        dest_path = root_path
+        print 'dest_path',dest_path
         data = {
+            'Binds':['{}:{}'.format(source_path,dest_path)],
             'Binds':[],
             'Links':[],
             'LxcConf':{},
@@ -90,14 +97,15 @@ class ContainerController(object):
         self.compute_api=ContainerAPI()
         self.image_api=ImageAPI()
         self.db_api = DBAPI()
+        self.mercurial = MercurialControl()
     @webob.dec.wsgify
     def __call__(self,request):
-        print request.environ['wsgiorg.routing_args']
-        print request.method
+        #print request.environ['wsgiorg.routing_args']
+        #print request.method
         method=request.environ['wsgiorg.routing_args'][1]['action']
-        print '----------------'
-        print method
-        print '----------------'
+        #print '----------------'
+        #print method
+        #print '----------------'
         method=getattr(self,method)     
         response=webob.Response()
         result_json=method(request)
@@ -197,9 +205,18 @@ class ContainerController(object):
         container_env = request.json.pop('container_environ')
         project_id = request.json.pop('container_project')
         container_code = request.json.pop('container_code')
+        root_path = request.json.pop('root_path')
         user_name = request.json.pop('user_name')
         #cmd=body.pop('Cmd')
         #image=self.db_api.get_image_by_hgs(container_hgs).fetchone()[2]
+        repo_path = container_hgs
+        repo_name=os.path.basename(repo_path)
+        if utils.repo_exist(repo_name):
+            self.mercurial.pull(repo_path)
+        else:
+            self.mercurial.clone(repo_path)
+        #self.mercurial.update(repo_path,container_code)
+
         image=os.path.basename(container_hgs)
         result = self.image_api.inspect_image(image)
         result_json={}
@@ -222,7 +239,7 @@ class ContainerController(object):
         if resp.status_code == 201:
             result_json = resp.json() 
             #container_id=result_json['Id']
-            resp = self.compute_api.start_container(result_json['Id'],port.keys()[0])
+            resp = self.compute_api.start_container(result_json['Id'],port.keys()[0],root_path,repo_name)
         
             #print result.json()['HostConfig']
             if resp.status_code == 204:

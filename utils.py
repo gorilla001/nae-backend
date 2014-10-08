@@ -90,6 +90,10 @@ class MercurialControl(object):
         local_repo_path = os.path.join(self.path,os.path.basename(repo_path)) 
         repo=mercurial.hg.repository(self._ui,local_repo_path)
         mercurial.commands.pull(self._ui,repo,source=source)
+    def update(self,repo_path,branch):
+        local_repo_path = os.path.join(self.path,os.path.basename(repo_path))
+        repo=mercurial.hg.repository(self._ui,local_repo_path)
+        mercurial.commands.update(self._ui,repo,rev=branch,clean=True)
 
 
 if __name__ == '__main__':
