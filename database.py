@@ -187,6 +187,22 @@ class DBAPI():
         d=table.delete(table.c.ProjectID == project_id)
         return d.execute()
 
+    def add_sftp(self,container_id,sftp_addr,sftp_user,sftp_port=22):
+        table=Table('sftp',self.metadata,autoload=True)
+        i=table.insert()
+        i.execute(
+                ContainerID = container_id,
+                Sftp = sftp_addr,
+                User = sftp_user,
+                Port = sftp_port,
+                )
+    def get_sftp(self,container_id):
+        table=Table('sftp',self.metadata,autoload=True)
+        d=table.select(table.c.ContainerID == container_id)
+        return d.execute()
+
+
+
 
 
 if __name__ == '__main__':
@@ -253,6 +269,14 @@ if __name__ == '__main__':
             Column('ImageID',String(30)),
     )
 
+    sftp_table = Table('sftp',metadata,
+            Column('Id',Integer,primary_key=True,autoincrement=True),
+            Column('ContainerID',String(50)),
+            Column('Sftp',String(100)),
+            Column('User',String(30)),
+            Column('Port',String(30)),
+    )
+
 
     engine.echo=True
     images_table.create(checkfirst=True)
@@ -260,4 +284,6 @@ if __name__ == '__main__':
     users_table.create(checkfirst=True)
     containers_table.create(checkfirst=True)
     hgs_table.create(checkfirst=True)
+    sftp_table.create(checkfirst=True)
+
     print 'ok'

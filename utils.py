@@ -94,6 +94,12 @@ def change_dir_owner(home,user_name):
     uid = pwd.getpwnam(user_name).pw_uid
     gid = pwd.getpwnam(user_name).pw_gid
     os.system('chown -R {}:{} {}'.format(uid,gid,home))
+
+def prepare_config_file(home,repo,env):
+    path = os.path.join(home,repo)
+    if env == 'config-dev':
+        config_file = os.path.join(path,'config-dev')
+        os.rename(config_file,os.path.join(path,'config'))
         
 
 

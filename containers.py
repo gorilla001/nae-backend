@@ -124,6 +124,14 @@ class ContainerController(object):
                     'Created':item[8],
                     'Status':item[10],
                     }
+            rs = self.db_api.get_sftp(item[1])
+            sftp_info = rs.fetchone()
+            print sftp_info 
+            sftp_addr = sftp_info[2]
+            sftp_user = sftp_info[3]
+            sftp_port = sftp_info[4]
+            data = { 'Sftp' : '{}@{}:{}'.format(sftp_user,sftp_addr,sftp_port) }
+            container.update(data)
             container_list.append(container)
         #containers=self.compute_api.get_containers()
         #container_list=list()
@@ -220,6 +228,7 @@ class ContainerController(object):
         else:
             self.mercurial.clone(user_name,repo_path)
         #self.mercurial.update(repo_path,container_code)
+        utils.prepare_config_file(user_home,repo_name,container_env)
         utils.change_dir_owner(user_home,user_name)
         image=os.path.basename(container_hgs)
         result = self.image_api.inspect_image(image)
@@ -262,6 +271,11 @@ class ContainerController(object):
                         created=created_time,
                         created_by=user_name,
                         status='ok')
+                self.db_api.add_sftp(
+                        container_id = container_id,
+                        sftp_addr = config.HOST.strip("'"),
+                        sftp_user = user_name,
+                )
                 #utils.create_user_access(user_name)
 
             if resp.status_code == 304:
