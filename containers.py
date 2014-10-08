@@ -213,6 +213,7 @@ class ContainerController(object):
         repo_name=os.path.basename(repo_path)
         if utils.repo_exist(repo_name):
             self.mercurial.pull(repo_path)
+            self.mercurial.update(repo_path)
         else:
             self.mercurial.clone(repo_path)
         #self.mercurial.update(repo_path,container_code)
