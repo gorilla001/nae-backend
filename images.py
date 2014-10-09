@@ -32,14 +32,14 @@ class ImageAPI():
     def inspect_image(self,image_id):
         result=requests.get("{}/images/{}/json".format(self.url,image_id))
         return result
-    def create_image_from_file(self,image_name,repo_path,project_id):
+    def create_image_from_file(self,image_name,repo_path,project_id,user_name):
 
         repo_name=os.path.basename(repo_path)
-        if utils.repo_exist(repo_name):
-            self.mercurial.pull(repo_path)
+        if utils.repo_exist(user_name,repo_name):
+            self.mercurial.pull(user_name,repo_path)
         else:
-            self.mercurial.clone(repo_path)
-        file_path=utils.get_file_path(repo_name)
+            self.mercurial.clone(user_name,repo_path)
+        file_path=utils.get_file_path(user_name,repo_name)
         tar_path=utils.make_zip_tar(file_path)
         print tar_path
         def create_image(url,image_name,tar_path,repo_path,project_id):
@@ -169,7 +169,7 @@ class ImageController(object):
         print image_name,image_desc,image_proj,repo_path,user_name
 
         result_json={}
-        result=self.image_api.create_image_from_file(image_name,str(repo_path),image_proj)
+        result=self.image_api.create_image_from_file(image_name,str(repo_path),image_proj,user_name)
         if result.status_code == 200:
             print 'image create begin'
             result_json={"ok":"200 create image begin"}

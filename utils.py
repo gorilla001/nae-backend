@@ -29,10 +29,11 @@ def random_str(randomlength=8):
         str += chars[random.randint(0, length)]
     return str
 
-def get_file_path(file_name):
+def get_file_path(user_name,repo_name):
     base_dir = os.path.dirname(__file__)
+    user_dir=os.path.join(base_dir,'files',user_name,repo_name)
 
-    return os.path.join(base_dir,'files',file_name)
+    return user_dir 
 
 def repo_exist(user_name,repo_name):
     base_dir=os.path.dirname(__file__)
