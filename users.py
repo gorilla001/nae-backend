@@ -50,15 +50,16 @@ class UserController(object):
         self.db_api=DBAPI()
     def index(self,request):
         result_json=[]
-        rs = self.db_api.get_users()
+        #project_id=request.environ['wsgiorg.routing_args'][1]['project_id']
+        project_id = request.GET.get('project_id')
+        rs = self.db_api.get_users(project_id=project_id)
         for item in rs.fetchall():
             user={
-                'UserId':item[0],
-                'UserName':item[1],
-                'CNName':item[2],
-                'DepartMent':item[3],
-                'Email':item[4],
-                'Created':item[5],
+                'Id':item[0],
+                'UserID':item[1],
+                'Email':item[2],
+                'RoleID':item[5],
+                'Created':item[6],
                 }
             result_json.append(user)
         #result=self.image_api.get_images()

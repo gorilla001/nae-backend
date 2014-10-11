@@ -142,13 +142,15 @@ class DBAPI():
             s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
-    def add_user(self,user_id,user_name,project_id,created):
+    def add_user(self,user_id,email,user_name,project_id,role_id,created):
         table=Table('users',self.metadata,autoload=True) 
         i=table.insert()
         i.execute(
                 UserID=user_id,
+                Email = email,
                 Name=user_name,
                 ProjectID=project_id,
+                RoleID = role_id,
                 Created=created
                 )
     def delete_users(self,project_id):
@@ -244,8 +246,10 @@ if __name__ == '__main__':
     users_table = Table('users',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
             Column('UserID',String(30)),
+            Column('Email',String(150)),
             Column('Name',String(30)),
             Column('ProjectID',Integer),
+            Column('RoleID',Integer),
             Column('Created',String(150)),
     )
 

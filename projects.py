@@ -122,6 +122,7 @@ class ProjectController(object):
         print project_imgs
         result_json={}
         result_json = {
+                    "id" : project_id,
                     "name":project_name,
                     "desc":project_desc,
                     "admin":project_admin,
@@ -148,38 +149,27 @@ class ProjectController(object):
         return result_json
     def create(self,request):
         project_name=request.json.pop('project_name')
-        project_hgs=request.json.pop('project_hgs')
         project_admin=request.json.pop('project_admin')
-        project_members=request.json.pop('project_members')
         project_desc=request.json.pop('project_desc')
+        admin_email=request.json.pop('admin_email')
         created_time = utils.human_readable_time(time.time())
 
-        print project_name,project_hgs,project_members,project_admin,project_desc
-        #add_project(self,project_name,project_hgs,project_admin,project_members,project_desc,created_time)
         project_id=self.db_api.add_project(
                 str(project_name),
-                #' '.join(project_hgs),
                 '',
                 str(project_admin),
-                #' '.join(project_members),
                 '',
                 str(project_desc),
                 str(created_time),
                 )
-        for member in project_members:
-            self.db_api.add_user(
-                    user_id = member,
-                    user_name = '',
-                    project_id = project_id,
-                    created = created_time,
-                    )
-        for hg in project_hgs:
-            self.db_api.add_hg(
-                    project_id = project_id,
-                    hg_name = hg,
-                    image_id = '',
-            )
-
+        self.db_api.add_user(
+            user_id = project_admin,
+            user_name = '',
+            email = admin_email,
+            project_id = project_id,
+            role_id = 0, # 0 for admin
+            created = created_time,
+        )
         #self.db_api.add_user(
         #        )
         result_json={"status":200}

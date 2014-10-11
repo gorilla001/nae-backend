@@ -104,7 +104,8 @@ class ImageController(object):
         self.db_api=DBAPI()
     def index(self,request):
         result_json=[]
-        rs = self.db_api.get_images()
+        project_id=request.GET.pop('project_id')
+        rs = self.db_api.get_images(project_id=project_id)
         for item in rs.fetchall():
             project_info = self.db_api.get_projects(project_id=item[5]) 
             #print '-----------------------'
@@ -162,7 +163,7 @@ class ImageController(object):
     def create(self,request):
         image_name=request.json.pop('image_name')
         image_desc=request.json.pop('image_desc')
-        image_proj=request.json.pop('image_proj')
+        image_proj=request.json.pop('project_id')
         repo_path=request.json.pop('repo_path')
         user_name=request.json.pop('user_name')
 
@@ -172,7 +173,7 @@ class ImageController(object):
         result=self.image_api.create_image_from_file(image_name,str(repo_path),image_proj,user_name)
         if result.status_code == 200:
             print 'image create begin'
-            result_json={"ok":"200 create image begin"}
+            result_json={"status":"200"}
             #result=self.image_api.inspect_image(image_name)
             #pprint(result)
             #image_id=result.json()['id'][:12]
