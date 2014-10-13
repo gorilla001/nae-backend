@@ -36,7 +36,7 @@ class UserAPI():
 
 
 
-class UserController(object):
+class HgController(object):
     @webob.dec.wsgify
     def __call__(self,request):
         method=request.environ['wsgiorg.routing_args'][1]['action']
@@ -50,21 +50,15 @@ class UserController(object):
         self.db_api=DBAPI()
     def index(self,request):
         result_json=[]
-        #project_id=request.environ['wsgiorg.routing_args'][1]['project_id']
         project_id = request.GET.get('project_id')
-        rs = self.db_api.get_users(project_id=project_id)
+        rs = self.db_api.get_hgs(project_id=project_id)
         for item in rs.fetchall():
-            user={
+            hg={
                 'Id':item[0],
-                'UserID':item[1],
-                'Email':item[2],
-                'RoleID':item[5],
-                'Created':item[6],
+                'Content':item[1],
+                'Created':item[3],
                 }
-            result_json.append(user)
-        #result=self.image_api.get_images()
-        #if result.status_code == 200:
-        #    result_json=result.json()
+            result_json.append(hg)
         return result_json
     def show(self,request):
         result_json={}
@@ -86,24 +80,19 @@ class UserController(object):
             result_json=errors
         return result_json
     def create(self,request):
-        user_id=request.json.pop('user_name')
-        email=request.json.pop('user_email')
-        role_id=request.json.pop('role_id')
         project_id=request.json.pop('project_id')
+        hg_addr=request.json.pop('hg_addr')
         created=utils.human_readable_time(time.time()) 
-        print user_id
-        self.db_api.add_user(
-                user_id = user_id,
-                user_email = email,
-                role_id = role_id,
+        self.db_api.add_hg(
                 project_id = project_id,
+                hg_addr = hg_addr,
                 created = created,
         )
         result_json = {"status":200}
         return result_json
     def delete(self,request):
-        user_id=request.environ['wsgiorg.routing_args'][1]['id']
-        self.db_api.delete_user(user_id)
+        hg_id=request.environ['wsgiorg.routing_args'][1]['id']
+        self.db_api.delete_hg(hg_id)
         result='{"status":200}'
         return result
 

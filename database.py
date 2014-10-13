@@ -77,11 +77,14 @@ class DBAPI():
                 CreatedBy = created_by,
                 Status = status,
                 )
-    def get_containers(self):
+    def get_containers(self,project_id,user_id):
         table = Table('containers',self.metadata,autoload=True)
-        s=table.select()
-        r=s.execute()
-        return r
+        s = table.select().where(and_(
+                                    table.c.ProjectID == project_id,
+                                    table.c.CreatedBy == user_id)
+                                    )
+
+        return s.execute() 
     def get_container(self,container_id):
         table=Table('containers',self.metadata,autoload=True)
         s=table.select(table.c.Id == container_id)
@@ -94,11 +97,9 @@ class DBAPI():
         table=Table('containers',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)
         return d.execute()
-    def get_projects(self,project_id=None):
+    def get_projects(self):
         table=Table('projects',self.metadata,autoload=True)
         s=table.select()
-        if project_id is not None:
-            s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
     def get_project_by_id(self,project_id):
@@ -142,17 +143,34 @@ class DBAPI():
             s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
-    def add_user(self,user_id,email,user_name,project_id,role_id,created):
+    def get_project_id_by_user_id(self,user_id):
+        table=Table('users',self.metadata,autoload=True)
+        s=table.select(table.c.UserID == user_id)
+        return s.execute()
+
+    def show_project(self,project_id):
+        table=Table('projects',self.metadata,autoload=True)
+        s=table.select(table.c.ProjectID == project_id)
+        return s.execute()
+        
+    def add_user(self,user_id,user_email,project_id,role_id,created,user_name=None):
         table=Table('users',self.metadata,autoload=True) 
         i=table.insert()
         i.execute(
                 UserID=user_id,
-                Email = email,
+                Email = user_email,
                 Name=user_name,
                 ProjectID=project_id,
                 RoleID = role_id,
                 Created=created
                 )
+    def delete_user(self,id):
+        print 'delete user',id
+        table = Table('users',self.metadata,autoload=True)
+        d=table.delete(table.c.Id == id)
+        print 'done'
+        return d.execute()
+
     def delete_users(self,project_id):
         table = Table('users',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)
@@ -168,14 +186,19 @@ class DBAPI():
         if r is not None:
             return True
         return False
-    def add_hg(self,project_id,image_id,hg_name):
+    def add_hg(self,project_id,hg_addr,created):
         table=Table('hgs',self.metadata,autoload=True)
         i=table.insert()
         i.execute(
                 ProjectID = project_id,
-                ImageID = image_id,
-                Name = hg_name,
+                Content = hg_addr,
+                Created = created,
                 )
+    def delete_hg(self,hg_id):
+        table = Table('hgs',self.metadata,autoload=True)
+        d=table.delete(table.c.Id == hg_id)
+        return d.execute()
+
     def get_hg(self,image_id):
         table=Table('hgs',self.metadata,autoload=True)
         s=table.select(table.c.ImageID == image_id)
@@ -268,9 +291,9 @@ if __name__ == '__main__':
     )
     hgs_table = Table('hgs',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
-            Column('Name',String(300)),
+            Column('Content',String(300)),
             Column('ProjectID',Integer),
-            Column('ImageID',String(30)),
+            Column('Created',String(150)),
     )
 
     sftp_table = Table('sftp',metadata,

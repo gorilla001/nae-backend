@@ -107,7 +107,7 @@ class ImageController(object):
         project_id=request.GET.pop('project_id')
         rs = self.db_api.get_images(project_id=project_id)
         for item in rs.fetchall():
-            project_info = self.db_api.get_projects(project_id=item[5]) 
+            project_info = self.db_api.show_project(project_id=item[5]) 
             #print '-----------------------'
             #print 'project_id',item[5]
             #print image_project.fetchone()

@@ -114,7 +114,10 @@ class ContainerController(object):
         response.json=result_json
         return response
     def index(self,request):
-        rs = self.db_api.get_containers()
+        project_id = request.GET.get('project_id')
+        user_id = request.GET.get('user_id')
+
+        rs = self.db_api.get_containers(project_id,user_id)
         container_list = list()
         for item in rs.fetchall():
             container = {

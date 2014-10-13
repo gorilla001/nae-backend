@@ -14,6 +14,8 @@ import time
 import stat
 import pwd
 
+from database import DBAPI
+
 def get_random_port():
 	port_range=config.PortRange.strip("'").split(':')	
 	random_port = random.randint(int(port_range[0]),int(port_range[1]))
@@ -37,6 +39,7 @@ def get_file_path(user_name,repo_name):
 
 def repo_exist(user_name,repo_name):
     base_dir=os.path.dirname(__file__)
+    print base_dir,user_name
     user_dir=os.path.join(base_dir,'files',user_name)
     repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
@@ -102,6 +105,24 @@ def prepare_config_file(home,repo,env):
         config_file = os.path.join(path,'config-dev')
         os.rename(config_file,os.path.join(path,'config'))
         
+
+def get_projects(user_id):
+    db=DBAPI()
+    project_id=list()
+    user_info= db.get_project_id_by_user_id(user_id)
+    if user_info is not None:
+        for item in user_info:
+           _project_id = item[4] 
+           project_id.append(_project_id)
+    return project_id
+
+def get_project_info(project_id):
+    db=DBAPI()
+    project_info = db.show_project(project_id)
+    return project_info.fetchone()
+def get_containers(project_id,user_id):
+    db=DBAPI()
+    return
 
 
 

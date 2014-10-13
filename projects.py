@@ -65,38 +65,41 @@ class ProjectController(object):
         self.db_api=DBAPI()
     def index(self,request):
         result_json=[]
-        rs = self.db_api.get_projects()
-        for item in rs.fetchall():
-            hgs=self.db_api.get_hgs(project_id = item[0])
-            hg_list=list()
-            for _item in hgs.fetchall():
-                hg = _item[1]
-                hg_list.append(hg)
-            project={
-                'ProjectId':item[0],
-                'ProjectName':item[1],
-                'ProjectDesc':item[2],
-                'ProjectHgs':' '.join(hg_list),
-                'ProjectImgs':item[4],
-                'ProjectAdmin':item[5],
-                'ProjectMembers':'',
-                'CreatedTime':item[7],
+        user_id = request.GET.get('user_id')
+        if user_id == 'admin':
+            project_info = self.db_api.get_projects()
+            for item in project_info.fetchall():
+                project={
+                    'ProjectId':item[0],
+                    'ProjectName':item[1],
+                    'ProjectDesc':item[2],
+                    'ProjectHgs':'',
+                    'ProjectImgs':'',
+                    'ProjectAdmin':'item[5]',
+                    'ProjectMembers':'',
+                    'CreatedTime':'item[7]',
                 }
-            rs = self.db_api.get_users(project_id=item[0])
-            user_list =list()
-            for user in rs.fetchall():
-                user_list.append(user[1])
-            user_list=' '.join(user_list)
-            data =  { 'ProjectMembers':user_list}
-            project.update(data)
-            result_json.append(project)
-        #result=self.image_api.get_images()
-        #if result.status_code == 200:
-        #    result_json=result.json()
+                result_json.append(project)
+        else:
+            project_ids = utils.get_projects(user_id=user_id)
+            for project_id in project_ids:
+                project_info = utils.get_project_info(project_id) 
+                project_id = project_id
+                project={
+                    'ProjectId':project_id,
+                    'ProjectName':project_info[1],
+                    'ProjectDesc':project_info[2],
+                    'ProjectHgs':'',
+                    'ProjectImgs':'',
+                    'ProjectAdmin':project_info[5],
+                    'ProjectMembers':'',
+                    'CreatedTime':project_info[7],
+                 }
+                result_json.append(project)
         return result_json
     def show(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
-        result = self.db_api.get_projects(project_id=project_id)
+        result = self.db_api.show_project(project_id=project_id)
         project_info = result.fetchone()
         project_name= project_info[1]
         project_desc = project_info[2]
@@ -165,9 +168,9 @@ class ProjectController(object):
         self.db_api.add_user(
             user_id = project_admin,
             user_name = '',
-            email = admin_email,
+            user_email = admin_email,
             project_id = project_id,
-            role_id = 0, # 0 for admin
+            role_id = 1, # 0 for admin
             created = created_time,
         )
         #self.db_api.add_user(

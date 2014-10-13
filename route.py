@@ -2,6 +2,7 @@ from containers import ContainerController
 from images import ImageController
 from projects import ProjectController
 from users import UserController
+from hgs import HgController
 from misc   import MiscController
 
 import routes
@@ -17,6 +18,7 @@ class Router (object):
         self.project_controller=ProjectController()
         self.user_controller=UserController()
         self.misc_controller=MiscController()
+        self.hg_controller=HgController()
 
         #self.mapper.redirect("","/")
         
@@ -146,6 +148,28 @@ class Router (object):
 				conditions={'method':['POST']},
 		)
 
+        self.mapper.connect('/users/{id}',
+				controller=self.user_controller,
+				action='delete',
+				conditions={'method':['DELETE']},
+		)
+
+        self.mapper.connect('/hgs',
+				controller=self.hg_controller,
+				action='index',
+				conditions={'method':['GET']},
+		)
+        self.mapper.connect('/hgs',
+				controller=self.hg_controller,
+				action='create',
+				conditions={'method':['POST']},
+		)
+
+        self.mapper.connect('/hgs/{id}',
+				controller=self.hg_controller,
+				action='delete',
+				conditions={'method':['DELETE']},
+		)
 
 
         self.mapper.connect('/info',
