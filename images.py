@@ -68,11 +68,11 @@ class ImageAPI():
                                   image_created=created_time,
                                   created_by='',
                                   status = status)
-            self.db_api.add_hg(
-                            project_id = project_id,
-                            image_id = image_id,
-                            hg_name = repo_path,
-                            )
+            #self.db_api.add_hg(
+            #                project_id = project_id,
+            #                image_id = image_id,
+            #                hg_name = repo_path,
+            #                )
             #print 'send notify to ui'
             #requests.get('http://192.168.1.127:8000/images/update')
 

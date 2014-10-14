@@ -57,15 +57,13 @@ class ContainerAPI():
             if container_id in res['Id']:
             #response.json = res    
                 pass
-        return result 
+        return response 
     def start_container(self,container_id,exposed_port,root_path,repo_name,user_name):
         random_port=utils.get_random_port()
         path=os.path.join(os.path.dirname(__file__),'files')
         _path = os.path.join(path,user_name)
         source_path = os.path.join(_path,repo_name)
-        print 'source_path',source_path
         dest_path = root_path
-        print 'dest_path',dest_path
         data = {
             'Binds':['{}:{}'.format(source_path,dest_path)],
             'Links':[],
@@ -78,7 +76,6 @@ class ContainerAPI():
             'CapAdd':[],
             'CapDrop':[],
         }
-        pprint(data)
         headers={"Content-Type":"application/json"}
         result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
         return result
@@ -213,117 +210,78 @@ class ContainerController(object):
             result_json = {"error":"500 internal server error"}
         return result_json
     def create(self,request):
-        container_hgs=request.json.pop('container_image')
+        container_image=request.json.pop('container_image')
         container_env = request.json.pop('container_environ')
         project_id = request.json.pop('container_project')
+        container_hg=request.json.pop('container_hg')
         container_code = request.json.pop('container_code')
         root_path = request.json.pop('root_path')
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
-        #cmd=body.pop('Cmd')
-        #image=self.db_api.get_image_by_hgs(container_hgs).fetchone()[2]
-        repo_path = container_hgs
-        repo_name=os.path.basename(container_hgs)
-        user_home=utils.make_user_home(user_name,user_key)
-        if utils.repo_exist(user_name,repo_name):
-            self.mercurial.pull(user_name,repo_path)
-            self.mercurial.update(user_name,repo_path)
-        else:
-            self.mercurial.clone(user_name,repo_path)
-        #self.mercurial.update(repo_path,container_code)
-        utils.prepare_config_file(user_home,repo_name,container_env)
-        utils.change_dir_owner(user_home,user_name)
-        image=os.path.basename(container_hgs)
+
+        container_name,container_id,container_port = self.create_container(container_image)
+        self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
+        self.start_container(container_id,container_port,root_path,container_hg,user_name)
+        self.save_to_db(container_id,container_name,container_env,project_id,container_hg,container_code,user_name)
+        
+    def create_container(self,image):
         result = self.image_api.inspect_image(image)
         result_json={}
         if result.status_code == 200:
             result_json=result.json()   
+            port=result_json['config']['ExposedPorts']
+            name=utils.random_str()
+            kwargs={
+                'Image':image,
+                'ExposedPorts':port,
+            }
+            resp = self.compute_api.create_container(kwargs,name)
+            if resp.status_code == 201:
+                _container_id = resp.json()['Id']
+                return (name,_container_id,port.keys()[0])
         if result.status_code == 404:
             errors={"errors":"404 Not Found:no such image {}".format(image)}
             result_json=errors
             return result_json
-        port=result_json['config']['ExposedPorts']
-        #name=request.params['name']
-        name=utils.random_str()
-        kwargs={
-            'Image':image,
-            #'Cmd':[cmd],
-            'ExposedPorts':port,
-        }
-        resp=self.compute_api.create_container(kwargs,name)
-        result_json={}
-        if resp.status_code == 201:
-            result_json = resp.json() 
-            #container_id=result_json['Id']
-            resp = self.compute_api.start_container(result_json['Id'],port.keys()[0],root_path,repo_name,user_name)
-        
-            #print result.json()['HostConfig']
-            if resp.status_code == 204:
-                result_json={"succeed":"start ok"}
-                container_id = self.get_container_info(name)[0]
-                network_config = self.get_container_info(name)[1]
-                created_time = utils.human_readable_time(time.time())
-                self.db_api.add_container(
-                        container_id=container_id,
-                        container_name=name,
-                        container_env=container_env,
-                        project_id=project_id,
-                        container_hgs=container_hgs,
-                        container_code=container_code,
-                        access_method=str(network_config),
-                        created=created_time,
-                        created_by=user_name,
-                        status='ok')
-                self.db_api.add_sftp(
-                        container_id = container_id,
-                        sftp_addr = config.HOST.strip("'"),
-                        sftp_user = user_name,
-                )
-                #utils.create_user_access(user_name)
 
-            if resp.status_code == 304:
-                result_json={"error":"304 container already started"}
-            if resp.status_code == 404:
-                result_json={"error":"404 no such container"}
-            if resp.status_code == 500:
-                result_json={"error":"500 server error"}    
-        if resp.status_code == 404:
-            result_json = {"error":"404 no such image:{}".format(Image)}
-        if resp.status_code == 406:
-            result_json = {"error":"impossible to attach(container not running)"}   
-        if resp.status_code == 409:
-            result_json = {"error":"409 Conflict, The name memcached6 is already assigned"}
-        if resp.status_code == 500:
-            result_json = {"error":"500 server error"}
-        return result_json
-            #if 'name' not in container_dict:
-            #   msg = _("Container name is not defined")
-            #   raise exc.HTTPBadRequest(explanation=msg)
-        
-            #image_id=self._image_from_req_data(body)
-            #
-            #command_context=self._command_from_req_data(body)
-        
-            #exposed_port=self._get_exposed_port(image_id)
-        
-            #self.compute_api.create_container(name,image_id,exposed_port,command_context)
-            #params=list(request.POST)[0]
-            #params_dict=ast.literal_eval(params)
-            #cmd=params_dict.get('cmd')
-            #image=params_dict.get('image') 
-            #args={'Cmd':cmd,'Image':image} 
-            #url="http://0.0.0.0:2375/container/create"
-            #headers={'Content-Type':'application/json'}
-            #result=requests.post(url,data=json.dumps(args),headers=headers)
-            #print result.status_code
-            #if result.status_code == 404:
-            #   error={"error":"404 Not Found:no such image {}".format(image)}
-            #   response.json=error
-            #if result.status_code == 201:
-            #   response.json=json.dumps(dict(result.json()))
-            #if result.status_code == 500:
-            #   error={"error":"500 internal server error"}
-            #   response.json=error
+    def prepare_start_container(self,user,key,hg,branch,env):
+        user_home=utils.make_user_home(user,key)
+        repo_name=os.path.basename(hg)
+        if utils.repo_exist(user,repo_name):
+            self.mercurial.pull(user,hg)
+            self.mercurial.update(user,hg)
+        else:
+            self.mercurial.clone(user,hg)
+        self.mercurial.update(user,hg,branch)
+        utils.prepare_config_file(user_home,repo_name,env)
+        #utils.change_dir_owner(user_home,user)
+
+    def start_container(self,id,port,root_path,repo_path,user_name):
+        repo_name = os.path.basename(repo_path)
+        print 'port',port
+        self.compute_api.start_container(id,port,root_path,repo_name,user_name)
+
+    def save_to_db(self,id,name,env,project_id,hg,branch,user):
+        network_config = self.get_container_info(name)[1]
+        created_time = utils.human_readable_time(time.time())
+        self.db_api.add_container(
+                container_id=id,
+                container_name=name,
+                container_env=env,
+                project_id=project_id,
+                container_hg=hg,
+                container_code=branch,
+                access_method=str(network_config),
+                created=created_time,
+                created_by=user,
+                status='ok')
+        self.db_api.add_sftp(
+                container_id = id,
+                sftp_addr = config.HOST.strip("'"),
+                sftp_user = user,
+        )
+
+
     def get_container_info(self,name):
         result=self.compute_api.inspect_container(name)
         container_id = result.json()['ID'][:12]
