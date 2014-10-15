@@ -86,7 +86,7 @@ class ContainerAPI():
         result=requests.post("{}/containers/{}/kill".format(self.url,container_id))
         return result
     def inspect_container(self,container_id):
-        result=requests.get("http://0.0.0.0:2375/containers/{}/json".format(container_id))
+        result=requests.get("{}/containers/{}/json".format(self.url,container_id))
         return result
 
 
@@ -229,7 +229,7 @@ class ContainerController(object):
         result_json={}
         if result.status_code == 200:
             result_json=result.json()   
-            port=result_json['config']['ExposedPorts']
+            port=result_json['Config']['ExposedPorts']
             name=utils.random_str()
             kwargs={
                 'Image':image,
@@ -284,7 +284,7 @@ class ContainerController(object):
 
     def get_container_info(self,name):
         result=self.compute_api.inspect_container(name)
-        container_id = result.json()['ID'][:12]
+        container_id = result.json()['Id'][:12]
         network_settings = result.json()['NetworkSettings']
         ports=network_settings['Ports'] 
         private_host = network_settings['IPAddress']

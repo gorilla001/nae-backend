@@ -20,4 +20,4 @@ else:
     log.LOG(r.json())
 
 app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
-wsgi.server(eventlet.listen(('',8383)),app)
+wsgi.server(eventlet.listen(('',8282)),app)

@@ -3,10 +3,11 @@ from sqlalchemy.orm import *
 from sqlalchemy.sql import and_
 
 
+DATABASE_URL="mysql://root:root@172.19.32.155/jaecpn"
 
 class DBAPI():
     def __init__(self):
-        self.engine = create_engine('mysql://root:root@localhost:3306/jaecpn',convert_unicode=True)
+        self.engine = create_engine(DATABASE_URL,convert_unicode=True)
         self.metadata=MetaData(self.engine)
         #self.engine.echo=True
     def add_image(self,image_id='',image_name='',image_size='',image_desc='',image_project='',image_hgs='',image_created='',created_by='',status=''):
