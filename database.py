@@ -54,9 +54,11 @@ class DBAPI():
         r=s.execute()
         return r
     def delete_image(self,image_id):
+	print 'delete image',image_id
         table=Table('images',self.metadata,autoload=True)
-        d=table.delete(table.c.ImageName == image_id)
+        d=table.delete(table.c.ID == image_id)
         d.execute()
+	print 'done'
     def delete_images(self,project_id):
         table=Table('images',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)

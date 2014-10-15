@@ -37,6 +37,7 @@ class ImageAPI():
         repo_name=os.path.basename(repo_path)
         if utils.repo_exist(user_name,repo_name):
             self.mercurial.pull(user_name,repo_path)
+            self.mercurial.update(user_name,repo_path)
         else:
             self.mercurial.clone(user_name,repo_path)
         file_path=utils.get_file_path(user_name,repo_name)
@@ -48,7 +49,7 @@ class ImageAPI():
             requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
             result=self.inspect_image(image_name)
             pprint(result)
-            image_id=result.json()['id'][:12]
+            image_id=result.json()['Id'][:12]
             result = self.get_image_by_id(image_id)
             for res in result.json():
                 if image_id in res['Id']:
@@ -58,6 +59,7 @@ class ImageAPI():
             created_time = utils.human_readable_time(created_time)
             created_time = utils.human_readable_time(time.time())
             status = 'ok'
+	    print 'create image ok'
             self.db_api.update_image(
                                   image_name=image_name,
                                   image_id=image_id,
