@@ -131,7 +131,7 @@ class ContainerController(object):
             container = {
                     'ID':item[0],
                     'Name':item[2],
-                    'AccessMethod':' '.join(ast.literal_eval(item[7])),
+                    'AccessMethod':'  '.join(ast.literal_eval(item[7])),
                     'Created':item[8],
                     'Status':item[10],
                     }

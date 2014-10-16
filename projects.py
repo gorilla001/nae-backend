@@ -75,9 +75,9 @@ class ProjectController(object):
                     'ProjectDesc':item[2],
                     'ProjectHgs':'',
                     'ProjectImgs':'',
-                    'ProjectAdmin':'item[5]',
+                    'ProjectAdmin':item[5],
                     'ProjectMembers':'',
-                    'CreatedTime':'item[7]',
+                    'CreatedTime':item[7],
                 }
                 result_json.append(project)
         else:
