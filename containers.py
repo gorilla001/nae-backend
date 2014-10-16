@@ -257,7 +257,7 @@ class ContainerController(object):
             self.mercurial.update(user,hg)
         else:
             self.mercurial.clone(user,hg)
-        #self.mercurial.update(user,hg,branch)
+        self.mercurial.update(user,hg,branch)
         #utils.prepare_config_file(user_home,repo_name,env)
         #utils.change_dir_owner(user_home,user)
 
