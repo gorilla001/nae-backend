@@ -190,29 +190,13 @@ class ContainerController(object):
         #   
         return result
     def delete(self,request):
-        result_json={}
+        result_json={"status":"200"}
         _container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+	_v = request.GET.get('v')
         container_info = self.db_api.get_container(_container_id).fetchone()
         container_id = container_info[1]
         result=self.compute_api.kill_container(container_id)
-        if result.status_code == 204:
-            result_json = {"succeed":"{} stopped".format(container_id)}
-        if result.status_code == 404:
-            result_json = {"error":"404 no such container"}
-            return result_json
-        if result.status_code == 500:
-            result_json = {"error":"500 server error"}
-            return result_json
-            result=self.compute_api.delete_container(container_id)
-        if result.status_code == 204:
-            result_json = {"succeed":"{} deleted".format(container_id)}
-            self.db_api.delete_container(_container_id)
-        if result.status_code == 400:
-            result_json = {"error":"400 bad parameter"} 
-        if result.status_code == 404:
-            result_json = {"error":"404 no such container"}
-        if result.status_code == 500:
-            result_json = {"error":"500 internal server error"}
+        self.db_api.delete_container(_container_id)
         return result_json
     def create(self,request):
         container_image=request.json.pop('container_image')
@@ -293,11 +277,12 @@ class ContainerController(object):
         private_host = network_settings['IPAddress']
         network_config=list()
         for port in ports:
-            private_port = port 
+            private_port = port.rsplit('/')[0] 
             for item in ports[port]:
                 host_ip=item['HostIp']
                 host_port=item['HostPort']
-            network_config.append("{}:{}->{}:{}".format(host_ip,host_port,private_host,private_port))
+            #network_config.append("{}:{}->{}:{}".format(host_ip,host_port,private_host,private_port))
+            network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
         return (container_id,network_config,)
 
                 
