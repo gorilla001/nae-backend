@@ -50,8 +50,8 @@ class ContainerAPI():
         headers={'Content-Type':'application/json'}
         resp = requests.post("{}/containers/create?name={}".format(self.url,name),data=json.dumps(data),headers=headers)
         return resp
-    def delete_container(self,container_id):
-        result=requests.delete("{}/containers/{}".format(self.url,container_id))    
+    def delete_container(self,container_id,v):
+        result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
         return result
     def get_containers(self):
         result=requests.get("{}/containers/json?all=0".format(self.url))    
@@ -85,7 +85,7 @@ class ContainerAPI():
         result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
         return result
     def stop_container(self,container_id):
-        result=requests.post("{}/containers/{}/stop?t=3".format(self.url,container_id))
+        result=requests.post("{}/containers/{}/stop?t=5".format(self.url,container_id))
         return result
     def kill_container(self,container_id):
         result=requests.post("{}/containers/{}/kill".format(self.url,container_id))
@@ -195,7 +195,8 @@ class ContainerController(object):
 	_v = request.GET.get('v')
         container_info = self.db_api.get_container(_container_id).fetchone()
         container_id = container_info[1]
-        result=self.compute_api.kill_container(container_id)
+        self.compute_api.stop_container(container_id)
+        self.compute_api.delete_container(container_id,_v)
         self.db_api.delete_container(_container_id)
         return result_json
     def create(self,request):
