@@ -15,9 +15,13 @@ import time
 import ast
 from utils import MercurialControl
 
+import eventlet
+eventlet.monkey_patch()
+
 class ContainerAPI():
     def __init__(self):
         self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
+	self.db_api=DBAPI()
     def create_container(self,kargs,repo_path,branch,root_path,app_env,ssh_key,name):
         data = {
             'Hostname' : '',
@@ -50,8 +54,10 @@ class ContainerAPI():
         headers={'Content-Type':'application/json'}
         resp = requests.post("{}/containers/create?name={}".format(self.url,name),data=json.dumps(data),headers=headers)
         return resp
-    def delete_container(self,container_id,v):
+    def delete_container(self,_container_id,container_id,v):
+        self.stop_container(container_id)
         result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
+        self.db_api.delete_container(_container_id)
         return result
     def get_containers(self):
         result=requests.get("{}/containers/json?all=0".format(self.url))    
@@ -85,7 +91,7 @@ class ContainerAPI():
         result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
         return result
     def stop_container(self,container_id):
-        result=requests.post("{}/containers/{}/stop?t=5".format(self.url,container_id))
+        result=requests.post("{}/containers/{}/stop".format(self.url,container_id))
         return result
     def kill_container(self,container_id):
         result=requests.post("{}/containers/{}/kill".format(self.url,container_id))
@@ -195,9 +201,10 @@ class ContainerController(object):
 	_v = request.GET.get('v')
         container_info = self.db_api.get_container(_container_id).fetchone()
         container_id = container_info[1]
-        self.compute_api.stop_container(container_id)
-        self.compute_api.delete_container(container_id,_v)
-        self.db_api.delete_container(_container_id)
+        eventlet.spawn_n(self.compute_api.delete_container,_container_id,container_id,_v)
+        #self.compute_api.stop_container(container_id)
+        #self.compute_api.delete_container(container_id,_v)
+        #self.db_api.delete_container(_container_id)
         return result_json
     def create(self,request):
         container_image=request.json.pop('container_image')
