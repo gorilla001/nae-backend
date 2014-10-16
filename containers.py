@@ -18,7 +18,7 @@ from utils import MercurialControl
 class ContainerAPI():
     def __init__(self):
         self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
-    def create_container(self,kargs,name):
+    def create_container(self,kargs,repo_path,branch,root_path,app_env,ssh_key,name):
         data = {
             'Hostname' : '',
             'User'     : '',
@@ -31,8 +31,14 @@ class ContainerAPI():
             'Tty'   : True,
             'OpenStdin' : True,
             'StdinOnce' : False,
-            'Env' : None,
-            'Cmd' : [], 
+	    'Env':[
+		      "REPO_PATH={}".format(repo_path),
+		      "BRANCH={}".format(branch),
+		      "ROOT_PATH={}".format(root_path),
+		      "APP_ENV={}".format(app_env),
+                      "SSH_KEY={}".format(ssh_key),
+	    ],
+            'Cmd' : ["/opt/start.sh"], 
             'Dns' : None,
             'Image' : None,
             'Volumes' : {},
@@ -58,12 +64,11 @@ class ContainerAPI():
             #response.json = res    
                 pass
         return response 
-    def start_container(self,container_id,exposed_port,root_path,repo_name,user_name):
+    def start_container(self,container_id,exposed_port,user_name,repo_name):
         random_port=utils.get_random_port()
-        path=os.path.join(os.path.dirname(__file__),'files')
-        _path = os.path.join(path,user_name)
-        source_path = os.path.join(_path,repo_name)
-        dest_path = root_path
+	path=os.path.join(os.path.dirname(__file__),'files')
+	source_path = os.path.join(path,user_name,repo_name)
+	dest_path = "/mnt"
         data = {
             'Binds':['{}:{}'.format(source_path,dest_path)],
             'Links':[],
@@ -71,11 +76,11 @@ class ContainerAPI():
             'PortBindings':{exposed_port:[{'HostPort':'{}'.format(random_port)}]},
             'PublishAllPorts':True,
             'Privileged':False,
-            'Dns':[config.DNS],
+            'Dns':[config.DNS.strip("'")],
             'VolumesFrom':[],
             'CapAdd':[],
             'CapDrop':[],
-        }
+	}
         headers={"Content-Type":"application/json"}
         result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
         return result
@@ -219,12 +224,12 @@ class ContainerController(object):
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
 
-        container_name,container_id,container_port = self.create_container(container_image)
-        self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
-        self.start_container(container_id,container_port,root_path,container_hg,user_name)
+        container_name,container_id,container_port = self.create_container(container_image,container_hg,container_code,root_path,container_env,user_key)
+	self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
+    	self.start_container(container_id,container_port,user_name,os.path.basename(container_hg))
         self.save_to_db(container_id,container_name,container_env,project_id,container_hg,container_code,user_name)
         
-    def create_container(self,image):
+    def create_container(self,image,repo_path,branch,root_path,app_env,ssh_key):
         result = self.image_api.inspect_image(image)
         result_json={}
         if result.status_code == 200:
@@ -235,7 +240,7 @@ class ContainerController(object):
                 'Image':image,
                 'ExposedPorts':port,
             }
-            resp = self.compute_api.create_container(kwargs,name)
+            resp = self.compute_api.create_container(kwargs,repo_path,branch,root_path,app_env,ssh_key,name)
             if resp.status_code == 201:
                 _container_id = resp.json()['Id']
                 return (name,_container_id,port.keys()[0])
@@ -256,10 +261,8 @@ class ContainerController(object):
         utils.prepare_config_file(user_home,repo_name,env)
         #utils.change_dir_owner(user_home,user)
 
-    def start_container(self,id,port,root_path,repo_path,user_name):
-        repo_name = os.path.basename(repo_path)
-        print 'port',port
-        self.compute_api.start_container(id,port,root_path,repo_name,user_name)
+    def start_container(self,container_id,exposed_port,user_name,repo_name):
+        self.compute_api.start_container(container_id,exposed_port,user_name,repo_name)
 
     def save_to_db(self,id,name,env,project_id,hg,branch,user):
         network_config = self.get_container_info(name)[1]
