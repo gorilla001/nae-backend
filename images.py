@@ -46,24 +46,60 @@ class ImageAPI():
         def create_image(url,image_name,tar_path,id):
             data=open(tar_path,'rb')
             headers={'Content-Type':'application/tar'}
-            requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
-            result=self.inspect_image(image_name)
-            image_id=result.json()['Id'][:12]
-            result = self.get_image_by_id(image_id)
-            for res in result.json():
-                if image_id in res['Id']:
-                    image_size=res['VirtualSize']
-            image_size = utils.human_readable_size(image_size)
-            self.db_api.update_image(
+            rs=requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
+	    with open("/tmp/aaabbb",'w') as f:
+	    	f.write('{}'.format(rs.status_code))
+	    if rs.status_code == 200:
+            	result=self.inspect_image(image_name)
+		if result.status_code == 200:
+            		image_id=result.json()['Id'][:12]
+            		result = self.get_image_by_id(image_id)
+            		for res in result.json():
+                    	    if image_id in res['Id']:
+                   	        image_size=res['VirtualSize']
+            		image_size = utils.human_readable_size(image_size)
+            		self.db_api.update_image(
 				  id=id,
                                   image_id=image_id,
                                   size=image_size,
                                   status = "ok")
+		if result.status_code == 404:
+			self.db_api.update_image(
+				  id=id,
+                                  image_id='',
+                                  size='',
+                                  status = "404")
+		if result.status_code == 500:
+			self.db_api.update_image(
+				  id=id,
+                                  image_id='',
+                                  size='',
+                                  status = "500")
+	    if rs.status_code == 500:
+		self.db_api.update_image(
+				  id=id,
+                                  image_id='',
+                                  size='',
+                                  status = "500")
         eventlet.spawn_n(create_image,self.url,image_name,tar_path,id)
         result=webob.Response('{"status_code":200"}')
         return result
-    def delete_image(self,image_id,f_id):
-        result=requests.delete("{}/images/{}?force={}".format(self.url,image_id,f_id))
+    def delete_image(self,id,image_id,f_id):
+        def _delete_image(url,image_id,f_id,id):
+		result=requests.delete("{}/images/{}?force={}".format(url,image_id,f_id))
+		status_code = result.status_code 
+		if status_code == 200 or status_code == 404:
+			self.db_api.delete_image(id)
+		if status_code == 409: 
+			self.db_api.update_image_status(
+				  id=id,
+                                  status = "409")
+		if status_code == 500: 
+			self.db_api.update_image_status(
+				  id=id,
+                                  status = "500")
+        eventlet.spawn_n(_delete_image,self.url,image_id,f_id,id)
+        result=webob.Response('{"status_code":200"}')
         return result
         
 
@@ -100,9 +136,9 @@ class ImageController(object):
                 'ImageSize':item[3],
                 'ImageDesc':item[4],
                 'ImageProject':project_name,
-                'CreatedTime':item[7],
-                'CreatedBy':item[8],
-                'Status' : item[9],
+                'CreatedTime':item[8],
+                'CreatedBy':item[9],
+                'Status' : item[10],
                 }
             pprint(image)
             result_json.append(image)
@@ -124,9 +160,9 @@ class ImageController(object):
                 'ImageDesc':image_info[4],
                 'ProjectID':project_info[1],
                 'ImageHgs':image_hg,
-                'Created':image_info[7],
-                'CreatedBy':image_info[8],
-                'Status':image_info[9],
+                'Created':image_info[8],
+                'CreatedBy':image_info[9],
+                'Status':image_info[10],
         }
         return image 
     def inspect(self,request):
@@ -167,21 +203,10 @@ class ImageController(object):
         f_id=request.GET['force']
         image_info = self.db_api.get_image_by_id(_image_id).fetchone()
         image_id=image_info[1]
-        result=self.image_api.delete_image(image_id,f_id)
-        if result.status_code == 200:
-            self.db_api.delete_image(_image_id)
-            result_json = result.json() 
-        if result.status_code == 404:
-            errors={"errors":"404 Not Found:no such image {}".format(image_id)}
-            self.db_api.delete_image(_image_id)
-            result_json=errors
-        if result.status_code == 409:
-            errors={"errors":"409 conflict"}
-            result_json=errors
-        if result.status_code == 500:
-            errors={"errors":"500 internal server error"}
-            result_json=errors
-        return result_json
+	self.db_api.update_image_status(
+				  id=_image_id,
+                                  status = "deleting")
+        self.image_api.delete_image(_image_id,image_id,f_id)
 
 def create_resource():
     return ImageController()

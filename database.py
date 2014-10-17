@@ -29,6 +29,10 @@ class DBAPI():
         table=Table('images',self.metadata,autoload=True) 
         u=table.update().where(table.c.ID == id).values(ImageId = image_id,ImageSize =size,Status = status)
         u.execute() 
+    def update_image_status(self,id,status):
+        table=Table('images',self.metadata,autoload=True) 
+        u=table.update().where(table.c.ID == id).values(Status = status)
+        u.execute() 
     def get_images(self,project_id=None):
         table=Table('images',self.metadata,autoload=True) 
         s=table.select()
