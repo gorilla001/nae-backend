@@ -10,18 +10,17 @@ class DBAPI():
         self.engine = create_engine(DATABASE_URL,convert_unicode=True)
         self.metadata=MetaData(self.engine)
         #self.engine.echo=True
-    def add_image(self,image_id='',name='',size='',desc='',project_id='',repo='',branch='',created,created_by='',status=''):
+    def add_image(self,name,desc,project_id,repo,branch,created,owner,status,image_id=None,size=None):
         table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
-        i.execute(ImageId=image_id,
+        i.execute(
                   Name=name,
-                  Size=size,
                   Desc=desc,
                   ProjectID=project_id,
                   RepoPath=repo,
 		  Branch = branch,
-                  CreatedTime=image_created,
-                  CreatedBy=created_by,
+                  Created=created,
+                  Owner=owner,
                   Status = status,
                   )
     def update_image(self,name,image_id,size,status):
@@ -235,9 +234,10 @@ if __name__ == '__main__':
             Column('ImageSize',String(50)),
             Column('ImageDesc',String(300)),
             Column('ProjectID',String(300)),
-            Column('ImageHgs',String(300)),
-            Column('CreatedTime',String(150)),
-            Column('CreatedBy',String(30)),
+            Column('RepoPath',String(300)),
+            Column('Branch',String(150)),
+            Column('Created',String(150)),
+            Column('Owner',String(30)),
             Column('Status',String(100)),
     )
 
