@@ -11,11 +11,12 @@ class DBAPI():
         self.metadata=MetaData(self.engine)
         #self.engine.echo=True
     def add_image(self,name,desc,project_id,repo,branch,created,owner,status,image_id=None,size=None):
+	print name,desc
         table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
-        i.execute(
-                  Name=name,
-                  Desc=desc,
+        result=i.execute(
+                  ImageName=name,
+                  ImageDesc=desc,
                   ProjectID=project_id,
                   RepoPath=repo,
 		  Branch = branch,
@@ -23,9 +24,10 @@ class DBAPI():
                   Owner=owner,
                   Status = status,
                   )
-    def update_image(self,name,image_id,size,status):
+        return result.lastrowid  
+    def update_image(self,id,image_id,size,status):
         table=Table('images',self.metadata,autoload=True) 
-        u=table.update().where(table.c.ImageName == name).values(ImageId = image_id,ImageSize =size,Status = status)
+        u=table.update().where(table.c.ID == id).values(ImageId = image_id,ImageSize =size,Status = status)
         u.execute() 
     def get_images(self,project_id=None):
         table=Table('images',self.metadata,autoload=True) 

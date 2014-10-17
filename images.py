@@ -32,7 +32,7 @@ class ImageAPI():
     def inspect_image(self,image_id):
         result=requests.get("{}/images/{}/json".format(self.url,image_id))
         return result
-    def create_image_from_file(self,image_name,repo_path,repo_branch,project_id,user_name):
+    def create_image_from_file(self,id,image_name,repo_path,repo_branch,user_name):
 
         repo_name=os.path.basename(repo_path)
         if utils.repo_exist(user_name,repo_name):
@@ -43,25 +43,23 @@ class ImageAPI():
         file_path=utils.get_file_path(user_name,repo_name)
         tar_path=utils.make_zip_tar(file_path)
         print tar_path
-        def create_image(url,image_name,tar_path,repo_path,project_id):
+        def create_image(url,image_name,tar_path,id):
             data=open(tar_path,'rb')
             headers={'Content-Type':'application/tar'}
             requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
             result=self.inspect_image(image_name)
-            pprint(result)
             image_id=result.json()['Id'][:12]
             result = self.get_image_by_id(image_id)
             for res in result.json():
                 if image_id in res['Id']:
                     image_size=res['VirtualSize']
-                    created_time = res['Created'] 
             image_size = utils.human_readable_size(image_size)
             self.db_api.update_image(
-				  image_name=image_name,
+				  id=id,
                                   image_id=image_id,
                                   size=image_size,
                                   status = "ok")
-        eventlet.spawn_n(create_image,self.url,image_name,tar_path,repo_path,project_id)
+        eventlet.spawn_n(create_image,self.url,image_name,tar_path,id)
         result=webob.Response('{"status_code":200"}')
         return result
     def delete_image(self,image_id,f_id):
@@ -149,20 +147,19 @@ class ImageController(object):
 	repo_branch=request.json.pop('repo_branch')
         user_name=request.json.pop('user_name')
 
+	print image_name,image_desc,project_id,repo_path,repo_branch
         created_time = utils.human_readable_time(time.time())
-	self.db_api.add_image(
-				  image_id='',
+	id=self.db_api.add_image(
                                   name=image_name,
-                                  size='',
                                   desc=image_desc,
                                   project_id=project_id,
                                   repo = repo_path,
 				  branch = repo_branch, 
                                   created= created_time,
-                                  created_by=user_name,
+                                  owner=user_name,
                                   status = 'building'
 	)
-        self.image_api.create_image_from_file(image_name,str(repo_path),str(repo_branch),image_proj,user_name)
+        self.image_api.create_image_from_file(id,image_name,str(repo_path),str(repo_branch),user_name)
         result_json={}
         return result_json
     def delete(self,request):
