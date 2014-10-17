@@ -39,6 +39,10 @@ class DBAPI():
             s=table.select(table.c.ProjectID == project_id)
         r=s.execute() 
         return r
+    def get_image(self,image_id):
+        table=Table('images',self.metadata,autoload=True)
+        s=table.select(table.c.ID == image_id)
+        return s.execute()
     def get_image_by_id(self,image_id):
         table=Table('images',self.metadata,autoload=True)
         s=table.select(table.c.ID == image_id)
@@ -93,6 +97,11 @@ class DBAPI():
         table=Table('containers',self.metadata,autoload=True)
         s=table.select(table.c.Id == container_id)
         return s.execute()
+    def get_container_count(self,container_name):
+        table=Table('containers',self.metadata,autoload=True)
+        s=table.select(table.c.ContainerName == container_name)
+	print s.execute().fetchall()
+        return len(s.execute().fetchall())
     def delete_container(self,container_id):
         table=Table('containers',self.metadata,autoload=True)
         d=table.delete(table.c.Id == container_id)

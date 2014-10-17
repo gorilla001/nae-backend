@@ -84,7 +84,8 @@ class ContainerAPI():
     def start_container(self,kargs,container_id):
 	def _start_container(url,container_id,data,headers,db,id):
             result=requests.post("{}/containers/{}/start".format(url,container_id),data=json.dumps(data),headers=headers)  
-	    if result.status_code == 200:
+	    if result.status_code == 204:
+		print 'id:',id
 	        db.update_container_status(
 					id = id,
 					status = "ok"
@@ -99,7 +100,7 @@ class ContainerAPI():
             'Binds':[],
             'Links':[],
             'LxcConf':{},
-            'PortBindings':{},
+            #'PortBindings':{},
             'PublishAllPorts':True,
             'Privileged':False,
             'Dns':[],
@@ -196,7 +197,11 @@ class ContainerController(object):
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
 
-	container_name = os.path.basename(container_hg) + '-' + container_code
+	container_name = os.path.basename(container_hg) + '-' + container_code 
+	print container_name
+	count = self.db_api.get_container_count(container_name) + 1
+	#container_name = container_name + '-' + str(count).zfill(4)
+	container_name = container_name + '-' + utils.random_str(4) 
         created_time = utils.human_readable_time(time.time())
         id = self.db_api.add_container(
                 container_name=container_name,

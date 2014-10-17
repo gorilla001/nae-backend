@@ -138,21 +138,14 @@ class ImageController(object):
         return result_json
     def show(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        #result = self.image_api.get_image_by_id(image_id)
-        result = self.db_api.get_image_by_id(image_id)
+        result = self.db_api.get_image(image_id)
         image_info=result.fetchone()
-        project_info= self.db_api.get_project_by_id(image_info[5]).fetchone()
-        image_hg = self.db_api.get_hg(image_info[1]).fetchone()[1]
         image={
                 'ImageID':image_info[1],
                 'ImageName':image_info[2],
                 'ImageSize':image_info[3],
                 'ImageDesc':image_info[4],
-                'ProjectID':project_info[1],
-                'ImageHgs':image_hg,
-                'Created':image_info[8],
-                'CreatedBy':image_info[9],
-                'Status':image_info[10],
+                'RepoPath':image_info[6],
         }
         return image 
     def inspect(self,request):
