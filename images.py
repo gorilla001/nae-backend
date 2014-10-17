@@ -42,7 +42,6 @@ class ImageAPI():
         self.mercurial.update(user_name,repo_path,repo_branch)
         file_path=utils.get_file_path(user_name,repo_name)
         tar_path=utils.make_zip_tar(file_path)
-        print tar_path
         def create_image(url,image_name,tar_path,id):
             data=open(tar_path,'rb')
             headers={'Content-Type':'application/tar'}
@@ -123,12 +122,7 @@ class ImageController(object):
         rs = self.db_api.get_images(project_id=project_id)
         for item in rs.fetchall():
             project_info = self.db_api.show_project(project_id=item[5]) 
-            #print '-----------------------'
-            #print 'project_id',item[5]
-            #print image_project.fetchone()
-            #print '-----------------------'
             project_name = project_info.fetchone()[1]
-            print project_name
             image={
                 'ID':item[0],
                 'ImageId':item[1],
@@ -140,11 +134,7 @@ class ImageController(object):
                 'CreatedBy':item[9],
                 'Status' : item[10],
                 }
-            pprint(image)
             result_json.append(image)
-        #result=self.image_api.get_images()
-        #if result.status_code == 200:
-        #    result_json=result.json()
         return result_json
     def show(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
@@ -183,7 +173,6 @@ class ImageController(object):
 	repo_branch=request.json.pop('repo_branch')
         user_name=request.json.pop('user_name')
 
-	print image_name,image_desc,project_id,repo_path,repo_branch
         created_time = utils.human_readable_time(time.time())
 	id=self.db_api.add_image(
                                   name=image_name,

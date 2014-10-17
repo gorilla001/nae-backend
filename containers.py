@@ -3,7 +3,6 @@ import webob.dec
 import requests
 import json
 import ast
-#from database import DB
 import config
 from images import ImageAPI
 import urllib
@@ -22,7 +21,7 @@ class ContainerAPI():
     def __init__(self):
         self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
 	self.db_api=DBAPI()
-    def create_container(self,kargs,repo_path,branch,root_path,app_env,ssh_key,name):
+    def create_container(self,kargs,name,id,repo_path,user_name):
         data = {
             'Hostname' : '',
             'User'     : '',
@@ -35,34 +34,36 @@ class ContainerAPI():
             'Tty'   : True,
             'OpenStdin' : True,
             'StdinOnce' : False,
-	    'Env':[
-		      "REPO_PATH={}".format(repo_path),
-		      "BRANCH={}".format(branch),
-		      "ROOT_PATH={}".format(root_path),
-		      "APP_ENV={}".format(app_env),
-                      "SSH_KEY={}".format(ssh_key),
-	    ],
-            'Cmd' : ["/opt/start.sh"], 
+	    'Env':[],
+            'Cmd' : [], 
             'Dns' : None,
             'Image' : None,
             'Volumes' : {},
             'VolumesFrom' : '',
             'ExposedPorts': {},
         }
-        data.update(kargs)
-        pprint(data)
-        headers={'Content-Type':'application/json'}
-	def _create_container(url,name,data,headers,db):
+	def _create_container(url,name,data,headers,db,id,repo_path,user_name):
         	resp = requests.post("{}/containers/create?name={}".format(url,name),data=json.dumps(data),headers=headers)
 		if resp.status_code == 201:
 			container_info = resp.json()
-        		created_time = utils.human_readable_time(time.time())
+			container_id = container_info["Id"]
 			db.update_container(
-					container_id = container_info["Id"], 
-					created=created_time,
+					id = id,
+					container_id = container_id, 
+					status = 'created'
 					)
-	
-        eventlet.spawn_n(_create_container,self.url,name,data,headers,self.db_api)
+			repo_name = os.path.basename(repo_path)	
+			path=os.path.join(os.path.dirname(__file__),'files')
+			source_path = os.path.join(path,user_name,repo_name)
+			dest_path = "/mnt"
+			kargs = {
+            			'Binds':['{}:{}'.format(source_path,dest_path)],
+            			'Dns':[config.DNS.strip("'")],
+			}
+        		self.start_container(kargs,container_id)
+        data.update(kargs)
+        headers={'Content-Type':'application/json'}
+        eventlet.spawn_n(_create_container,self.url,name,data,headers,self.db_api,id,repo_path,user_name)
         result=webob.Response('{"status_code":200"}')
         return result
     def delete_container(self,_container_id,container_id,v):
@@ -78,28 +79,38 @@ class ContainerAPI():
         response=webob.Response()
         for res in result.json():
             if container_id in res['Id']:
-            #response.json = res    
                 pass
         return response 
-    def start_container(self,container_id,exposed_port,user_name,repo_name):
-        random_port=utils.get_random_port()
-	path=os.path.join(os.path.dirname(__file__),'files')
-	source_path = os.path.join(path,user_name,repo_name)
-	dest_path = "/mnt"
+    def start_container(self,kargs,container_id):
+	def _start_container(url,container_id,data,headers,db,id):
+            result=requests.post("{}/containers/{}/start".format(url,container_id),data=json.dumps(data),headers=headers)  
+	    if result.status_code == 200:
+	        db.update_container_status(
+					id = id,
+					status = "ok"
+	    )
+	    if result.status_code == 500:
+		    db.update_container_status(
+					id = id,
+					status = "500"
+	    )
+			
         data = {
-            'Binds':['{}:{}'.format(source_path,dest_path)],
+            'Binds':[],
             'Links':[],
             'LxcConf':{},
-            'PortBindings':{exposed_port:[{'HostPort':'{}'.format(random_port)}]},
+            'PortBindings':{},
             'PublishAllPorts':True,
             'Privileged':False,
-            'Dns':[config.DNS.strip("'")],
+            'Dns':[],
             'VolumesFrom':[],
             'CapAdd':[],
             'CapDrop':[],
 	}
+	data.update(kargs)
         headers={"Content-Type":"application/json"}
-        result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
+        eventlet.spawn_n(_start_container,self.url,container_id,data,headers,self.db_api,id)
+        result=webob.Response('{"status_code":200"}')
         return result
     def stop_container(self,container_id):
         result=requests.post("{}/containers/{}/stop?t=300".format(self.url,container_id))
@@ -120,12 +131,7 @@ class ContainerController(object):
         self.mercurial = MercurialControl()
     @webob.dec.wsgify
     def __call__(self,request):
-        #print request.environ['wsgiorg.routing_args']
-        #print request.method
         method=request.environ['wsgiorg.routing_args'][1]['action']
-        #print '----------------'
-        #print method
-        #print '----------------'
         method=getattr(self,method)     
         response=webob.Response()
         result_json=method(request)
@@ -142,44 +148,14 @@ class ContainerController(object):
             container = {
                     'ID':item[0],
                     'Name':item[2],
-                    'AccessMethod':'  '.join(ast.literal_eval(item[7])),
+                    'AccessMethod':'',
                     'Created':item[8],
                     'Status':item[10],
                     }
-            rs = self.db_api.get_sftp(item[1])
-            sftp_info = rs.fetchone()
-            print sftp_info 
-            sftp_addr = sftp_info[2]
-            sftp_user = sftp_info[3]
-            sftp_port = sftp_info[4]
-            data = { 'Sftp' : '{}@{}:{}'.format(sftp_user,sftp_addr,sftp_port) }
-            container.update(data)
             container_list.append(container)
-        #containers=self.compute_api.get_containers()
-        #container_list=list()
-        #for item in containers.json():
-        #    container = {
-        #            'Id':item['Id'][:12],
-        #            'Name':item['Names'][0][1:],
-        #            'Status':item['Status'],
-        #    }
-        #    for i in item['Ports']:
-        #        try :
-        #            IP = i.get('IP')
-        #            PUB_PORT = i.get('PublicPort')
-        #            PRI_PORT = i.get('PrivatePort')
-        #            
-        #            data = { 'Ports':'{}:{}->{}'.format(IP,PUB_PORT,PRI_PORT)}
-        #            container.update(data)
-        #            print i["State"]
-        #        except KeyError: 
-        #            continue
-        #    container_list.append(container)
-                    
         return container_list
     def show(self,request):
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        #container=self.compute_api.get_container_by_id(container_id)
         container_info = self.db_api.get_container(container_id).fetchone()
         project_info=self.db_api.get_project(container_info[4]).fetchone()
         container = {
@@ -194,17 +170,10 @@ class ContainerController(object):
                 'createdby':container_info[9],
                 'status':container_info[10],
                 }
-        print container
         return container
     def inspect(self,request):
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
         result=requests.get("http://0.0.0.0:2375/containers/{}/json".format(container_id))
-        #if result.status_code == 200:
-        #   response.json=json.dumps(dict(result.json()))
-        #if result.status_code == 404:
-        #   errors={"errors":"404 Not Found:no such container {}".format(container_id)}
-        #   response.json=errors
-        #   
         return result
     def delete(self,request):
         result_json={"status":"200"}
@@ -227,71 +196,56 @@ class ContainerController(object):
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
 
-	container_name = os.path.basename(container_hg) + '-' + container-code
-	status="building"
-	self.save_to_db(container_name,container_env,project_id,container_hg,container_code,user_name,status)
-
-        container_id,container_port = self.create_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key)
+	container_name = os.path.basename(container_hg) + '-' + container_code
+        created_time = utils.human_readable_time(time.time())
+        id = self.db_api.add_container(
+                container_name=container_name,
+                container_env=container_env,
+                project_id=project_id,
+                container_hg=container_hg,
+                container_code=container_code,
+                created=created_time,
+                created_by=user_name,
+                status="building")
 
 	self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
-    	self.start_container(container_id,container_port,user_name,os.path.basename(container_hg))
-        self.update_db(container_id,container_name,container_env,project_id,container_hg,container_code,user_name)
+        self.start_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key,id,user_name)
+    	#self.start_container(container_id,user_name,container_hg)
         
-    def create_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key):
-        result = self.image_api.inspect_image(image)
-        result_json={}
-        if result.status_code == 200:
-            result_json=result.json()   
-            port=result_json['Config']['ExposedPorts']
-            kwargs={
+    def start_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key,id,user_name):
+        kwargs={
                 'Image':image,
-                'ExposedPorts':port,
+		'Env':[
+		      "REPO_PATH={}".format(repo_path),
+		      "BRANCH={}".format(branch),
+		      "ROOT_PATH={}".format(root_path),
+		      "APP_ENV={}".format(app_env),
+                      "SSH_KEY={}".format(ssh_key),
+	    	],
+            	'Cmd' : ["/opt/start.sh"], 
             }
-            resp = self.compute_api.create_container(kwargs,repo_path,branch,root_path,app_env,ssh_key,name)
-            if resp.status_code == 201:
-                _container_id = resp.json()['Id']
-                return (name,_container_id,port.keys()[0])
-        if result.status_code == 404:
-            errors={"errors":"404 Not Found:no such image {}".format(image)}
-            result_json=errors
-            return result_json
-
+        self.compute_api.create_container(kwargs,name,id,repo_path,user_name)
     def prepare_start_container(self,user,key,hg,branch,env):
         user_home=utils.make_user_home(user,key)
         repo_name=os.path.basename(hg)
         if utils.repo_exist(user,repo_name):
             self.mercurial.pull(user,hg)
-            self.mercurial.update(user,hg)
         else:
             self.mercurial.clone(user,hg)
         self.mercurial.update(user,hg,branch)
-        #utils.prepare_config_file(user_home,repo_name,env)
-        #utils.change_dir_owner(user_home,user)
 
-    def start_container(self,container_id,exposed_port,user_name,repo_name):
-        self.compute_api.start_container(container_id,exposed_port,user_name,repo_name)
+    #def start_container(self,container_id,user_name,repo_path):
+#	repo_path = os.path.basename(repo_path)	
+#	path=os.path.join(os.path.dirname(__file__),'files')
+#	source_path = os.path.join(path,user_name,repo_name)
+#	dest_path = "/mnt"
+#	kargs = {
+#            'Binds':['{}:{}'.format(source_path,dest_path)],
+#            'Dns':[config.DNS.strip("'")],
+#	}
+#        self.compute_api.start_container(kargs,container_id)
 
-    def save_to_db(self,name,env,project_id,hg,branch,user,status):
-        #network_config = self.get_container_info(name)[1]
-        #created_time = utils.human_readable_time(time.time())
-        self.db_api.add_container(
-                #container_id=id,
-                container_name=name,
-                container_env=env,
-                project_id=project_id,
-                container_hg=hg,
-                container_code=branch,
-                access_method=str(network_config),
-                created=created_time,
-                created_by=user,
-                status=status)
-        #self.db_api.add_sftp(
-        #        container_id = id,
-        #        sftp_addr = config.HOST.strip("'"),
-        #        sftp_user = user,
-        #)
-
-
+    
     def get_container_info(self,name):
         result=self.compute_api.inspect_container(name)
         container_id = result.json()['Id'][:12]

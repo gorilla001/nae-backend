@@ -196,7 +196,6 @@ class Router (object):
 	
     @webob.dec.wsgify
     def __call__(self,req):
-		print req.environ
 		return self.router
 
     @staticmethod

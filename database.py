@@ -11,7 +11,6 @@ class DBAPI():
         self.metadata=MetaData(self.engine)
         #self.engine.echo=True
     def add_image(self,name,desc,project_id,repo,branch,created,owner,status,image_id=None,size=None):
-	print name,desc
         table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
         result=i.execute(
@@ -51,31 +50,37 @@ class DBAPI():
         r=s.execute()
         return r
     def delete_image(self,image_id):
-	print 'delete image',image_id
         table=Table('images',self.metadata,autoload=True)
         d=table.delete(table.c.ID == image_id)
         d.execute()
-	print 'done'
     def delete_images(self,project_id):
         table=Table('images',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)
         return d.execute()
 
-    def add_container(self,container_id,container_name,container_env,project_id,container_hg,container_code,access_method,created,created_by,status):
+    def add_container(self,container_name,container_env,project_id,container_hg,container_code,created,created_by,status,container_id=None,access_method=None):
         table=Table('containers',self.metadata,autoload=True)
         i=table.insert()
-        i.execute(
-                ContainerID = container_id,
+        result=i.execute(
                 ContainerName = container_name,
                 ContainerEnv = container_env,
                 ProjectID = project_id,
                 Hgs = container_hg,
                 Code = container_code,
-                AccessMethod = access_method,
                 Created = created,
                 CreatedBy = created_by,
                 Status = status,
                 )
+        return result.lastrowid  
+    def update_container(self,id,container_id,status):
+        table=Table('containers',self.metadata,autoload=True) 
+        u=table.update().where(table.c.Id == id).values(ContainerID = container_id,Status = status)
+        u.execute() 
+
+    def update_container_status(self,id,status):
+        table=Table('containers',self.metadata,autoload=True) 
+        u=table.update().where(table.c.Id == id).values(Status = status)
+        u.execute() 
     def get_containers(self,project_id,user_id):
         table = Table('containers',self.metadata,autoload=True)
         s = table.select().where(and_(
@@ -164,10 +169,8 @@ class DBAPI():
                 Created=created
                 )
     def delete_user(self,id):
-        print 'delete user',id
         table = Table('users',self.metadata,autoload=True)
         d=table.delete(table.c.Id == id)
-        print 'done'
         return d.execute()
 
     def delete_users(self,project_id):
@@ -181,7 +184,6 @@ class DBAPI():
                                     table.c.UserID == user_id)
                                     )
         r = s.execute().fetchone()
-        print 's',r
         if r is not None:
             return True
         return False
@@ -313,4 +315,3 @@ if __name__ == '__main__':
     hgs_table.create(checkfirst=True)
     sftp_table.create(checkfirst=True)
 
-    print 'ok'
