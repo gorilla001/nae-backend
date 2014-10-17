@@ -40,7 +40,8 @@ class ContainerAPI():
             'Image' : None,
             'Volumes' : {},
             'VolumesFrom' : '',
-            'ExposedPorts': {},
+            'ExposedPorts': {}
+            
         }
 	def _create_container(url,name,data,headers,db,repo_path,user_name,_container_id):
         	resp = requests.post("{}/containers/create?name={}".format(url,name),data=json.dumps(data),headers=headers)
@@ -84,24 +85,40 @@ class ContainerAPI():
     def start_container(self,kargs,container_id,_container_id):
 	def _start_container(url,container_id,data,headers,db,_container_id):
             result=requests.post("{}/containers/{}/start".format(url,container_id),data=json.dumps(data),headers=headers)  
-	    print 'result.status_code',result.status_code
 	    if result.status_code == 204:
-		print 'id:',id
 	        db.update_container_status(
 					id = _container_id,
 					status = "ok"
-	    )
+	    	)
+        	result=self.inspect_container(container_id)
+        	container_id = result.json()['Id'][:12]
+        	network_settings = result.json()['NetworkSettings']
+        	ports=network_settings['Ports']
+       		private_host = network_settings['IPAddress']
+        	network_config=list()
+        	for port in ports:
+            		private_port = port.rsplit('/')[0]
+            		for item in ports[port]:
+                		host_ip=item['HostIp']
+                		host_port=item['HostPort']
+            		network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
+		db.update_container_network(
+				id = _container_id,
+				network = str(network_config),
+		)
 	    if result.status_code == 500:
 		    db.update_container_status(
 					id = _container_id,
 					status = "500"
 	    )
-			
+	random_port=utils.get_random_port()
+	exposed_port='80/tcp'
         data = {
             'Binds':[],
             'Links':[],
             'LxcConf':{},
-            #'PortBindings':{},
+	    'PortBindings':{},
+            'PortBindings':{},
             'PublishAllPorts':True,
             'Privileged':False,
             'Dns':[],
@@ -150,7 +167,7 @@ class ContainerController(object):
             container = {
                     'ID':item[0],
                     'Name':item[2],
-                    'AccessMethod':'',
+		    'AccessMethod':'  '.join(ast.literal_eval(item[7])),
                     'Created':item[8],
                     'Status':item[10],
                     }
@@ -219,8 +236,14 @@ class ContainerController(object):
     	#self.start_container(container_id,user_name,container_hg)
         
     def start_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key,user_name,_container_id):
+	image_info = self.db_api.get_image(image).fetchone()
+	image_id = image_info[1]
+	result=self.image_api.inspect_image(image_id)
+        result_json=result.json()
+	pprint(result_json)
+        port=result_json['Config']['ExposedPorts']
         kwargs={
-                'Image':image,
+                'Image':image_id,
 		'Env':[
 		      "REPO_PATH={}".format(repo_path),
 		      "BRANCH={}".format(branch),
@@ -229,7 +252,10 @@ class ContainerController(object):
                       "SSH_KEY={}".format(ssh_key),
 	    	],
             	'Cmd' : ["/opt/start.sh"], 
+                'ExposedPorts':port,
+		
             }
+	print kwargs
         self.compute_api.create_container(kwargs,name,repo_path,user_name,_container_id)
     def prepare_start_container(self,user,key,hg,branch,env):
         user_home=utils.make_user_home(user,key)

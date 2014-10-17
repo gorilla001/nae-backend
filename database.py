@@ -85,6 +85,10 @@ class DBAPI():
         table=Table('containers',self.metadata,autoload=True) 
         u=table.update().where(table.c.Id == id).values(Status = status)
         u.execute() 
+    def update_container_network(self,id,network):
+        table=Table('containers',self.metadata,autoload=True) 
+        u=table.update().where(table.c.Id == id).values(AccessMethod = network)
+        u.execute() 
     def get_containers(self,project_id,user_id):
         table = Table('containers',self.metadata,autoload=True)
         s = table.select().where(and_(
