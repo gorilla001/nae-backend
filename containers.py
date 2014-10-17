@@ -21,7 +21,7 @@ class ContainerAPI():
     def __init__(self):
         self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
 	self.db_api=DBAPI()
-    def create_container(self,kargs,name,id,repo_path,user_name):
+    def create_container(self,kargs,name,repo_path,user_name,_container_id):
         data = {
             'Hostname' : '',
             'User'     : '',
@@ -42,13 +42,13 @@ class ContainerAPI():
             'VolumesFrom' : '',
             'ExposedPorts': {},
         }
-	def _create_container(url,name,data,headers,db,id,repo_path,user_name):
+	def _create_container(url,name,data,headers,db,repo_path,user_name,_container_id):
         	resp = requests.post("{}/containers/create?name={}".format(url,name),data=json.dumps(data),headers=headers)
 		if resp.status_code == 201:
 			container_info = resp.json()
 			container_id = container_info["Id"]
 			db.update_container(
-					id = id,
+					id = _container_id,
 					container_id = container_id, 
 					status = 'created'
 					)
@@ -60,10 +60,10 @@ class ContainerAPI():
             			'Binds':['{}:{}'.format(source_path,dest_path)],
             			'Dns':[config.DNS.strip("'")],
 			}
-        		self.start_container(kargs,container_id)
+        		self.start_container(kargs,container_id,_container_id)
         data.update(kargs)
         headers={'Content-Type':'application/json'}
-        eventlet.spawn_n(_create_container,self.url,name,data,headers,self.db_api,id,repo_path,user_name)
+        eventlet.spawn_n(_create_container,self.url,name,data,headers,self.db_api,repo_path,user_name,_container_id)
         result=webob.Response('{"status_code":200"}')
         return result
     def delete_container(self,_container_id,container_id,v):
@@ -81,18 +81,19 @@ class ContainerAPI():
             if container_id in res['Id']:
                 pass
         return response 
-    def start_container(self,kargs,container_id):
-	def _start_container(url,container_id,data,headers,db,id):
+    def start_container(self,kargs,container_id,_container_id):
+	def _start_container(url,container_id,data,headers,db,_container_id):
             result=requests.post("{}/containers/{}/start".format(url,container_id),data=json.dumps(data),headers=headers)  
+	    print 'result.status_code',result.status_code
 	    if result.status_code == 204:
 		print 'id:',id
 	        db.update_container_status(
-					id = id,
+					id = _container_id,
 					status = "ok"
 	    )
 	    if result.status_code == 500:
 		    db.update_container_status(
-					id = id,
+					id = _container_id,
 					status = "500"
 	    )
 			
@@ -110,7 +111,7 @@ class ContainerAPI():
 	}
 	data.update(kargs)
         headers={"Content-Type":"application/json"}
-        eventlet.spawn_n(_start_container,self.url,container_id,data,headers,self.db_api,id)
+        eventlet.spawn_n(_start_container,self.url,container_id,data,headers,self.db_api,_container_id)
         result=webob.Response('{"status_code":200"}')
         return result
     def stop_container(self,container_id):
@@ -203,7 +204,7 @@ class ContainerController(object):
 	#container_name = container_name + '-' + str(count).zfill(4)
 	container_name = container_name + '-' + utils.random_str(4) 
         created_time = utils.human_readable_time(time.time())
-        id = self.db_api.add_container(
+        _container_id = self.db_api.add_container(
                 container_name=container_name,
                 container_env=container_env,
                 project_id=project_id,
@@ -214,10 +215,10 @@ class ContainerController(object):
                 status="building")
 
 	self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
-        self.start_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key,id,user_name)
+        self.start_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key,user_name,_container_id)
     	#self.start_container(container_id,user_name,container_hg)
         
-    def start_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key,id,user_name):
+    def start_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key,user_name,_container_id):
         kwargs={
                 'Image':image,
 		'Env':[
@@ -229,7 +230,7 @@ class ContainerController(object):
 	    	],
             	'Cmd' : ["/opt/start.sh"], 
             }
-        self.compute_api.create_container(kwargs,name,id,repo_path,user_name)
+        self.compute_api.create_container(kwargs,name,repo_path,user_name,_container_id)
     def prepare_start_container(self,user,key,hg,branch,env):
         user_home=utils.make_user_home(user,key)
         repo_name=os.path.basename(hg)
