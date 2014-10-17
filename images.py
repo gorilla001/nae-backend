@@ -32,14 +32,14 @@ class ImageAPI():
     def inspect_image(self,image_id):
         result=requests.get("{}/images/{}/json".format(self.url,image_id))
         return result
-    def create_image_from_file(self,image_name,repo_path,project_id,user_name):
+    def create_image_from_file(self,image_name,repo_path,repo_branch,project_id,user_name):
 
         repo_name=os.path.basename(repo_path)
         if utils.repo_exist(user_name,repo_name):
             self.mercurial.pull(user_name,repo_path)
-            self.mercurial.update(user_name,repo_path)
         else:
             self.mercurial.clone(user_name,repo_path)
+        self.mercurial.update(user_name,repo_path,repo_branch)
         file_path=utils.get_file_path(user_name,repo_name)
         tar_path=utils.make_zip_tar(file_path)
         print tar_path
@@ -56,32 +56,11 @@ class ImageAPI():
                     image_size=res['VirtualSize']
                     created_time = res['Created'] 
             image_size = utils.human_readable_size(image_size)
-            created_time = utils.human_readable_time(created_time)
-            created_time = utils.human_readable_time(time.time())
-            status = 'ok'
-	    print 'create image ok'
             self.db_api.update_image(
-                                  image_name=image_name,
+				  image_name=image_name,
                                   image_id=image_id,
-                                  image_size=image_size,
-                                  image_desc='',
-                                  image_project='',
-                                  image_hgs='',
-                                  image_created=created_time,
-                                  created_by='',
-                                  status = status)
-            #self.db_api.add_hg(
-            #                project_id = project_id,
-            #                image_id = image_id,
-            #                hg_name = repo_path,
-            #                )
-            #print 'send notify to ui'
-            #requests.get('http://192.168.1.127:8000/images/update')
-
-        #url='http://localhost:2375/build?t=test33&nocache'
-        #files=open('/tmp/httpd/httpd.tar.gz','rb')
-
-        #r=requests.post(url,data=files,headers=headers)
+                                  size=image_size,
+                                  status = "ok")
         eventlet.spawn_n(create_image,self.url,image_name,tar_path,repo_path,project_id)
         result=webob.Response('{"status_code":200"}')
         return result
@@ -165,43 +144,26 @@ class ImageController(object):
     def create(self,request):
         image_name=request.json.pop('image_name')
         image_desc=request.json.pop('image_desc')
-        image_proj=request.json.pop('project_id')
+        project_id=request.json.pop('project_id')
         repo_path=request.json.pop('repo_path')
+	repo_branch=request.json.pop('repo_branch')
         user_name=request.json.pop('user_name')
 
-        print image_name,image_desc,image_proj,repo_path,user_name
-
+        created_time = utils.human_readable_time(time.time())
+	self.db_api.add_image(
+				  image_id='',
+                                  name=image_name,
+                                  size='',
+                                  desc=image_desc,
+                                  project_id=project_id,
+                                  repo = repo_path,
+				  branch = repo_branch, 
+                                  created= created_time,
+                                  created_by=user_name,
+                                  status = 'building'
+	)
+        self.image_api.create_image_from_file(image_name,str(repo_path),str(repo_branch),image_proj,user_name)
         result_json={}
-        result=self.image_api.create_image_from_file(image_name,str(repo_path),image_proj,user_name)
-        if result.status_code == 200:
-            print 'image create begin'
-            result_json={"status":"200"}
-            #result=self.image_api.inspect_image(image_name)
-            #pprint(result)
-            #image_id=result.json()['id'][:12]
-            #result = self.image_api.get_image_by_id(image_id)
-            #for res in result.json():
-            #    if image_id in res['Id']:
-            #        image_size=res['VirtualSize']
-            ##        created_time = res['Created'] 
-            #image_size = utils.human_readable_size(image_size)
-            #created_time = utils.human_readable_time(created_time)
-            #created_time = utils.human_readable_time(time.time())
-            created_by = user_name
-            #print image_id,image_name,image_size,image_desc,created_time,created_by
-            self.db_api.add_image(image_id='',
-                                  image_name=image_name,
-                                  image_size='',
-                                  image_desc=image_desc,
-                                  image_project=image_proj,
-                                  image_hgs = repo_path,
-                                  image_created='',
-                                  created_by=created_by,
-                                  status = 'building')
-            #self.db_api.update_projects(image_id=image_id)
-        if result.status_code == 500:
-            errors={"errors":"500 internal server error"} 
-            result_json=errors
         return result_json
     def delete(self,request):
         _image_id=request.environ['wsgiorg.routing_args'][1]['image_id']

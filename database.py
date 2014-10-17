@@ -10,32 +10,23 @@ class DBAPI():
         self.engine = create_engine(DATABASE_URL,convert_unicode=True)
         self.metadata=MetaData(self.engine)
         #self.engine.echo=True
-    def add_image(self,image_id='',image_name='',image_size='',image_desc='',image_project='',image_hgs='',image_created='',created_by='',status=''):
+    def add_image(self,image_id='',name='',size='',desc='',project_id='',repo='',branch='',created,created_by='',status=''):
         table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
         i.execute(ImageId=image_id,
-                  ImageName=image_name,
-                  ImageSize=image_size,
-                  ImageDesc=image_desc,
-                  ProjectID=image_project,
-                  ImageHgs=image_hgs,
+                  Name=name,
+                  Size=size,
+                  Desc=desc,
+                  ProjectID=project_id,
+                  RepoPath=repo,
+		  Branch = branch,
                   CreatedTime=image_created,
                   CreatedBy=created_by,
                   Status = status,
                   )
-    def update_image(self,image_name,image_id='',image_size='',image_desc='',image_project='',image_hgs='',image_created='',created_by='',status=''):
-           # Column('ID',Integer,primary_key=True,autoincrement=True),
-           # Column('ImageId',String(30)),
-           # Column('ImageName',String(50)),
-           # Column('ImageSize',String(50)),
-           # Column('ImageDesc',String(300)),
-           # Column('ProjectID',String(300)),
-           # Column('CreatedTime',String(150)),
-           # Column('CreatedBy',String(30)),
-           # Column('Status',String(100)),
-
+    def update_image(self,name,image_id,size,status):
         table=Table('images',self.metadata,autoload=True) 
-        u=table.update().where(table.c.ImageName == image_name).values(ImageId = image_id,ImageSize = image_size,ImageHgs = image_hgs,CreatedTime = image_created,Status = status)
+        u=table.update().where(table.c.ImageName == name).values(ImageId = image_id,ImageSize =size,Status = status)
         u.execute() 
     def get_images(self,project_id=None):
         table=Table('images',self.metadata,autoload=True) 

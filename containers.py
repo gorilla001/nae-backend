@@ -52,8 +52,19 @@ class ContainerAPI():
         data.update(kargs)
         pprint(data)
         headers={'Content-Type':'application/json'}
-        resp = requests.post("{}/containers/create?name={}".format(self.url,name),data=json.dumps(data),headers=headers)
-        return resp
+	def _create_container(url,name,data,headers,db):
+        	resp = requests.post("{}/containers/create?name={}".format(url,name),data=json.dumps(data),headers=headers)
+		if resp.status_code == 201:
+			container_info = resp.json()
+        		created_time = utils.human_readable_time(time.time())
+			db.update_container(
+					container_id = container_info["Id"], 
+					created=created_time,
+					)
+	
+        eventlet.spawn_n(_create_container,self.url,name,data,headers,self.db_api)
+        result=webob.Response('{"status_code":200"}')
+        return result
     def delete_container(self,_container_id,container_id,v):
         self.stop_container(container_id)
         result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
@@ -91,7 +102,7 @@ class ContainerAPI():
         result=requests.post("{}/containers/{}/start".format(self.url,container_id),data=json.dumps(data),headers=headers)  
         return result
     def stop_container(self,container_id):
-        result=requests.post("{}/containers/{}/stop".format(self.url,container_id))
+        result=requests.post("{}/containers/{}/stop?t=300".format(self.url,container_id))
         return result
     def kill_container(self,container_id):
         result=requests.post("{}/containers/{}/kill".format(self.url,container_id))
@@ -216,18 +227,22 @@ class ContainerController(object):
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
 
-        container_name,container_id,container_port = self.create_container(container_image,container_hg,container_code,root_path,container_env,user_key)
+	container_name = os.path.basename(container_hg) + '-' + container-code
+	status="building"
+	self.save_to_db(container_name,container_env,project_id,container_hg,container_code,user_name,status)
+
+        container_id,container_port = self.create_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key)
+
 	self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
     	self.start_container(container_id,container_port,user_name,os.path.basename(container_hg))
-        self.save_to_db(container_id,container_name,container_env,project_id,container_hg,container_code,user_name)
+        self.update_db(container_id,container_name,container_env,project_id,container_hg,container_code,user_name)
         
-    def create_container(self,image,repo_path,branch,root_path,app_env,ssh_key):
+    def create_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key):
         result = self.image_api.inspect_image(image)
         result_json={}
         if result.status_code == 200:
             result_json=result.json()   
             port=result_json['Config']['ExposedPorts']
-            name=utils.random_str()
             kwargs={
                 'Image':image,
                 'ExposedPorts':port,
@@ -256,11 +271,11 @@ class ContainerController(object):
     def start_container(self,container_id,exposed_port,user_name,repo_name):
         self.compute_api.start_container(container_id,exposed_port,user_name,repo_name)
 
-    def save_to_db(self,id,name,env,project_id,hg,branch,user):
-        network_config = self.get_container_info(name)[1]
-        created_time = utils.human_readable_time(time.time())
+    def save_to_db(self,name,env,project_id,hg,branch,user,status):
+        #network_config = self.get_container_info(name)[1]
+        #created_time = utils.human_readable_time(time.time())
         self.db_api.add_container(
-                container_id=id,
+                #container_id=id,
                 container_name=name,
                 container_env=env,
                 project_id=project_id,
@@ -269,12 +284,12 @@ class ContainerController(object):
                 access_method=str(network_config),
                 created=created_time,
                 created_by=user,
-                status='ok')
-        self.db_api.add_sftp(
-                container_id = id,
-                sftp_addr = config.HOST.strip("'"),
-                sftp_user = user,
-        )
+                status=status)
+        #self.db_api.add_sftp(
+        #        container_id = id,
+        #        sftp_addr = config.HOST.strip("'"),
+        #        sftp_user = user,
+        #)
 
 
     def get_container_info(self,name):
