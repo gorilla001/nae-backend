@@ -311,13 +311,20 @@ if __name__ == '__main__':
             Column('Created',String(150)),
     )
 
-    sftp_table = Table('sftp',metadata,
+    #sftp_table = Table('sftp',metadata,
+    #        Column('Id',Integer,primary_key=True,autoincrement=True),
+    #        Column('ContainerID',String(50)),
+    #        Column('Sftp',String(100)),
+    #        Column('User',String(30)),
+    #        Column('Port',String(30)),
+    #)
+    network_table = Table('networks',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
             Column('ContainerID',String(50)),
-            Column('Sftp',String(100)),
-            Column('User',String(30)),
+            Column('Host',String(100)),
             Column('Port',String(30)),
-    )
+   )
+
 
 
     engine.echo=True
@@ -326,5 +333,6 @@ if __name__ == '__main__':
     users_table.create(checkfirst=True)
     containers_table.create(checkfirst=True)
     hgs_table.create(checkfirst=True)
-    sftp_table.create(checkfirst=True)
+    #sftp_table.create(checkfirst=True)
+    network_table.create(checkfirst=True)
 
