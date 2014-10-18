@@ -17,11 +17,21 @@ from utils import MercurialControl
 import eventlet
 eventlet.monkey_patch()
 
+
 class ContainerAPI():
     def __init__(self):
         self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
-	self.db_api=DBAPI()
+        self.db_api=DBAPI()
+        self.headers={'Content-Type':'application/json'}
+        self.name = None 
+        self.repo_path = None 
+        self.user_name = None 
+        self._id = None 
     def create_container(self,kargs,name,repo_path,user_name,_container_id):
+        self.name = name
+        self.repo_path = repo_path
+        self.user_name = user_name
+        self._id = _container_id
         data = {
             'Hostname' : '',
             'User'     : '',
@@ -34,7 +44,7 @@ class ContainerAPI():
             'Tty'   : True,
             'OpenStdin' : True,
             'StdinOnce' : False,
-	    'Env':[],
+	        'Env':[],
             'Cmd' : [], 
             'Dns' : None,
             'Image' : None,
@@ -43,30 +53,30 @@ class ContainerAPI():
             'ExposedPorts': {}
             
         }
-	def _create_container(url,name,data,headers,db,repo_path,user_name,_container_id):
-        	resp = requests.post("{}/containers/create?name={}".format(url,name),data=json.dumps(data),headers=headers)
-		if resp.status_code == 201:
-			container_info = resp.json()
-			container_id = container_info["Id"]
-			db.update_container(
-					id = _container_id,
-					container_id = container_id, 
-					status = 'created'
-					)
-			repo_name = os.path.basename(repo_path)	
-			path=os.path.join(os.path.dirname(__file__),'files')
-			source_path = os.path.join(path,user_name,repo_name)
-			dest_path = "/mnt"
-			kargs = {
-            			'Binds':['{}:{}'.format(source_path,dest_path)],
-            			'Dns':[config.DNS.strip("'")],
-			}
-        		self.start_container(kargs,container_id,_container_id)
         data.update(kargs)
-        headers={'Content-Type':'application/json'}
-        eventlet.spawn_n(_create_container,self.url,name,data,headers,self.db_api,repo_path,user_name,_container_id)
+        eventlet.spawn_n(self._create_container,data)
         result=webob.Response('{"status_code":200"}')
         return result
+    def _create_container(self,data):
+        _url = "{}/containers/create?name={}".format(self.url,self.name)
+        resp = requests.post(_url,data=json.dumps(data),headers=self.headers)
+        if resp.status_code == 201:
+            container_info = resp.json()
+            container_id = container_info["Id"]
+            self.db_api.update_container(
+            		id = self._id,
+            		container_id = container_id, 
+            		status = 'created'
+            		)
+            repo_name = os.path.basename(self.repo_path)	
+            path=os.path.join(os.path.dirname(__file__),'files')
+            source_path = os.path.join(path,self.user_name,repo_name)
+            dest_path = "/mnt"
+            kargs = {
+              	'Binds':['{}:{}'.format(source_path,dest_path)],
+            	'Dns':[config.DNS.strip("'")],
+            }
+            self.start_container(kargs,container_id)
     def delete_container(self,_container_id,container_id,v):
         self.stop_container(container_id)
         result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
@@ -82,42 +92,12 @@ class ContainerAPI():
             if container_id in res['Id']:
                 pass
         return response 
-    def start_container(self,kargs,container_id,_container_id):
-	def _start_container(url,container_id,data,headers,db,_container_id):
-            result=requests.post("{}/containers/{}/start".format(url,container_id),data=json.dumps(data),headers=headers)  
-	    if result.status_code == 204:
-	        db.update_container_status(
-					id = _container_id,
-					status = "ok"
-	    	)
-        	result=self.inspect_container(container_id)
-        	container_id = result.json()['Id'][:12]
-        	network_settings = result.json()['NetworkSettings']
-        	ports=network_settings['Ports']
-       		private_host = network_settings['IPAddress']
-        	network_config=list()
-        	for port in ports:
-            		private_port = port.rsplit('/')[0]
-            		for item in ports[port]:
-                		host_ip=item['HostIp']
-                		host_port=item['HostPort']
-            		network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
-		db.update_container_network(
-				id = _container_id,
-				network = str(network_config),
-		)
-	    if result.status_code == 500:
-		    db.update_container_status(
-					id = _container_id,
-					status = "500"
-	    )
-	random_port=utils.get_random_port()
-	exposed_port='80/tcp'
+    def start_container(self,kargs,container_id):
         data = {
             'Binds':[],
             'Links':[],
             'LxcConf':{},
-	    'PortBindings':{},
+	        'PortBindings':{},
             'PortBindings':{},
             'PublishAllPorts':True,
             'Privileged':False,
@@ -125,12 +105,39 @@ class ContainerAPI():
             'VolumesFrom':[],
             'CapAdd':[],
             'CapDrop':[],
-	}
-	data.update(kargs)
-        headers={"Content-Type":"application/json"}
-        eventlet.spawn_n(_start_container,self.url,container_id,data,headers,self.db_api,_container_id)
+	    }
+        data.update(kargs)
+        eventlet.spawn_n(self._start_container,container_id,data)
         result=webob.Response('{"status_code":200"}')
         return result
+
+    def _start_container(self,container_id,data):
+        _url="{}/containers/{}/start".format(self.url,container_id)
+        result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        if result.status_code == 204:
+            self.db_api.update_container_status(
+        			id = self._id,
+        			status = "ok"
+        	)
+            result=self.inspect_container(container_id)
+            network_settings = result.json()['NetworkSettings']
+            ports=network_settings['Ports']
+            network_config=list()
+            for port in ports:
+            		private_port = port.rsplit('/')[0]
+            		for item in ports[port]:
+                		host_ip=item['HostIp']
+                		host_port=item['HostPort']
+            		network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
+            self.db_api.update_container_network(
+        		id = self._id,
+        		network = str(network_config),
+            )
+        if result.status_code == 500:
+            self.db_api.update_container_status(
+        			id = self._id,
+        			status = "500"
+        )
     def stop_container(self,container_id):
         result=requests.post("{}/containers/{}/stop?t=300".format(self.url,container_id))
         return result
@@ -167,7 +174,8 @@ class ContainerController(object):
             container = {
                     'ID':item[0],
                     'Name':item[2],
-		    'AccessMethod':'  '.join(ast.literal_eval(item[7])),
+		            #'AccessMethod':'  '.join(ast.literal_eval(item[7])),
+		            'AccessMethod':item[7],
                     'Created':item[8],
                     'Status':item[10],
                     }
