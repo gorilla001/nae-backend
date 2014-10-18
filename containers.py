@@ -78,7 +78,15 @@ class ContainerAPI():
             }
             self.start_container(kargs,container_id)
     def delete_container(self,_container_id,container_id,v):
+        self.db_api.update_container_status(
+                id = _container_id,
+                status = "stoping"
+        )
         self.stop_container(container_id)
+        self.db_api.update_container_status(
+                id = _container_id,
+                status = "deleting"
+        )
         result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
         self.db_api.delete_container(_container_id)
         return result
@@ -114,6 +122,7 @@ class ContainerAPI():
     def _start_container(self,container_id,data):
         _url="{}/containers/{}/start".format(self.url,container_id)
         result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        print 'result.status_code' ,result.status_code
         if result.status_code == 204:
             self.db_api.update_container_status(
         			id = self._id,
@@ -243,7 +252,11 @@ class ContainerController(object):
 
         container_name = os.path.basename(container_hg) + '-' + container_code 
         max_id = self.db_api.get_max_container_id()
-        max_id = max_id.fetchone()[0] + 1
+        max_id = max_id.fetchone()[0]
+        if max_id is not None:
+            max_id = max_id + 1;
+        else:
+            max_id = 0;
         container_name = container_name + '-' + str(max_id).zfill(4)
         #container_name = container_name + '-' + utils.random_str(4) 
         created_time = utils.human_readable_time(time.time())
