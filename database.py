@@ -239,6 +239,15 @@ class DBAPI():
         table=Table('sftp',self.metadata,autoload=True)
         d=table.select(table.c.ContainerID == container_id)
         return d.execute()
+    def add_network(self,container_id,host,port):
+        table=Table('networks',self.metadata,autoload=True)
+        i=table.insert()
+        i.execute(
+                ContainerID = container_id,
+                Host = host,
+                Port = port,
+                )
+
 
 
 
@@ -321,8 +330,10 @@ if __name__ == '__main__':
     network_table = Table('networks',metadata,
             Column('Id',Integer,primary_key=True,autoincrement=True),
             Column('ContainerID',String(50)),
-            Column('Host',String(100)),
-            Column('Port',String(30)),
+            Column('PublicHost',String(100)),
+            Column('PublicPort',String(30)),
+            Column('PrivateHost',String(100)),
+            Column('PrivatePort',String(30)),
    )
 
 
