@@ -1,6 +1,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.sql import and_
+from sqlalchemy.sql import func,select
 
 
 DATABASE_URL="mysql://root:root@172.19.32.155/jaecpn"
@@ -104,7 +105,6 @@ class DBAPI():
     def get_container_count(self,container_name):
         table=Table('containers',self.metadata,autoload=True)
         s=table.select(table.c.ContainerName == container_name)
-	print s.execute().fetchall()
         return len(s.execute().fetchall())
     def delete_container(self,container_id):
         table=Table('containers',self.metadata,autoload=True)
@@ -114,6 +114,11 @@ class DBAPI():
         table=Table('containers',self.metadata,autoload=True)
         d=table.delete(table.c.ProjectID == project_id)
         return d.execute()
+    def get_max_container_id(self):
+        table=Table('containers',self.metadata,autoload=True)
+        s=select([func.max(table.c.Id)])
+        return s.execute()
+
     def get_projects(self):
         table=Table('projects',self.metadata,autoload=True)
         s=table.select()
@@ -239,14 +244,20 @@ class DBAPI():
         table=Table('sftp',self.metadata,autoload=True)
         d=table.select(table.c.ContainerID == container_id)
         return d.execute()
-    def add_network(self,container_id,host,port):
+    def add_network(self,container_id,pub_host,pub_port,pri_host,pri_port):
         table=Table('networks',self.metadata,autoload=True)
         i=table.insert()
         i.execute(
                 ContainerID = container_id,
-                Host = host,
-                Port = port,
+                PublicHost = pub_host,
+                PublicPort = pub_port,
+                PrivateHost = pri_host,
+                PrivatePort = pri_port,
                 )
+    def get_network(self,container_id):
+        table=Table('networks',self.metadata,autoload=True)
+        s=table.select(table.c.ContainerID == container_id)
+        return s.execute()
 
 
 

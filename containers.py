@@ -122,17 +122,25 @@ class ContainerAPI():
             result=self.inspect_container(container_id)
             network_settings = result.json()['NetworkSettings']
             ports=network_settings['Ports']
-            network_config=list()
+            private_host = network_settings['IPAddress']
+            #network_config=list()
             for port in ports:
             		private_port = port.rsplit('/')[0]
             		for item in ports[port]:
                 		host_ip=item['HostIp']
                 		host_port=item['HostPort']
-            		network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
-            self.db_api.update_container_network(
-        		id = self._id,
-        		network = str(network_config),
-            )
+            		#network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
+                        self.db_api.add_network(
+                            container_id = container_id,
+                            pub_host = host_ip,
+                            pub_port = host_port,
+                            pri_host = private_host,
+                            pri_port = private_port,
+                        )
+            #self.db_api.update_container_network(
+        	#	id = self._id,
+        	#	network = str(network_config),
+            #)
         if result.status_code == 500:
             self.db_api.update_container_status(
         			id = self._id,
@@ -175,10 +183,23 @@ class ContainerController(object):
                     'ID':item[0],
                     'Name':item[2],
 		            #'AccessMethod':'  '.join(ast.literal_eval(item[7])),
-		            'AccessMethod':item[7],
+		            'AccessMethod':'',
                     'Created':item[8],
                     'Status':item[10],
                     }
+            container_id = item[1]
+            network_info = self.db_api.get_network(container_id)
+            network_list = list()
+            for net in network_info.fetchall():
+                pub_host = net[2]
+                pub_port = net[3]
+                pri_port = net[5]
+                network_config ="{}:{}~{}".format(pub_host,pub_port,pri_port)
+                network_list.append(network_config)
+            data = {
+                "AccessMethod":' '.join(network_list),
+            }
+            container.update(data)
             container_list.append(container)
         return container_list
     def show(self,request):
@@ -205,13 +226,10 @@ class ContainerController(object):
     def delete(self,request):
         result_json={"status":"200"}
         _container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-	_v = request.GET.get('v')
+        _v = request.GET.get('v')
         container_info = self.db_api.get_container(_container_id).fetchone()
         container_id = container_info[1]
         eventlet.spawn_n(self.compute_api.delete_container,_container_id,container_id,_v)
-        #self.compute_api.stop_container(container_id)
-        #self.compute_api.delete_container(container_id,_v)
-        #self.db_api.delete_container(_container_id)
         return result_json
     def create(self,request):
         container_image=request.json.pop('container_image')
@@ -223,11 +241,11 @@ class ContainerController(object):
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
 
-	container_name = os.path.basename(container_hg) + '-' + container_code 
-	print container_name
-	count = self.db_api.get_container_count(container_name) + 1
-	#container_name = container_name + '-' + str(count).zfill(4)
-	container_name = container_name + '-' + utils.random_str(4) 
+        container_name = os.path.basename(container_hg) + '-' + container_code 
+        max_id = self.db_api.get_max_container_id()
+        max_id = max_id.fetchone()[0] + 1
+        container_name = container_name + '-' + str(max_id).zfill(4)
+        #container_name = container_name + '-' + utils.random_str(4) 
         created_time = utils.human_readable_time(time.time())
         _container_id = self.db_api.add_container(
                 container_name=container_name,
@@ -239,31 +257,29 @@ class ContainerController(object):
                 created_by=user_name,
                 status="building")
 
-	self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
+        self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
         self.start_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key,user_name,_container_id)
     	#self.start_container(container_id,user_name,container_hg)
         
     def start_container(self,name,image,repo_path,branch,root_path,app_env,ssh_key,user_name,_container_id):
-	image_info = self.db_api.get_image(image).fetchone()
-	image_id = image_info[1]
-	result=self.image_api.inspect_image(image_id)
+        image_info = self.db_api.get_image(image).fetchone()
+        image_id = image_info[1]
+        result=self.image_api.inspect_image(image_id)
         result_json=result.json()
-	pprint(result_json)
         port=result_json['Config']['ExposedPorts']
         kwargs={
                 'Image':image_id,
-		'Env':[
-		      "REPO_PATH={}".format(repo_path),
-		      "BRANCH={}".format(branch),
-		      "ROOT_PATH={}".format(root_path),
-		      "APP_ENV={}".format(app_env),
+	    'Env':[
+	          "REPO_PATH={}".format(repo_path),
+	          "BRANCH={}".format(branch),
+	          "ROOT_PATH={}".format(root_path),
+	          "APP_ENV={}".format(app_env),
                       "SSH_KEY={}".format(ssh_key),
 	    	],
             	'Cmd' : ["/opt/start.sh"], 
                 'ExposedPorts':port,
-		
+	    
             }
-	print kwargs
         self.compute_api.create_container(kwargs,name,repo_path,user_name,_container_id)
     def prepare_start_container(self,user,key,hg,branch,env):
         user_home=utils.make_user_home(user,key)
