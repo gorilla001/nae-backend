@@ -11,13 +11,15 @@ import config
 config_file='paste.ini'
 appname='api'
 
+logger=log.getlogger()
+
 docker_url=('http://{}:{}/info'.format(config.docker_host,config.docker_port))
-print docker_url
+logger.debug(docker_url)
 r=requests.get(docker_url)
 if r.status_code != 200:
-    log.LOG('cannot connect to docker!!!')
+    logger.debug('cannot connect to docker!!!')
 else:
-    log.LOG(r.json())
+    logger.debug(r.json())
 
 app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
-wsgi.server(eventlet.listen(('',8282)),app)
+wsgi.server(eventlet.listen(('',8282)),app,log=log.WSGILogger(logger))
