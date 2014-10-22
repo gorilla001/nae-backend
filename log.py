@@ -3,7 +3,7 @@ import logging
 def getlogger():
     logger=logging.getLogger()
     level=logging.NOTSET
-    hdlr=logging.FileHandler('/var/log/jaecpn.log')
+    hdlr=logging.FileHandler('/var/log/jaecpn/jaecpn.log')
     formatter=logging.Formatter('%(asctime)s %(levelname)s %(message)s','%Y-%m-%d %H:%M:%S')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
