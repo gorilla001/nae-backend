@@ -7,9 +7,12 @@ import os
 import requests
 import log
 import config
+from daemon import Daemon
 
 config_file='paste.ini'
 appname='api'
+
+Daemon().initDaemon()
 
 logger=log.getlogger()
 
