@@ -286,16 +286,16 @@ class ContainerController(object):
         result=self.image_api.inspect_image(image_id)
         result_json=result.json()
         port=result_json['Config']['ExposedPorts']
-	if app_type == 0:
-	    root_path = config.PHP_ROOT_PATH
-	if app_type == 1:
-	    root_path = config.JAVA_ROOT_PATH
+	#if app_type == 0:
+	#    root_path = config.PHP_ROOT_PATH
+	#if app_type == 1:
+	#    root_path = config.JAVA_ROOT_PATH
         kwargs={
                 'Image':image_id,
 	    'Env':[
 	          "REPO_PATH={}".format(repo_path),
 	          "BRANCH={}".format(branch),
-	          "ROOT_PATH={}".format(root_path),
+	          "APP_TYPE={}".format(app_type),
 	          "APP_ENV={}".format(app_env),
                       "SSH_KEY={}".format(ssh_key),
 	    	],
