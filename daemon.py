@@ -4,7 +4,7 @@ import sys,os
 
 class Daemon():
     def __init__(self):
-        self.pid_file='/var/run/hbimserver.pid'
+        self.pid_file='jaecpn.pid'
     def initDaemon(self):
         try:
             pid = os.fork()
@@ -13,7 +13,7 @@ class Daemon():
         except OSError,e:
             sys.exit(1)
     
-        os.chdir("/")
+        os.chdir(os.path.dirname(__file__))
         os.setsid()
         os.umask(0)
 

@@ -156,7 +156,7 @@ class ContainerAPI():
         			status = "500"
         )
     def stop_container(self,container_id):
-        result=requests.post("{}/containers/{}/stop?t=300".format(self.url,container_id))
+        result=requests.post("{}/containers/{}/stop?t=10".format(self.url,container_id))
         return result
     def kill_container(self,container_id):
         result=requests.post("{}/containers/{}/kill".format(self.url,container_id))
@@ -206,7 +206,7 @@ class ContainerController(object):
                 network_config ="{}:{}~{}".format(pub_host,pub_port,pri_port)
                 network_list.append(network_config)
             data = {
-                "AccessMethod":' '.join(network_list),
+                "AccessMethod":'  '.join(network_list),
             }
             container.update(data)
             container_list.append(container)

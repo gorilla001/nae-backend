@@ -44,3 +44,15 @@ class Resource(object):
 	def dispatch(self,method,request,action_args):
 		method=getattr(self.controller,method)
 		method(request,action_args)
+
+class Server(object):
+	default_pool_size = 1000
+
+	def __init__(self):
+		self._server = None
+		self._protocol = eventlet.wsgi.HttpProtocol
+		self.pool_size = self.default_pool_size
+		self._pool=eventlet.GreenPool(self.pool_size)
+		self._logger=logging.getLogger("eventlet.wsgi.server")
+		self._wsgi_logger=logging.WritableLogger(self._logger)
+
