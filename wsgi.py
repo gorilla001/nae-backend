@@ -1,4 +1,6 @@
 import webob
+from eventlet import wsgi
+import eventlet
 
 class Application(object):
 	pass
@@ -48,11 +50,40 @@ class Resource(object):
 class Server(object):
 	default_pool_size = 1000
 
-	def __init__(self):
-		self._server = None
-		self._protocol = eventlet.wsgi.HttpProtocol
-		self.pool_size = self.default_pool_size
-		self._pool=eventlet.GreenPool(self.pool_size)
-		self._logger=logging.getLogger("eventlet.wsgi.server")
-		self._wsgi_logger=logging.WritableLogger(self._logger)
+	def __init__(self,app,host,port,logger,backlog=128):
+	    self._server = None
+	    self._protocol = eventlet.wsgi.HttpProtocol
+	    self.pool_size = self.default_pool_size
+	    self._pool=eventlet.GreenPool(self.pool_size)
+	    self._logger=logger
+	    self._wsgi_logger=logging.WritableLogger(self._logger)
+	    
+	    bind_addr = (host,port)
+	    self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
+	def start(self):
+	    dup_socket = self._socket.dup()
+	    wsgi_kwargs = {
+            		'func': eventlet.wsgi.server,
+            		'sock': dup_socket,
+            		'site': self.app,
+            		'protocol': self._protocol,
+            		'custom_pool': self._pool,
+            		'log': self._wsgi_logger,
+            		'debug': False
+            		}
+	    self._server = eventlet.spawn(**wsgi_kwargs)
+	def wait(self):
+	    self._pool.waitall()
+	    self._server.wait()
 
+class Loader(object):
+	def __init__(self,config_path)
+		self.config_path=config_path
+	def load_app(self,name):
+		return deploy.loadapp("config:%s" % self.config_path,name=name)
+
+class WSGIService(object):
+	def __init__(self,name)
+		self.name = name
+		self.loader = Loader()
+		

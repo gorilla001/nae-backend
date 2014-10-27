@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-from eventlet import wsgi
-import eventlet
+#from eventlet import wsgi
+#import eventlet
 from paste.deploy import loadapp
 import os
 import requests
 import log
 import config
 from daemon import Daemon
+import wsgi
 
 config_file='paste.ini'
 appname='api'
@@ -25,4 +26,9 @@ else:
     logger.debug(r.json())
 
 app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
-application=wsgi.server(eventlet.listen(('',8282)),app,log=log.WSGILogger(logger))
+#application=wsgi.server(eventlet.listen(('',8282)),app,log=log.WSGILogger(logger))
+
+server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
+server.start()
+server.wait()
+
