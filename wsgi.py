@@ -2,6 +2,8 @@ import webob
 from eventlet import wsgi
 import eventlet
 
+import log as logging
+
 #class Application(object):
 #	pass
 #
@@ -56,7 +58,7 @@ class Server(object):
 	    self.pool_size = self.default_pool_size
 	    self._pool=eventlet.GreenPool(self.pool_size)
 	    self._logger=logger
-	    self._wsgi_logger=logging.WritableLogger(self._logger)
+	    self._wsgi_logger=logging.WSGILogger(self._logger)
 	    
 	    bind_addr = (host,port)
 	    self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
