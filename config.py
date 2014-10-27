@@ -20,6 +20,9 @@ try:
 
         HOST=parser.get("default","HOST")
 
+	PHP_ROOT_PATH=parser.get("default","PHP_ROOT_PATH")
+	JAVA_ROOT_PATH=parser.get("default","JAVA_ROOT_PATH")
+
     except ConfigParser.NoSectionError,error:
         pass
     except ConfigParser.NoSectionError as error:
