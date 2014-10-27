@@ -77,13 +77,13 @@ class Server(object):
 	    self._server.wait()
 
 class Loader(object):
-	def __init__(self,config_path)
+	def __init__(self,config_path):
 		self.config_path=config_path
 	def load_app(self,name):
 		return deploy.loadapp("config:%s" % self.config_path,name=name)
 
 class WSGIService(object):
-	def __init__(self,name)
+	def __init__(self,name):
 		self.name = name
 		self.loader = Loader()
 		
