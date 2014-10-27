@@ -250,7 +250,6 @@ class ContainerController(object):
         project_id = request.json.pop('container_project')
         container_hg=request.json.pop('container_hg')
         container_code = request.json.pop('container_code')
-        #root_path = request.json.pop('root_path')
         app_type= request.json.pop('app_type')
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
@@ -277,8 +276,6 @@ class ContainerController(object):
 
         self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
         self.start_container(container_name,container_image,container_hg,container_code,app_type,container_env,user_key,user_name,_container_id)
-        #self.start_container(container_name,container_image,container_hg,container_code,root_path,container_env,user_key,user_name,_container_id)
-    	#self.start_container(container_id,user_name,container_hg)
         
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
@@ -286,10 +283,6 @@ class ContainerController(object):
         result=self.image_api.inspect_image(image_id)
         result_json=result.json()
         port=result_json['Config']['ExposedPorts']
-	#if app_type == 0:
-	#    root_path = config.PHP_ROOT_PATH
-	#if app_type == 1:
-	#    root_path = config.JAVA_ROOT_PATH
         kwargs={
                 'Image':image_id,
 	    'Env':[
