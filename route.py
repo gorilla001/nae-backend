@@ -50,7 +50,12 @@ class Router (object):
         		action='stop',
         		conditions={'method':['POST']},
         )
-        
+        self.mapper.connect('/containers/{container_id}/start',
+        		controller=self.container_controller,
+        		action='start',
+        		conditions={'method':['POST']},
+        )
+
         
         self.mapper.connect('/containers',
         		controller=self.container_controller,

@@ -108,7 +108,6 @@ class ContainerAPI():
             'Binds':[],
             'Links':[],
             'LxcConf':{},
-	        'PortBindings':{},
             'PortBindings':{},
             'PublishAllPorts':True,
             'Privileged':False,
@@ -176,6 +175,30 @@ class ContainerAPI():
     def inspect_container(self,container_id):
         result=requests.get("{}/containers/{}/json".format(self.url,container_id))
         return result
+    def start_container_once(self,kwargs,_ctn_id,ctn_id):
+	data = {
+            'Binds':[],
+            'Links':[],
+            'LxcConf':{},
+            'PortBindings':{},
+            'PublishAllPorts':False,
+            'Privileged':False,
+            'Dns':[],
+            'VolumesFrom':[],
+            'CapAdd':[],
+            'CapDrop':[],
+	    }
+        data.update(kwargs)
+        _url="{}/containers/{}/start".format(self.url,ctn_id)
+        result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        if result.status_code == 204:
+            self.db_api.update_container_status(
+        			id = _ctn_id,
+        			status = "ok"
+        	)
+        _res=webob.Response('{"status_code":200"}')
+        return _res 
+
 
 
 class ContainerController(object):
@@ -295,6 +318,49 @@ class ContainerController(object):
 	)
 	eventlet.spawn_n(self.compute_api.stop_container,_ctn_id,ctn_id)
         
+    def start(self,request):
+	_ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+        _ctn_info = self.db_api.get_container(_ctn_id).fetchone()
+        ctn_id = _ctn_info[1]
+	self.db_api.update_container_status(
+		id = _ctn_id,
+		status = "starting",
+	)
+	#bingding example
+	#bindings = {
+	#	 "22/tcp": [
+        #        {
+        #            "HostIp": "192.168.9.10",
+        #            "HostPort": "49171"
+        #        }
+        #    	],
+        #    	"80/tcp": [
+        #        {
+        #            "HostIp": "192.168.9.10",
+        #            "HostPort": "49172"
+        #        }
+        #    	]
+	#	}
+
+	bindings = {}
+	network_info=self.db_api.get_networks(ctn_id)
+	for _net in network_info.fetchall():
+		data = {
+			"{}/tcp:".format(_net[3]) [
+			    {
+				"HostIp":_net[0],
+				"HostPort":_net[1],
+			    }
+			]
+		}
+		bindings.update(data)
+	kwargs={
+		'Cmd':["/usr/bin/supervisord"],
+		'PortBindings':bindings,
+	}	
+	eventlet.spawn_n(self.compute_api.start_container_once,kwargs,_ctn_id,ctn_id)
+
+	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
 	logger.debug(image_info)	
@@ -309,7 +375,7 @@ class ContainerController(object):
 	          "BRANCH={}".format(branch),
 	          "APP_TYPE={}".format(app_type),
 	          "APP_ENV={}".format(app_env),
-                      "SSH_KEY={}".format(ssh_key),
+                  "SSH_KEY={}".format(ssh_key),
 	    	],
             	'Cmd' : ["/opt/start.sh"], 
                 'ExposedPorts':port,
