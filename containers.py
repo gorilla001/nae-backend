@@ -228,8 +228,8 @@ class ContainerController(object):
                     'Name':item[2],
 		            #'AccessMethod':'  '.join(ast.literal_eval(item[7])),
 		            'AccessMethod':'',
-                    'Created':item[8],
-                    'Status':item[10],
+                    'Created':item[9],
+                    'Status':item[11],
                     }
             container_id = item[1]
             network_info = self.db_api.get_network(container_id)
