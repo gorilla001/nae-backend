@@ -85,7 +85,7 @@ class ContainerAPI():
                 id = _container_id,
                 status = "stoping"
         )
-        self.stop_container(container_id)
+        self.stop_container(_container_id,container_id)
         self.db_api.update_container_status(
                 id = _container_id,
                 status = "deleting"
@@ -158,9 +158,18 @@ class ContainerAPI():
         			id = self._id,
         			status = "500"
         )
-    def stop_container(self,container_id):
-        result=requests.post("{}/containers/{}/stop?t=10".format(self.url,container_id))
+    def stop_container(self,_ctn_id,ctn_id):
+        eventlet.spawn_n(self._stop_container,_ctn_id,ctn_id)
+        result=webob.Response('{"status_code":200"}')
         return result
+    def _stop_container(self,_ctn_id,ctn_id):
+        result=requests.post("{}/containers/{}/stop?t=10".format(self.url,ctn_id))
+	if result.status_code == 204:
+            self.db_api.update_container_status(
+        			id = _ctn_id,
+        			status = "stop"
+        	)
+	
     def kill_container(self,container_id):
         result=requests.post("{}/containers/{}/kill".format(self.url,container_id))
         return result
@@ -276,6 +285,15 @@ class ContainerController(object):
 
         self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
         self.start_container(container_name,container_image,container_hg,container_code,app_type,container_env,user_key,user_name,_container_id)
+    def stop(self,request):
+        _ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+        _ctn_info = self.db_api.get_container(_ctn_id).fetchone()
+        ctn_id = _ctn_info[1]
+	self.db_api.update_container_status(
+		id = _ctn_id,
+		status = "stoping",
+	)
+	eventlet.spawn_n(self.compute_api.stop_container,_ctn_id,ctn_id)
         
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()

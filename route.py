@@ -44,6 +44,12 @@ class Router (object):
         		action='inspect',
         		conditions={'method':['GET']},
         )
+
+        self.mapper.connect('/containers/{container_id}/stop',
+        		controller=self.container_controller,
+        		action='stop',
+        		conditions={'method':['POST']},
+        )
         
         
         self.mapper.connect('/containers',
