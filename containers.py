@@ -205,6 +205,19 @@ class ContainerAPI():
         	)
         _res=webob.Response('{"status_code":200"}')
         return _res 
+    def commit(self,_ctn_id,ctn_id,img_id):
+        eventlet.spawn_n(self._commit,_ctn_id,ctn_id,img_id)
+        result=webob.Response('{"status_code":200"}')
+        return result
+	
+    def _commit(self,_ctn_id,ctn_id,img_id):
+	_url="{}/commit?container={}&repo={}".format(self.url,ctn_id,img_id)
+        result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        if result.status_code == 201:
+            self.db_api.update_container_status(
+        			id = _ctn_id,
+        			status = "ok"
+        	)
 
 
 
@@ -372,6 +385,19 @@ class ContainerController(object):
     def reboot(self,request):
 	self.stop(request)
 	#self.start(request)
+
+    def commit(self,request):
+	_ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+        _ctn_info = self.db_api.get_container(_ctn_id).fetchone()
+        ctn_id = _ctn_info[1]
+	_img_id = _ctn_info[7]
+        img_info = self.db_api.get_image(_img_id).fetchone()
+        img_id = img_info[1]
+	self.db_api.update_container_status(
+		id = _ctn_id,
+		status = "commiting",
+	)
+	self.compute_api.commit(_ctn_id,ctn_id,img_id)
 	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()

@@ -60,6 +60,11 @@ class Router (object):
         		action='reboot',
         		conditions={'method':['POST']},
         )
+        self.mapper.connect('/containers/{container_id}/commit',
+        		controller=self.container_controller,
+        		action='commit',
+        		conditions={'method':['POST']},
+        )
 
         
         self.mapper.connect('/containers',
