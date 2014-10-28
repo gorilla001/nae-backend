@@ -396,7 +396,7 @@ class ContainerController(object):
         ctn_id = _ctn_info[1]
 	_img_id = _ctn_info[7]
         img_info = self.db_api.get_image(_img_id).fetchone()
-        img_id = img_info[1]
+        img_id = img_info[2]
 	self.db_api.update_container_status(
 		id = _ctn_id,
 		status = "commiting",
