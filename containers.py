@@ -302,6 +302,7 @@ class ContainerController(object):
                 project_id=project_id,
                 container_hg=container_hg,
                 container_code=container_code,
+		container_image=container_image,
                 created=created_time,
                 created_by=user_name,
                 status="building")

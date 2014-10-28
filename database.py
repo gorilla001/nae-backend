@@ -63,7 +63,7 @@ class DBAPI():
         d=table.delete(table.c.ProjectID == project_id)
         return d.execute()
 
-    def add_container(self,container_name,container_env,project_id,container_hg,container_code,created,created_by,status,container_id=None,access_method=None):
+    def add_container(self,container_name,container_env,project_id,container_hg,container_code,container_image,created,created_by,status,container_id=None,access_method=None):
         table=Table('containers',self.metadata,autoload=True)
         i=table.insert()
         result=i.execute(
@@ -72,6 +72,7 @@ class DBAPI():
                 ProjectID = project_id,
                 Hgs = container_hg,
                 Code = container_code,
+		Image = container_image,
                 Created = created,
                 CreatedBy = created_by,
                 Status = status,
@@ -320,6 +321,7 @@ if __name__ == '__main__':
             Column('ProjectID',Integer),
             Column('Hgs',String(300)),
             Column('Code',String(300)),
+            Column('Image',String(300)),
             Column('AccessMethod',String(300)),
             Column('Created',String(150)),
             Column('CreatedBy',String(30)),
