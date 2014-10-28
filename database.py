@@ -33,6 +33,11 @@ class DBAPI():
         table=Table('images',self.metadata,autoload=True) 
         u=table.update().where(table.c.ID == id).values(Status = status)
         u.execute() 
+    def update_image_id(self,_id,image_id):
+        table=Table('images',self.metadata,autoload=True) 
+        u=table.update().where(table.c.ID == _id).values(ImageId = image_id)
+        u.execute() 
+
     def get_images(self,project_id=None):
         table=Table('images',self.metadata,autoload=True) 
         s=table.select()

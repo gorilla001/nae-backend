@@ -25,6 +25,7 @@ class ContainerAPI():
     def __init__(self):
         self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
         self.db_api=DBAPI()
+	self.image_api=ImageAPI()
         self.headers={'Content-Type':'application/json'}
         self.name = None 
         self.repo_path = None 
@@ -205,12 +206,12 @@ class ContainerAPI():
         	)
         _res=webob.Response('{"status_code":200"}')
         return _res 
-    def commit(self,_ctn_id,ctn_id,img_id):
-        eventlet.spawn_n(self._commit,_ctn_id,ctn_id,img_id)
+    def commit(self,_ctn_id,ctn_id,img_nm,_img_id):
+        eventlet.spawn_n(self._commit,_ctn_id,ctn_id,img_nm,_img_id)
         result=webob.Response('{"status_code":200"}')
         return result
 	
-    def _commit(self,_ctn_id,ctn_id,img_id):
+    def _commit(self,_ctn_id,ctn_id,img_nm,_img_id):
 	#_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
         #result=requests.post(_url,headers=self.headers)  
         #if result.status_code == 201:
@@ -222,13 +223,21 @@ class ContainerAPI():
 	if rs.status_code == 200:
 		data=rs.json()['Config']
 		logger.debug(data)
-		_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
+		_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_nm)
         	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
         	if result.status_code == 201:
            		self.db_api.update_container_status(
         			id = _ctn_id,
         			status = "ok"
         		)
+			rs=self.image_api.inspect_image(img_nm)	
+			if rs.status_code == 200:
+			    imag_id = rs.json()['Config']['Image']
+			    self.db_api.update_image_id(
+				_id = _img_id,
+				image_id = imag_id, 
+			    )
+			
 
 
 
@@ -403,12 +412,12 @@ class ContainerController(object):
         ctn_id = _ctn_info[1]
 	_img_id = _ctn_info[7]
         img_info = self.db_api.get_image(_img_id).fetchone()
-        img_id = img_info[2]
+        img_nm = img_info[2]
 	self.db_api.update_container_status(
 		id = _ctn_id,
 		status = "commiting",
 	)
-	self.compute_api.commit(_ctn_id,ctn_id,img_id)
+	self.compute_api.commit(_ctn_id,ctn_id,img_nm,_img_id)
 	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
