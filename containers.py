@@ -212,7 +212,7 @@ class ContainerAPI():
 	
     def _commit(self,_ctn_id,ctn_id,img_id):
 	_url="{}/commit?container={}&repo={}".format(self.url,ctn_id,img_id)
-        result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        result=requests.post(_url,headers=self.headers)  
         if result.status_code == 201:
             self.db_api.update_container_status(
         			id = _ctn_id,
