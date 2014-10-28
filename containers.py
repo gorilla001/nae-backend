@@ -343,13 +343,13 @@ class ContainerController(object):
 	#	}
 
 	bindings = {}
-	network_info=self.db_api.get_networks(ctn_id)
+	network_info=self.db_api.get_network(ctn_id)
 	for _net in network_info.fetchall():
 		data = {
-			"{}/tcp:".format(_net[3]) [
+			"{}/tcp:".format(_net[5]) [
 			    {
-				"HostIp":_net[0],
-				"HostPort":_net[1],
+				"HostIp":_net[2],
+				"HostPort":_net[3],
 			    }
 			]
 		}
