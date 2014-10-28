@@ -211,24 +211,24 @@ class ContainerAPI():
         return result
 	
     def _commit(self,_ctn_id,ctn_id,img_id):
-	_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
-        result=requests.post(_url,headers=self.headers)  
-        if result.status_code == 201:
-          	self.db_api.update_container_status(
-        			id = _ctn_id,
-        			status = "ok"
-        		)
-	#rs=self.inspect_container(ctn_id)
-	#if rs.status_code == 200:
-	#	data=rs.json()['Config']
-	#	logger.debug(data)
-	#	_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
-        #	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
-        #	if result.status_code == 201:
-        #    		self.db_api.update_container_status(
+	#_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
+        #result=requests.post(_url,headers=self.headers)  
+        #if result.status_code == 201:
+        #  	self.db_api.update_container_status(
         #			id = _ctn_id,
         #			status = "ok"
         #		)
+	rs=self.inspect_container(ctn_id)
+	if rs.status_code == 200:
+		data=rs.json()['Config']
+		logger.debug(data)
+		_url="{}/commit?author=&comment=&container={}&repo={}&tag=new".format(self.url,ctn_id,img_id)
+        	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        	if result.status_code == 201:
+           		self.db_api.update_container_status(
+        			id = _ctn_id,
+        			status = "ok"
+        		)
 
 
 
