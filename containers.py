@@ -231,6 +231,7 @@ class ContainerAPI():
         			status = "ok"
         		)
 			rs=self.image_api.inspect_image(img_nm)	
+			logger.debug(rs.json()['Config']['Image'])	
 			if rs.status_code == 200:
 			    imag_id = rs.json()['Config']['Image']
 			    self.db_api.update_image_id(
