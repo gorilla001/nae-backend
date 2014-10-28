@@ -267,7 +267,7 @@ class DBAPI():
 
 
 if __name__ == '__main__':
-    engine = create_engine('mysql://root:root@localhost:3306/jaecpn')
+    engine = create_engine('mysql://jaecpn:jaecpn@localhost:3306/jaecpn')
     metadata = MetaData(engine)
 
     images_table = Table('images',metadata,
