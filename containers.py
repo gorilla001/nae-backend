@@ -85,13 +85,21 @@ class ContainerAPI():
                 id = _container_id,
                 status = "stoping"
         )
-        self.stop_container(_container_id,container_id)
-        self.db_api.update_container_status(
-                id = _container_id,
-                status = "deleting"
-        )
-        result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
-        self.db_api.delete_container(_container_id)
+	result=requests.post("{}/containers/{}/stop?t=10".format(self.url,ctn_id))
+	if result.status_code == 204:
+            self.db_api.update_container_status(
+        			id = _ctn_id,
+        			status = "stop"
+        	)
+
+        	self.db_api.update_container_status(
+                	id = _container_id,
+                	status = "deleting"
+        	)
+        	result=requests.delete("{}/containers/{}?v={}".format(self.url,container_id,v))    
+		if result.status_code == 204:
+        		self.db_api.delete_container(_container_id)
+        result=webob.Response('{"status_code":200"}')
         return result
     def get_containers(self):
         result=requests.get("{}/containers/json?all=0".format(self.url))    
