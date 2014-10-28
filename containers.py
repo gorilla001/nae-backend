@@ -393,18 +393,6 @@ class ContainerController(object):
             self.mercurial.clone(user,hg)
         self.mercurial.update(user,hg,branch)
 
-    #def start_container(self,container_id,user_name,repo_path):
-#	repo_path = os.path.basename(repo_path)	
-#	path=os.path.join(os.path.dirname(__file__),'files')
-#	source_path = os.path.join(path,user_name,repo_name)
-#	dest_path = "/mnt"
-#	kargs = {
-#            'Binds':['{}:{}'.format(source_path,dest_path)],
-#            'Dns':[config.DNS.strip("'")],
-#	}
-#        self.compute_api.start_container(kargs,container_id)
-
-    
     def get_container_info(self,name):
         result=self.compute_api.inspect_container(name)
         container_id = result.json()['Id'][:12]
