@@ -347,7 +347,7 @@ class ContainerController(object):
 	for _net in network_info.fetchall():
 		logger.debug(_net)
 		data = {
-			"{}/tcp:".format(_net[5])
+			"'{}/tcp'.format(_net[5])":
 			[
 			    {
 				"HostIp":_net[2],
