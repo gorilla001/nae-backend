@@ -279,6 +279,7 @@ class ContainerController(object):
         
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
+	logger.debug(image_info)	
         image_id = image_info[1]
         result=self.image_api.inspect_image(image_id)
         result_json=result.json()
