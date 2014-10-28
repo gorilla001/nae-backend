@@ -214,7 +214,7 @@ class ContainerAPI():
 	rs=self.inspect_container(ctn_id)
 	if rs.status_code == 200:
 		_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
-        	result=requests.post(_url,data=rs.json(),headers=self.headers)  
+        	result=requests.post(_url,data=rs.json()['Config'],headers=self.headers)  
         	if result.status_code == 201:
             		self.db_api.update_container_status(
         			id = _ctn_id,
