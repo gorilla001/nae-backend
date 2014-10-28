@@ -211,7 +211,7 @@ class ContainerAPI():
         return result
 	
     def _commit(self,_ctn_id,ctn_id,img_id):
-	_url="{}/commit?container={}&repo={}".format(self.url,ctn_id,img_id)
+	_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
         result=requests.post(_url,headers=self.headers)  
         if result.status_code == 201:
             self.db_api.update_container_status(
