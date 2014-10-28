@@ -361,7 +361,9 @@ class ContainerController(object):
 		'PortBindings':bindings,
 	}	
 	eventlet.spawn_n(self.compute_api.start_container_once,kwargs,_ctn_id,ctn_id)
-
+    def reboot(self,request):
+	self.stop(request)
+	self.start(request)
 	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
