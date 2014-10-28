@@ -47,7 +47,7 @@ class ContainerAPI():
             'Tty'   : True,
             'OpenStdin' : True,
             'StdinOnce' : False,
-	        'Env':[],
+	    'Env':[],
             'Cmd' : [], 
             'Dns' : None,
             'Image' : None,
@@ -345,9 +345,9 @@ class ContainerController(object):
 	bindings = {}
 	network_info=self.db_api.get_network(ctn_id)
 	for _net in network_info.fetchall():
-		logger.debug(_net)
+		_port = "{}/tcp".format(_net[5])
 		data = {
-			"'{}/tcp'.format(_net[5])":
+			_port:
 			[
 			    {
 				"HostIp":_net[2],
