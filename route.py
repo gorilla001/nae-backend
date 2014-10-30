@@ -102,7 +102,7 @@ class Router (object):
         		conditions={'method':['DELETE']},
         )
 	self.mapper.connect('/images/edit',
-        		controller=self.container_controller,
+        		controller=self.image_controller,
         		action='edit',
         		conditions={'method':['POST']},
         )
