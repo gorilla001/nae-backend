@@ -126,7 +126,9 @@ class ImageAPI():
             'Image' : None,
             'Volumes' : {},
             'VolumesFrom' : '',
-            'ExposedPorts': {"17698/tcp"}
+            'ExposedPorts': {
+			"17698/tcp": {},
+			}
             
         }
 	data.update(kwargs)
