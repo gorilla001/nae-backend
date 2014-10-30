@@ -239,7 +239,7 @@ class ContainerAPI():
 				image_id = imag_id, 
 			    )
 			
-
+    
 
 
 class ContainerController(object):
@@ -420,6 +420,7 @@ class ContainerController(object):
 	)
 	self.compute_api.commit(_ctn_id,ctn_id,img_nm,_img_id)
 	
+    	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
 	logger.debug(image_info)	

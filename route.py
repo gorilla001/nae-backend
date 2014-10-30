@@ -65,6 +65,7 @@ class Router (object):
         		action='commit',
         		conditions={'method':['POST']},
         )
+        
 
         
         self.mapper.connect('/containers',
@@ -99,6 +100,11 @@ class Router (object):
         		controller=self.image_controller,
         		action='delete',
         		conditions={'method':['DELETE']},
+        )
+	self.mapper.connect('/images/edit',
+        		controller=self.container_controller,
+        		action='edit',
+        		conditions={'method':['POST']},
         )
         #file method
         self.mapper.connect('/files',

@@ -100,7 +100,64 @@ class ImageAPI():
         eventlet.spawn_n(_delete_image,self.url,image_id,f_id,id)
         result=webob.Response('{"status_code":200"}')
         return result
-        
+    def edit(self,kargs):
+        eventlet.spawn_n(self._once_start,kargs)
+        result=webob.Response('{"status_code":200"}')
+        return result
+    def _edit(self,kargs):
+	data = {
+            'Hostname' : '',
+            'User'     : '',
+            'Memory'   : '',
+            'MemorySwap' : '',
+            'AttachStdin' : False,
+            'AttachStdout' : False,
+            'AttachStderr': False,
+            'PortSpecs' : [],
+            'Tty'   : True,
+            'OpenStdin' : True,
+            'StdinOnce' : False,
+	    'Env':[],
+            'Cmd' : [], 
+            'Dns' : None,
+            'Image' : None,
+            'Volumes' : {},
+            'VolumesFrom' : '',
+            'ExposedPorts': {}
+            
+        }
+	data.update(kwargs)
+        _url = "{}/containers/create?name=forimageedit".format(self.url)
+        resp = requests.post(_url,data=json.dumps(data),headers=self.headers)
+        if resp.status_code == 201:
+		data = {
+            		'Binds':[],
+            		'Links':[],
+            		'LxcConf':{},
+            		'PublishAllPorts':False,
+			'PortBindings':{ 
+				"17698/tcp": [
+					{ 
+					    "HostIp":config.docker_host,
+					    "HostPort": "17699" 
+					}
+				] 
+			},
+			"Cmd":["/opt/webssh/index.js"],
+            		'Privileged':False,
+            		'Dns':[],
+            		'VolumesFrom':[],
+            		'CapAdd':[],
+            		'CapDrop':[],
+	    	}
+		ctn_id = resp.json()['Id']
+        	_url="{}/containers/{}/start".format(self.url,ctn_id)
+        	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        	if result.status_code != 204:
+		    logger.debug("start for-image-edit container failed")	
+	else:
+	    logger.debug("create for-image-edit container failed") 
+       
 
 
 
@@ -189,6 +246,19 @@ class ImageController(object):
 				  id=_image_id,
                                   status = "deleting")
         self.image_api.delete_image(_image_id,image_id,f_id)
+    def edit(self,request):
+        _img_id=request.json.pop('id')
+        _img_info = self.db_api.get_image(_img_id).fetchone()
+        img_id = _img_info[1]
+	kwargs={
+		"Image":img_id,
+	    	}
+	eventlet.spawn_n(self.image_api.edit,kwargs)
+
+	return {
+		"url":"http://{}:17699".format(config.docker_host)
+		}
+
 
 def create_resource():
     return ImageController()
