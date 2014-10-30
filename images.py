@@ -247,7 +247,7 @@ class ImageController(object):
                                   status = "deleting")
         self.image_api.delete_image(_image_id,image_id,f_id)
     def edit(self,request):
-        _img_id=request.json.pop('id')
+        _img_id=request.GET.pop('id')
         _img_info = self.db_api.get_image(_img_id).fetchone()
         img_id = _img_info[1]
 	kwargs={
