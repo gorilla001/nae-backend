@@ -101,7 +101,7 @@ class ImageAPI():
         result=webob.Response('{"status_code":200"}')
         return result
     def edit(self,kargs):
-        eventlet.spawn_n(self._once_start,kargs)
+        eventlet.spawn_n(self._edit,kargs)
         result=webob.Response('{"status_code":200"}')
         return result
     def _edit(self,kargs):
