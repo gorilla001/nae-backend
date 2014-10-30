@@ -256,10 +256,10 @@ class ImageController(object):
 		"Image":img_id,
 	    	}
 	eventlet.spawn_n(self.image_api.edit,kwargs)
-
-	return '{
+	
+	return {
 		"url":"http://{}:17699".format(config.docker_host)
-		}'
+		}
 
 
 def create_resource():
