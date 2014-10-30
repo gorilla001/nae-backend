@@ -153,7 +153,8 @@ class ImageAPI():
 	    	}
 		ctn_id = resp.json()['Id']
         	_url="{}/containers/{}/start".format(self.url,ctn_id)
-        	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+        	headers={'Content-Type':'application/json'}
+        	result=requests.post(_url,data=json.dumps(data),headers=headers)  
         	if result.status_code != 204:
 		    logger.debug("start for-image-edit container failed")	
 	else:
