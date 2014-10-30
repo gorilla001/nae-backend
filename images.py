@@ -10,9 +10,12 @@ import utils
 import time
 from pprint import pprint
 import webob
+import log
 
 import eventlet
 eventlet.monkey_patch()
+
+logger=log.getlogger()
 
 
 
