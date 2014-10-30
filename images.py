@@ -128,7 +128,8 @@ class ImageAPI():
         }
 	data.update(kwargs)
         _url = "{}/containers/create?name=forimageedit".format(self.url)
-        resp = requests.post(_url,data=json.dumps(data),headers=self.headers)
+        headers={'Content-Type':'application/json'}
+        resp = requests.post(_url,data=json.dumps(data),headers=headers)
         if resp.status_code == 201:
 		data = {
             		'Binds':[],
