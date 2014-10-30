@@ -143,7 +143,7 @@ class ImageAPI():
 					}
 				] 
 			},
-			"Cmd":["/opt/webssh/index.js"],
+			"Cmd":["/opt/webssh/term.js/example/index.js"],
             		'Privileged':False,
             		'Dns':[],
             		'VolumesFrom':[],
