@@ -121,7 +121,7 @@ class ImageAPI():
             'OpenStdin' : True,
             'StdinOnce' : False,
 	    'Env':[],
-            'Cmd' : [], 
+	    'Cmd':["/opt/webssh/term.js/example/index.js"],
             'Dns' : None,
             'Image' : None,
             'Volumes' : {},
