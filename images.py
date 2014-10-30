@@ -104,7 +104,7 @@ class ImageAPI():
         eventlet.spawn_n(self._edit,kargs)
         result=webob.Response('{"status_code":200"}')
         return result
-    def _edit(self,kargs):
+    def _edit(self,kwargs):
 	data = {
             'Hostname' : '',
             'User'     : '',
