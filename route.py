@@ -111,6 +111,12 @@ class Router (object):
         		action='edit',
         		conditions={'method':['POST']},
         )
+	self.mapper.connect('/images/commit',
+        		controller=self.image_controller,
+        		action='commit',
+        		conditions={'method':['POST']},
+        )
+
         #file method
         self.mapper.connect('/files',
 				controller=self.image_controller,

@@ -62,6 +62,17 @@ class DBAPI():
         s=table.select(table.c.ImageHgs == hgs)
         r=s.execute()
         return r
+    def get_image_by_repo_tag(self,repo,tag):
+        table=Table('images',self.metadata,autoload=True)
+	s = table.select().where(and_(
+                                    table.c.ImageName == repo,
+                                    table.c.ImageTag == tag
+				)
+                                    )
+	return s.execute()
+
+
+	
     def delete_image(self,image_id):
         table=Table('images',self.metadata,autoload=True)
         d=table.delete(table.c.ID == image_id)

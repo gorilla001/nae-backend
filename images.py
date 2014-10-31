@@ -165,21 +165,29 @@ class ImageAPI():
 	else:
 	    logger.debug("create for-image-edit container failed") 
 
-    def commit(self,repo,tag):
-        eventlet.spawn_n(self._commit,repo,tag)
+    def commit(self,repo,tag,ctn):
+        eventlet.spawn_n(self._commit,repo,tag,ctn)
         result=webob.Response('{"status_code":200"}')
         return result
-    def _commit(self,repo,tag):
-        rs=self.inspect_container('forimageedit')
+    def _commit(self,repo,tag,ctn):
+        rs=self.inspect_container(ctn)
         if rs.status_code == 200:
             data=rs.json()['Config']
-       	    _url="{}/commit?author=&comment=&container=forimageedit&repo={}&tag={}".format(self.url,repo,tag)
+       	    _url="{}/commit?author=&comment=&container={}&repo={}&tag={}".format(self.url,repo,tag,ctn)
        	    result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
             if result.status_code == 201:
-		pass		
-	
-       
-
+		img_info=self.db_api.get_image_by_repo_tag(repo,tag)
+		self.db_api.add_image(
+                                  name=repo,
+				  tag=tag,
+                                  desc=img_info[6],
+                                  project_id=img_info[7],
+                                  repo = img_info[8],
+				  branch = img_info[9], 
+                                  created= created_time,
+                                  owner=img_info[11],
+                                  status = 'ok'
+				)
 
 
 class ImageController(object):
@@ -287,7 +295,8 @@ class ImageController(object):
     def commit(self,request):
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')
-	self.image_api.commit(repo,tag)
+	ctn = request.GET.pop('ctn')
+	self.image_api.commit(repo,tag,ctn)
 
 
 def create_resource():
