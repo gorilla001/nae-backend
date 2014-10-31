@@ -174,7 +174,8 @@ class ImageAPI():
         if rs.status_code == 200:
             data=rs.json()['Config']
        	    _url="{}/commit?author=&comment=&container={}&repo={}&tag={}".format(self.url,repo,tag,ctn)
-       	    result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+            headers={'Content-Type':'application/json'}
+       	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
 		img_info=self.db_api.get_image_by_repo_tag(repo,tag)
 		self.db_api.add_image(
