@@ -173,7 +173,8 @@ class ImageAPI():
         rs=requests.get("{}/containers/{}/json".format(self.url,ctn))
         if rs.status_code == 200:
 	    img_info=self.db_api.get_image(id).fetchone()
-	    self.db_api.add_image(
+            created_time = utils.human_readable_time(time.time())
+	    _id=self.db_api.add_image(
             	name=repo,
 		tag=tag,
                 desc=img_info[5],
@@ -189,18 +190,18 @@ class ImageAPI():
             data=rs.json()['Config']
        	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
-        	created_time = utils.human_readable_time(time.time())
-		self.db_api.add_image(
-                                  name=repo,
-				  tag=tag,
-                                  desc=img_info[5],
-                                  project_id=img_info[6],
-                                  repo = img_info[7],
-				  branch = img_info[8], 
-                                  created= created_time,
-                                  owner=img_info[10],
-                                  status = 'ok'
-				)
+		_img_id=result.json()['Id']	
+		_url="{}/images/{}/json".format(self.url,_img_id)
+            	headers={'Content-Type':'application/json'}
+       	    	rs=requests.get(_url,headers=headers)  
+		if rs.status_code == 200:
+			size = rs.json()['VirtualSize']
+            		img_size = utils.human_readable_size(size)
+			self.db_api.update_image(
+				  id=_id,
+                                  image_id=_img_id,
+                                  size=img_size,
+                                  status = "ok")
 
 
 class ImageController(object):
