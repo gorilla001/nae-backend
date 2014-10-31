@@ -4,7 +4,6 @@ import requests
 import json
 import config
 from database import DBAPI
-from containers import ContainerAPI
 from utils import MercurialControl
 import os
 import utils
@@ -25,7 +24,6 @@ class ImageAPI():
         self.url="http://{}:{}".format(config.docker_host,config.docker_port)
         self.mercurial = MercurialControl()
         self.db_api=DBAPI()
-        self.compute_api=ContainerAPI()
     def get_images(self):
         headers={'Content-Type':'application/json'}
         result=requests.get("{}/images/json".format(self.url),headers=headers)  
@@ -172,7 +170,7 @@ class ImageAPI():
         result=webob.Response('{"status_code":200"}')
         return result
     def _commit(self,repo,tag,ctn):
-        rs=self.compute_api.inspect_container(ctn)
+        rs=requests.get("{}/containers/{}/json".format(self.url,ctn))
         if rs.status_code == 200:
             data=rs.json()['Config']
        	    _url="{}/commit?author=&comment=&container={}&repo={}&tag={}".format(self.url,repo,tag,ctn)
