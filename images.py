@@ -103,11 +103,11 @@ class ImageAPI():
         eventlet.spawn_n(_delete_image,self.url,image_id,f_id,id)
         result=webob.Response('{"status_code":200"}')
         return result
-    def edit(self,kargs,name):
-        eventlet.spawn_n(self._edit,kargs,name)
+    def edit(self,kargs,name,port):
+        eventlet.spawn_n(self._edit,kargs,name,port)
         result=webob.Response('{"status_code":200"}')
         return result
-    def _edit(self,kwargs,name):
+    def _edit(self,kwargs,name,port):
 	data = {
             'Hostname' : '',
             'User'     : '',
@@ -145,7 +145,7 @@ class ImageAPI():
 				"17698/tcp": [
 					{ 
 					    "HostIp":config.docker_host,
-					    "HostPort": "17699" 
+					    "HostPort": port, 
 					}
 				] 
 			},
@@ -272,13 +272,14 @@ class ImageController(object):
         _img_info = self.db_api.get_image(_img_id).fetchone()
         img_id = _img_info[1]
 	name = utils.random_str()
+	port = utils.get_random_port()
 	kwargs={
 		"Image":img_id,
 	    	}
-	eventlet.spawn_n(self.image_api.edit,kwargs,name)
+	eventlet.spawn_n(self.image_api.edit,kwargs,name,port)
 	
 	return {
-		"url":"http://{}:17699".format(config.docker_host),
+		"url":"http://{}:{}".format(config.docker_host,port),
 		"name":name,
 		}
     def commit(self,request):
