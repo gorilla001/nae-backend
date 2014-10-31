@@ -179,6 +179,7 @@ class ImageAPI():
             if result.status_code == 201:
 		img_info=self.db_api.get_image(id).fetchone()
 		logger.debug(img_info)
+        	created_time = utils.human_readable_time(time.time())
 		self.db_api.add_image(
                                   name=repo,
 				  tag=tag,
