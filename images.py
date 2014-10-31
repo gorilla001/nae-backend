@@ -205,12 +205,13 @@ class ImageController(object):
                 'ID':item[0],
                 'ImageId':item[1],
                 'ImageName':item[2],
-                'ImageSize':item[3],
-                'ImageDesc':item[4],
+		'ImageTag':item[3],
+                'ImageSize':item[4],
+                'ImageDesc':item[5],
                 'ImageProject':project_name,
-                'CreatedTime':item[8],
-                'CreatedBy':item[9],
-                'Status' : item[10],
+                'CreatedTime':item[9],
+                'CreatedBy':item[10],
+                'Status' : item[11],
                 }
             result_json.append(image)
         return result_json
@@ -247,6 +248,7 @@ class ImageController(object):
         created_time = utils.human_readable_time(time.time())
 	id=self.db_api.add_image(
                                   name=image_name,
+				  tag="latest",
                                   desc=image_desc,
                                   project_id=project_id,
                                   repo = repo_path,
