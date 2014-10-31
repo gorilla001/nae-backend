@@ -246,7 +246,8 @@ class ImageController(object):
                 'ImageName':image_info[2],
                 'ImageSize':image_info[3],
                 'ImageDesc':image_info[4],
-                'RepoPath':image_info[6],
+                'RepoPath':image_info[7],
+		'Branch':image_info[8],
         }
         return image 
     def inspect(self,request):
