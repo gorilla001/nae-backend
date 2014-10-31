@@ -173,7 +173,7 @@ class ImageAPI():
         rs=requests.get("{}/containers/{}/json".format(self.url,ctn))
         if rs.status_code == 200:
             data=rs.json()['Config']
-       	    _url="{}/commit?author=&comment=&container={}&repo={}&tag={}".format(self.url,repo,tag,ctn)
+       	    _url="{}/commit?author=&comment=&container={}&repo={}&tag={}".format(self.url,ctn,repo,tag)
             headers={'Content-Type':'application/json'}
        	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
