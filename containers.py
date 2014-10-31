@@ -496,6 +496,6 @@ class ContainerController(object):
             network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
         return (container_id,network_config,)
 
-   def destroy(self,request):
-       self.compute_api.destroy('forimageedit')
+    def destroy(self,request):
+        self.compute_api.destroy('forimageedit')
                 
