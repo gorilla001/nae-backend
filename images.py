@@ -178,6 +178,7 @@ class ImageAPI():
        	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
 		img_info=self.db_api.get_image_by_repo_tag(repo,tag).fetchone()
+		logger.debug(img_info)
 		self.db_api.add_image(
                                   name=repo,
 				  tag=tag,
