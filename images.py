@@ -165,11 +165,11 @@ class ImageAPI():
 	else:
 	    logger.debug("create for-image-edit container failed") 
 
-    def commit(self,repo,tag,ctn):
-        eventlet.spawn_n(self._commit,repo,tag,ctn)
+    def commit(self,repo,tag,ctn,id):
+        eventlet.spawn_n(self._commit,repo,tag,ctn,id)
         result=webob.Response('{"status_code":200"}')
         return result
-    def _commit(self,repo,tag,ctn):
+    def _commit(self,repo,tag,ctn,id):
         rs=requests.get("{}/containers/{}/json".format(self.url,ctn))
         if rs.status_code == 200:
             data=rs.json()['Config']
@@ -177,7 +177,7 @@ class ImageAPI():
             headers={'Content-Type':'application/json'}
        	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
-		img_info=self.db_api.get_image_by_repo_tag(repo,tag).fetchone()
+		img_info=self.db_api.get_image(id).fetchone()
 		logger.debug(img_info)
 		self.db_api.add_image(
                                   name=repo,
@@ -298,7 +298,8 @@ class ImageController(object):
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')
 	ctn = request.GET.pop('ctn')
-	self.image_api.commit(repo,tag,ctn)
+	id = request.GET.pop('id')
+	self.image_api.commit(repo,tag,ctn,id)
 
 
 def create_resource():
