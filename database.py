@@ -3,6 +3,9 @@ from sqlalchemy.orm import *
 from sqlalchemy.sql import and_
 from sqlalchemy.sql import func,select
 
+import log 
+
+logger=log.getlogger()
 
 DATABASE_URL="mysql://jaecpn:jaecpn@localhost/jaecpn"
 
@@ -66,9 +69,9 @@ class DBAPI():
         table=Table('images',self.metadata,autoload=True)
 	s = table.select().where(and_(
                                     table.c.ImageName == repo,
-                                    table.c.ImageTag == tag
-				)
+                                    table.c.ImageTag == tag)
                                     )
+	logger.debug(s.execute())
 	return s.execute()
 
 
