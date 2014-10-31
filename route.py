@@ -66,6 +66,11 @@ class Router (object):
         		conditions={'method':['POST']},
         )
         
+        self.mapper.connect('/containers/{container_id}/destroy',
+        		controller=self.container_controller,
+        		action='destroy',
+        		conditions={'method':['POST']},
+        )
 
         
         self.mapper.connect('/containers',

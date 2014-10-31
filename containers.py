@@ -497,5 +497,6 @@ class ContainerController(object):
         return (container_id,network_config,)
 
     def destroy(self,request):
-        self.compute_api.destroy('forimageedit')
+	name=request.environ['wsgiorg.routing_args'][1]['container_id']
+        self.compute_api.destroy(name)
                 
