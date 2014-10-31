@@ -145,7 +145,7 @@ class ImageAPI():
 				"17698/tcp": [
 					{ 
 					    "HostIp":config.docker_host,
-					    "HostPort":str(port), 
+					    "HostPort":"{}".format(port), 
 					}
 				] 
 			},
