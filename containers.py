@@ -212,40 +212,60 @@ class ContainerAPI():
         	)
         _res=webob.Response('{"status_code":200"}')
         return _res 
-    def commit(self,_ctn_id,ctn_id,img_nm,_img_id):
-        eventlet.spawn_n(self._commit,_ctn_id,ctn_id,img_nm,_img_id)
+    #def commit(self,_ctn_id,ctn_id,img_nm,_img_id):
+    #    eventlet.spawn_n(self._commit,_ctn_id,ctn_id,img_nm,_img_id)
+    #    result=webob.Response('{"status_code":200"}')
+    #    return result
+    #    
+    #def _commit(self,_ctn_id,ctn_id,img_nm,_img_id):
+    #    #_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
+    #    #result=requests.post(_url,headers=self.headers)  
+    #    #if result.status_code == 201:
+    #    #  	self.db_api.update_container_status(
+    #    #			id = _ctn_id,
+    #    #			status = "ok"
+    #    #		)
+    #    rs=self.inspect_container(ctn_id)
+    #    if rs.status_code == 200:
+    #    	data=rs.json()['Config']
+    #    	logger.debug(data)
+    #    	_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_nm)
+    #    	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+    #    	if result.status_code == 201:
+    #       		self.db_api.update_container_status(
+    #    			id = _ctn_id,
+    #    			status = "ok"
+    #    		)
+    #    		rs=self.image_api.inspect_image(img_nm)	
+    #    		logger.debug(rs.json()['Id'][:12])	
+    #    		if rs.status_code == 200:
+    #    		    imag_id = rs.json()['Id'][:12]
+    #    		    self.db_api.update_image_id(
+    #    			_id = _img_id,
+    #    			image_id = imag_id, 
+    #    		    )
+    #    		
+    #
+    def commit(self,repo,tag):
+        eventlet.spawn_n(self._commit,repo,tag)
         result=webob.Response('{"status_code":200"}')
         return result
-	
-    def _commit(self,_ctn_id,ctn_id,img_nm,_img_id):
-	#_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_id)
-        #result=requests.post(_url,headers=self.headers)  
-        #if result.status_code == 201:
-        #  	self.db_api.update_container_status(
-        #			id = _ctn_id,
-        #			status = "ok"
-        #		)
-	rs=self.inspect_container(ctn_id)
-	if rs.status_code == 200:
-		data=rs.json()['Config']
-		logger.debug(data)
-		_url="{}/commit?author=&comment=&container={}&repo={}&tag=latest".format(self.url,ctn_id,img_nm)
-        	result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
-        	if result.status_code == 201:
-           		self.db_api.update_container_status(
-        			id = _ctn_id,
-        			status = "ok"
-        		)
-			rs=self.image_api.inspect_image(img_nm)	
-			logger.debug(rs.json()['Id'][:12])	
-			if rs.status_code == 200:
-			    imag_id = rs.json()['Id'][:12]
-			    self.db_api.update_image_id(
-				_id = _img_id,
-				image_id = imag_id, 
-			    )
-			
-    
+    def _commit(self,repo,tag):
+        rs=self.inspect_container('forimageedit')
+        if rs.status_code == 200:
+            data=rs.json()['Config']
+       	    _url="{}/commit?author=&comment=&container=forimageedit&repo={}&tag={}".format(self.url,repo,tag)
+       	    result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+            if result.status_code == 201:
+		pass
+    def destroy(self,name):
+        eventlet.spawn_n(self._destroy,name)
+        result=webob.Response('{"status_code":200"}')
+        return result
+		
+    def _destroy(self,name):
+        requests.post("{}/containers/{}/stop?t=10".format(self.url,name))
+        requests.delete("{}/containers/{}?v=1".format(self.url,name))    
 
 
 class ContainerController(object):
@@ -414,17 +434,20 @@ class ContainerController(object):
 	#self.start(request)
 
     def commit(self,request):
-	_ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        _ctn_info = self.db_api.get_container(_ctn_id).fetchone()
-        ctn_id = _ctn_info[1]
-	_img_id = _ctn_info[7]
-        img_info = self.db_api.get_image(_img_id).fetchone()
-        img_nm = img_info[2]
-	self.db_api.update_container_status(
-		id = _ctn_id,
-		status = "commiting",
-	)
-	self.compute_api.commit(_ctn_id,ctn_id,img_nm,_img_id)
+	#_ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
+        #_ctn_info = self.db_api.get_container(_ctn_id).fetchone()
+        #ctn_id = _ctn_info[1]
+	#_img_id = _ctn_info[7]
+        #img_info = self.db_api.get_image(_img_id).fetchone()
+        #img_nm = img_info[2]
+	#self.db_api.update_container_status(
+	#	id = _ctn_id,
+	#	status = "commiting",
+	#)
+	#self.compute_api.commit(_ctn_id,ctn_id,img_nm,_img_id)
+	repo = request.GET.pop('repo')
+	tag = request.GET.pop('tag')
+	self.compute_api.commit(repo,tag)
 	
     	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
@@ -473,4 +496,6 @@ class ContainerController(object):
             network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
         return (container_id,network_config,)
 
+   def destroy(self,request):
+       self.compute_api.destroy('forimageedit')
                 

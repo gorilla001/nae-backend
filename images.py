@@ -103,11 +103,11 @@ class ImageAPI():
         eventlet.spawn_n(_delete_image,self.url,image_id,f_id,id)
         result=webob.Response('{"status_code":200"}')
         return result
-    def edit(self,kargs):
-        eventlet.spawn_n(self._edit,kargs)
+    def edit(self,kargs,name):
+        eventlet.spawn_n(self._edit,kargs,name)
         result=webob.Response('{"status_code":200"}')
         return result
-    def _edit(self,kwargs):
+    def _edit(self,kwargs,name):
 	data = {
             'Hostname' : '',
             'User'     : '',
@@ -132,7 +132,7 @@ class ImageAPI():
             
         }
 	data.update(kwargs)
-        _url = "{}/containers/create?name=forimageedit".format(self.url)
+        _url = "{}/containers/create?name={}".format(self.url,name)
         headers={'Content-Type':'application/json'}
         resp = requests.post(_url,data=json.dumps(data),headers=headers)
         if resp.status_code == 201:
@@ -164,6 +164,20 @@ class ImageAPI():
 		    logger.debug("start for-image-edit container failed")	
 	else:
 	    logger.debug("create for-image-edit container failed") 
+
+    def commit(self,repo,tag):
+        eventlet.spawn_n(self._commit,repo,tag)
+        result=webob.Response('{"status_code":200"}')
+        return result
+    def _commit(self,repo,tag):
+        rs=self.inspect_container('forimageedit')
+        if rs.status_code == 200:
+            data=rs.json()['Config']
+       	    _url="{}/commit?author=&comment=&container=forimageedit&repo={}&tag={}".format(self.url,repo,tag)
+       	    result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
+            if result.status_code == 201:
+		pass		
+	
        
 
 
@@ -257,14 +271,20 @@ class ImageController(object):
         _img_id=request.GET.pop('id')
         _img_info = self.db_api.get_image(_img_id).fetchone()
         img_id = _img_info[1]
+	name = utils.random_str()
 	kwargs={
 		"Image":img_id,
 	    	}
-	eventlet.spawn_n(self.image_api.edit,kwargs)
+	eventlet.spawn_n(self.image_api.edit,kwargs,name)
 	
 	return {
-		"url":"http://{}:17699".format(config.docker_host)
+		"url":"http://{}:17699".format(config.docker_host),
+		"name":name,
 		}
+    def commit(self,request):
+	repo = request.GET.pop('repo')
+	tag = request.GET.pop('tag')
+	self.image_api.commit(repo,tag)
 
 
 def create_resource():
