@@ -177,7 +177,7 @@ class ImageAPI():
             headers={'Content-Type':'application/json'}
        	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
-		img_info=self.db_api.get_image_by_repo_tag(repo,tag)
+		img_info=self.db_api.get_image_by_repo_tag(repo,tag).fetchone()
 		self.db_api.add_image(
                                   name=repo,
 				  tag=tag,
