@@ -66,12 +66,15 @@ class DBAPI():
         r=s.execute()
         return r
     def get_image_by_repo_tag(self,repo,tag):
+	logger.debug(repo)
+	logger.debug(tag)
         table=Table('images',self.metadata,autoload=True)
 	s = table.select().where(and_(
                                     table.c.ImageName == repo,
                                     table.c.ImageTag == tag)
                                     )
 	logger.debug(s.execute())
+	logger.debug(s.execute().fetchone())
 	return s.execute()
 
 
