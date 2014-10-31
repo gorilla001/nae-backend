@@ -183,12 +183,12 @@ class ImageAPI():
 		self.db_api.add_image(
                                   name=repo,
 				  tag=tag,
-                                  desc=img_info[6],
-                                  project_id=img_info[7],
-                                  repo = img_info[8],
-				  branch = img_info[9], 
+                                  desc=img_info[5],
+                                  project_id=img_info[6],
+                                  repo = img_info[7],
+				  branch = img_info[8], 
                                   created= created_time,
-                                  owner=img_info[11],
+                                  owner=img_info[10],
                                   status = 'ok'
 				)
 
