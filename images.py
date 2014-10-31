@@ -172,13 +172,23 @@ class ImageAPI():
     def _commit(self,repo,tag,ctn,id):
         rs=requests.get("{}/containers/{}/json".format(self.url,ctn))
         if rs.status_code == 200:
-            data=rs.json()['Config']
+	    img_info=self.db_api.get_image(id).fetchone()
+	    self.db_api.add_image(
+            	name=repo,
+		tag=tag,
+                desc=img_info[5],
+                project_id=img_info[6],
+                repo = img_info[7],
+		branch = img_info[8], 
+                created= created_time,
+                owner=img_info[10],
+                status = 'building'
+		)
        	    _url="{}/commit?author=&comment=&container={}&repo={}&tag={}".format(self.url,ctn,repo,tag)
             headers={'Content-Type':'application/json'}
+            data=rs.json()['Config']
        	    result=requests.post(_url,data=json.dumps(data),headers=headers)  
             if result.status_code == 201:
-		img_info=self.db_api.get_image(id).fetchone()
-		logger.debug(img_info)
         	created_time = utils.human_readable_time(time.time())
 		self.db_api.add_image(
                                   name=repo,
