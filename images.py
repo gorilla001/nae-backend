@@ -197,6 +197,8 @@ class ImageAPI():
 		if rs.status_code == 200:
 			size = rs.json()['VirtualSize']
             		img_size = utils.human_readable_size(size)
+        		requests.post("{}/containers/{}/stop?t=10".format(self.url,ctn))
+        		requests.delete("{}/containers/{}?v=1".format(self.url,ctn))    
 			self.db_api.update_image(
 				  id=_id,
                                   image_id=_img_id,
