@@ -109,38 +109,38 @@ class ImageAPI():
         return result
     def _edit(self,kwargs,name,port):
 	data = {
-            #'Hostname' : '',
-            #'User'     : '',
-            #'Memory'   : '',
-            #'MemorySwap' : '',
-            #'AttachStdin' : False,
-            #'AttachStdout' : False,
-            #'AttachStderr': False,
-            #'PortSpecs' : [],
-            #'Tty'   : True,
-            #'OpenStdin' : True,
-            #'StdinOnce' : False,
-	    #'Env':[],
+            'Hostname' : '',
+            'User'     : '',
+            'Memory'   : '',
+            'MemorySwap' : '',
+            'AttachStdin' : False,
+            'AttachStdout' : False,
+            'AttachStderr': False,
+            'PortSpecs' : [],
+            'Tty'   : True,
+            'OpenStdin' : True,
+            'StdinOnce' : False,
+	    'Env':[],
 	    'Cmd':["/opt/webssh/term.js/example/index.js"],
-            #'Dns' : None,
+            'Dns' : None,
             'Image' : None,
-            #'Volumes' : {},
-            #'VolumesFrom' : '',
+            'Volumes' : {},
+            'VolumesFrom' : '',
             'ExposedPorts': {
 			"17698/tcp": {},
 			}
             
         }
 	data.update(kwargs)
-        _url = "{}/containers/create?name='{}'".format(self.url,name)
+        _url = "{}/containers/create?name={}".format(self.url,name)
         headers={'Content-Type':'application/json'}
         resp = requests.post(_url,data=json.dumps(data),headers=headers)
         if resp.status_code == 201:
 		data = {
-            		#'Binds':[],
-            		#'Links':[],
-            		#'LxcConf':{},
-            		#'PublishAllPorts':False,
+            		'Binds':[],
+            		'Links':[],
+            		'LxcConf':{},
+            		'PublishAllPorts':False,
 			'PortBindings':{ 
 				"17698/tcp": [
 					{ 
@@ -150,11 +150,11 @@ class ImageAPI():
 				] 
 			},
 			"Cmd":["/opt/webssh/term.js/example/index.js"],
-            		#'Privileged':False,
-            		#'Dns':[],
-            		#'VolumesFrom':[],
-            		#'CapAdd':[],
-            		#'CapDrop':[],
+            		'Privileged':False,
+            		'Dns':[],
+            		'VolumesFrom':[],
+            		'CapAdd':[],
+            		'CapDrop':[],
 	    	}
 		ctn_id = resp.json()['Id']
         	_url="{}/containers/{}/start".format(self.url,ctn_id)
