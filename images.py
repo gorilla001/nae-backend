@@ -132,7 +132,6 @@ class ImageAPI():
             
         }
 	data.update(kwargs)
-	name = "forimageedit-" + name
         _url = "{}/containers/create?name={}".format(self.url,name)
         headers={'Content-Type':'application/json'}
         resp = requests.post(_url,data=json.dumps(data),headers=headers)
