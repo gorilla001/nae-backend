@@ -43,11 +43,12 @@ class ProcessLauncher(object):
 	pid = os.fork()
 	if pid == 0:
 	    self._child_process(server)
+
 	self.children=self.children + 1
 
     def launch_server(self,server,workers=1):
-	#while self.children < workers:
-	self._start_child(server)
+	while self.children < workers:
+	    self._start_child(server)
 
     def wait(self):
 	for service in self._services:
