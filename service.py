@@ -26,8 +26,8 @@ class WSGIService(object):
 class ProcessLauncher(object):
     def __init__(self):
 	self._services=[]
-	self.children =set() 
-	self.tg = threadgroup.ThreadGroup()
+	self.children = 0
+	#self.tg = threadgroup.ThreadGroup()
 
     @staticmethod
     def run_server(server):
@@ -43,11 +43,11 @@ class ProcessLauncher(object):
 	pid = os.fork()
 	if pid == 0:
 	    self._child_process(server)
-	self.children.add(pid)
+	self.children=self.children + 1
 
     def launch_server(self,server,workers=1):
-	while len(self.children) < workers:
-	    self._start_child(server)
+	#while self.children < workers:
+	self._start_child(server)
 
     def wait(self):
 	for service in self._services:
