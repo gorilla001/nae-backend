@@ -3,6 +3,7 @@ import os
 import wsgi
 import log
 import eventlet
+import time
 
 class WSGIService(object):
     def __init__(self):
@@ -40,6 +41,7 @@ class ProcessLauncher(object):
 	self._services.append(gt)
 
     def _start_child(self,server):
+	time.sleep(1)
 	pid = os.fork()
 	if pid == 0:
 	    self._child_process(server)
