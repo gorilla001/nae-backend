@@ -77,14 +77,13 @@ class Server(object):
             		'protocol': self._protocol,
             		'custom_pool': self._pool,
             		'log': self._wsgi_logger,
-            		'debug': False
+            		#'debug': False
             		}
 	    self._server = eventlet.spawn(**wsgi_kwargs)
 
 	def stop(self):
-	    if self._server is not None:
-	        self._pool.resize(0)
-	        self._server.kill()
+	    self._pool.resize(0)
+	    self._server.kill()
 
 	def wait(self):
 	    self._pool.waitall()
