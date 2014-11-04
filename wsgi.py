@@ -4,6 +4,8 @@ import eventlet
 
 import log as logging
 
+from paste.deploy import loadapp
+
 #class Application(object):
 #	pass
 #
@@ -81,14 +83,8 @@ class Server(object):
 	    self._pool.waitall()
 	    self._server.wait()
 
-#class Loader(object):
-#	def __init__(self,config_path):
-#		self.config_path=config_path
-#	def load_app(self,name):
-#		return deploy.loadapp("config:%s" % self.config_path,name=name)
-#
-#class WSGIService(object):
-#	def __init__(self,name):
-#		self.name = name
-#		self.loader = Loader()
-		
+class Loader(object):
+	def __init__(self,config_path):
+		self.config_path='api-paste.ini'
+	def load_app(self,name):
+		return loadapp("config:%s" % self.config_path,name=name)

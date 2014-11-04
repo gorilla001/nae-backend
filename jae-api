@@ -1,35 +1,31 @@
 #!/usr/bin/env python
 
-from paste.deploy import loadapp
 import os
 import requests
-import log
-import config
-from daemon import Daemon
-import wsgi
-import os
+import service
+#import wsgi
 
-from service import Service
+#from service import Service
 
-config_file='paste.ini'
-appname='api'
+#config_file='paste.ini'
+#appname='api'
 
-logger=log.getlogger()
 
 docker_url=('http://{}:{}/info'.format(config.docker_host,config.docker_port))
-logger.debug(docker_url)
 r=requests.get(docker_url)
 if r.status_code != 200:
-    logger.debug('cannot connect to docker!!!')
-else:
-    logger.debug(r.json())
+    print('cannot connect to docker!!!')
 
-app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
-server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
-for i in [1,2,3,4,5]:
-    pid = os.fork()
-    if pid == 0:
-	while True:
-	    service=Service(server)
-	    service.start()
-
+#app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
+#server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
+#for i in [1,2,3,4,5]:
+#    pid = os.fork()
+#    if pid == 0:
+#	while True:
+#	    service=Service(server)
+#	    service.start()
+#
+if __name__ == '__main__':
+    launcher = service.ProcessLauncher()
+    server = service.WSGIService()
+    launcher.launch_server(server,workers=5)
