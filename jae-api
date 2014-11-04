@@ -31,6 +31,7 @@ server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
 for i in [1,2,3,4,5]:
     pid = os.fork()
     if pid == 0:
-	service=Service(server)
-	service.start()
+	while True:
+	    service=Service(server)
+	    service.start()
 
