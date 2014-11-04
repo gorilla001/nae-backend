@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 
-import os
-import requests
 import service
-import config
 
-
-docker_url=('http://{}:{}/info'.format(config.docker_host,config.docker_port))
-r=requests.get(docker_url)
-if r.status_code != 200:
-    print('cannot connect to docker!!!')
 
 if __name__ == '__main__':
     launcher = service.ProcessLauncher()
