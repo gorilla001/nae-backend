@@ -22,12 +22,14 @@ class WSGIService(object):
     def wait(self):
 	self.server.wait()
 				
-    
+class ServerWrapper(object):
+    def __init__(self,server):
+	self.server = server
+	self.children = set()    
 
 class ProcessLauncher(object):
     def __init__(self):
 	self._services=[]
-	self.children = 0
 	#self.tg = threadgroup.ThreadGroup()
 
     @staticmethod
@@ -41,17 +43,16 @@ class ProcessLauncher(object):
 	gt = eventlet.spawn(self.run_server, server)
 	self._services.append(gt)
 
-    def _start_child(self,server):
-	time.sleep(1)
+    def _start_child(self,wrap):
 	pid = os.fork()
 	if pid == 0:
-	    self._child_process(server)
-
-	self.children=self.children + 1
+	    self._child_process(wrap)
+	wrap.children.add(pid)
 
     def launch_server(self,server,workers=1):
-	while self.children < workers:
-	    self._start_child(server)
+	wrap = ServerWrapper(server)
+	while len(wrap.children) < workers:
+	    self._start_child(wrap)
 
     def wait(self):
 	for service in self._services:
