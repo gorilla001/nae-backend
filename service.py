@@ -50,10 +50,11 @@ class ProcessLauncher(object):
     def _start_child(self,wrap):
 	pid = os.fork()
 	if pid == 0:
-	    try:
-	        self._child_process(wrap)
-	    finally:
-		wrap.server.stop()
+	    self._child_process(wrap)
+	#    try:
+	#        self._child_process(wrap)
+	#    finally:
+	#	wrap.server.stop()
 	    os._exit(0)
 	wrap.children.add(pid)
 
