@@ -2,6 +2,7 @@ import threadgroup
 
 class Service(object):
     def __init__(self,server):
+	print 'init service'
 	self.service = server
 	self.tg = threadgroup.ThreadGroup()
     def start(self):
