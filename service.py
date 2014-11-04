@@ -4,6 +4,7 @@ import wsgi
 import log
 import eventlet
 import time
+import signal
 
 class WSGIService(object):
     def __init__(self):
@@ -50,11 +51,26 @@ class ProcessLauncher(object):
     def _start_child(self,wrap):
 	pid = os.fork()
 	if pid == 0:
-	    try:
-	        self._child_process(wrap.server)
-	    finally:
-		wrap.server.stop()
-	    os._exit()
+	    status = 0
+            try:
+                self._child_process(wrap.server)
+            except SignalExit as exc:
+                signame = {signal.SIGTERM: 'SIGTERM',
+                           signal.SIGINT: 'SIGINT'}[exc.signo]
+                status = exc.code
+            except SystemExit as exc:
+                status = exc.code
+            except BaseException:
+                status = 2
+            finally:
+                wrap.server.stop()
+
+            os._exit(status)
+	    #try:
+	    #    self._child_process(wrap.server)
+	    #finally:
+	    #    wrap.server.stop()
+	    #os._exit()
 	wrap.children.add(pid)
 
     def launch_server(self,server,workers=1):
