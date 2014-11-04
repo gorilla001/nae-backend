@@ -84,7 +84,7 @@ class Server(object):
 	    self._server.wait()
 
 class Loader(object):
-	def __init__(self,config_path):
+	def __init__(self,config_path=None):
 		self.config_path='api-paste.ini'
 	def load_app(self,name):
 		return loadapp("config:%s" % self.config_path,name=name)
