@@ -5,7 +5,6 @@ class Service(object):
 	self.service = server
 	self.tg = threadgroup.ThreadGroup()
     def start(self):
-	print 'start service'	
 	self.tg.start_thread(self.run_service,self.service)
 
     @staticmethod
