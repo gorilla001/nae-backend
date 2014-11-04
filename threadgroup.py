@@ -5,5 +5,5 @@ class ThreadGroup(object):
 	self.pool = greenpool.GreenPool(thread_pool_size)
     def start_thread(self,callback,*args,**kwargs):
 	print callback.__name__
-	print args
+	print args.__name__
 	self.pool.spawn(callback, *args, **kwargs)
