@@ -27,6 +27,7 @@ class ProcessLauncher(object):
     def __init__(self):
 	self._services=[]
 	self.children = 0
+	self.tg = threadgroup.ThreadGroup()
 
     @staticmethod
     def run_server(server):
@@ -34,7 +35,7 @@ class ProcessLauncher(object):
 	server.wait()	
 
     def _child_process(self,server):
-	gt = eventlet.spawn(self.run_server,server)
+	gt=self.tg.start_thread(self.run_service,server)
 	self._services.append(gt)
 
     def _start_child(self,server):
