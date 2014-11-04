@@ -39,8 +39,8 @@ class ProcessLauncher(object):
 
     @staticmethod
     def run_server(server):
-	server.start()
 	print 'here'
+	server.start()
 	server.wait()	
 
     def _child_process(self,server):
