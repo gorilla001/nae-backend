@@ -40,6 +40,7 @@ class ProcessLauncher(object):
     @staticmethod
     def run_server(server):
 	server.start()
+	print 'here'
 	server.wait()	
 
     def _child_process(self,server):
@@ -47,7 +48,6 @@ class ProcessLauncher(object):
 	eventlet.hubs.use_hub()
 
 	gt = eventlet.spawn(self.run_server, server)
-	print 'here'
 	self._services.append(gt)
 
     def _start_child(self,wrap):
