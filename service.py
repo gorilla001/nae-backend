@@ -46,9 +46,9 @@ class ProcessLauncher(object):
 	#gt=self.tg.start_thread(self.run_server,server)
 	eventlet.hubs.use_hub()
 
-	gt = eventlet.spawn(self.run_server, server)
-	print 'here'
-	self._services.append(gt)
+	#gt = eventlet.spawn(self.run_server, server)
+	#self._services.append(gt)
+	self.run_server(server)
 
     def _start_child(self,wrap):
 	pid = os.fork()
