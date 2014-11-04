@@ -82,8 +82,9 @@ class Server(object):
 	    self._server = eventlet.spawn(**wsgi_kwargs)
 
 	def stop(self):
-	    self._pool.resize(0)
-	    self._server.kill()
+	    if self._server is not None:
+	        self._pool.resize(0)
+	        self._server.kill()
 
 	def wait(self):
 	    self._pool.waitall()
