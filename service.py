@@ -2,6 +2,7 @@ import threadgroup
 import os
 import wsgi
 import log
+import eventlet
 
 class WSGIService(object):
     def __init__(self):
