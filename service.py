@@ -57,8 +57,8 @@ class ProcessLauncher(object):
 
     def launch_server(self,server,workers=1):
 	wrap = ServerWrapper(server,workers)
-	print len(wrap.children)
 	while len(wrap.children) < wrap.workers:
+	    print len(wrap.children)
 	    self._start_child(wrap)
 
     def wait(self):
