@@ -52,7 +52,7 @@ class ProcessLauncher(object):
 	pid = os.fork()
 	if pid == 0:
 	    self._child_process(wrap.server)
-	wrap.children.add(pid)
+	    wrap.children.add(pid)
 
     def launch_server(self,server,workers=1):
 	wrap = ServerWrapper(server,workers)
