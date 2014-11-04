@@ -23,8 +23,9 @@ class WSGIService(object):
 	self.server.wait()
 				
 class ServerWrapper(object):
-    def __init__(self,server):
+    def __init__(self,server,workers):
 	self.server = server
+	self.workers = workers
 	self.children = set()    
 
 class ProcessLauncher(object):
@@ -50,8 +51,8 @@ class ProcessLauncher(object):
 	wrap.children.add(pid)
 
     def launch_server(self,server,workers=1):
-	wrap = ServerWrapper(server)
-	while len(wrap.children) < workers:
+	wrap = ServerWrapper(server,workers)
+	while len(wrap.children) < wrap.workers:
 	    self._start_child(wrap)
 
     def wait(self):
