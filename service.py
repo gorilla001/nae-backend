@@ -51,7 +51,7 @@ class ProcessLauncher(object):
 	#self.run_server(server)
 
     def _start_child(self,wrap):
-	#pid = os.fork()
+	pid = os.fork()
 	#if pid == 0:
 	#    self._child_process(wrap.server)
 	#    os._exit(0)
