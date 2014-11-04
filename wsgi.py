@@ -77,7 +77,7 @@ class Server(object):
             		'protocol': self._protocol,
             		'custom_pool': self._pool,
             		'log': self._wsgi_logger,
-            		#'debug': False
+            		'debug': False
             		}
 	    self._server = eventlet.spawn(**wsgi_kwargs)
 
