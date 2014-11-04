@@ -11,6 +11,8 @@ from daemon import Daemon
 import wsgi
 import os
 
+from service import Service
+
 config_file='paste.ini'
 appname='api'
 
@@ -33,6 +35,6 @@ server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
 for i in [1,2,3,4,5]:
     pid = os.fork()
     if pid == 0:
-	server.start()
-	server.wait()
+	service=Service(server)
+	service.start()
 
