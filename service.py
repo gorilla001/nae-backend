@@ -54,7 +54,7 @@ class ProcessLauncher(object):
 	        self._child_process(wrap.server)
 	    finally:
 		wrap.server.stop()
-	    #os._exit(0)
+	    os._exit()
 	wrap.children.add(pid)
 
     def launch_server(self,server,workers=1):
