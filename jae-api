@@ -9,6 +9,7 @@ import log
 import config
 from daemon import Daemon
 import wsgi
+import os
 
 config_file='paste.ini'
 appname='api'
@@ -29,6 +30,11 @@ app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
 #application=wsgi.server(eventlet.listen(('',8282)),app,log=log.WSGILogger(logger))
 
 server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
-server.start()
-server.wait()
+child = 0
+while child < config.workers:
+    pid = os.fork()
+    if pid == 0:
+	server.start()
+	server.wait()
+    child = child + 1
 
