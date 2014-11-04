@@ -7,4 +7,4 @@ if __name__ == '__main__':
     launcher = service.ProcessLauncher()
     server = service.WSGIService()
     launcher.launch_server(server,workers=5)
-    #launcher.wait()
+    launcher.wait()
