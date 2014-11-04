@@ -35,7 +35,7 @@ class ServerWrapper(object):
 class ProcessLauncher(object):
     def __init__(self):
 	self._services=[]
-	#self.tg = threadgroup.ThreadGroup()
+	self.tg = threadgroup.ThreadGroup()
 
     @staticmethod
     def run_server(server):
@@ -43,12 +43,12 @@ class ProcessLauncher(object):
 	server.wait()	
 
     def _child_process(self,server):
-	#gt=self.tg.start_thread(self.run_server,server)
 	eventlet.hubs.use_hub()
 
+	gt=self.tg.start_thread(self.run_server,server)
 	#gt = eventlet.spawn(self.run_server, server)
-	#self._services.append(gt)
-	self.run_server(server)
+	self._services.append(gt)
+	#self.run_server(server)
 
     def _start_child(self,wrap):
 	pid = os.fork()
