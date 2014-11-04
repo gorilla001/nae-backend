@@ -4,6 +4,5 @@ class ThreadGroup(object):
     def __init__(self,thread_pool_size=10):
 	self.pool = greenpool.GreenPool(thread_pool_size)
     def start_thread(self,callback,*args,**kwargs):
-	print 'run service'
 	print callback.__name__
 	self.pool.spawn(callback, *args, **kwargs)
