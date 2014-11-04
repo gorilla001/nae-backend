@@ -54,11 +54,11 @@ class ProcessLauncher(object):
 	    self._child_process(wrap.server)
 	    os._exit(0)
 	wrap.children.add(pid)
+	print 'here'
 
     def launch_server(self,server,workers=1):
 	wrap = ServerWrapper(server,workers)
 	while len(wrap.children) < wrap.workers:
-	    print len(wrap.children)
 	    self._start_child(wrap)
 
     def wait(self):
