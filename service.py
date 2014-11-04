@@ -35,7 +35,8 @@ class ProcessLauncher(object):
 	server.wait()	
 
     def _child_process(self,server):
-	gt=self.tg.start_thread(self.run_server,server)
+	#gt=self.tg.start_thread(self.run_server,server)
+	gt = eventlet.spawn(self.run_server, server)
 	self._services.append(gt)
 
     def _start_child(self,server):
