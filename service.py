@@ -41,21 +41,20 @@ class ProcessLauncher(object):
 	server.start()
 	server.wait()	
 
-    def _child_process(self,wrap):
+    def _child_process(self,server):
 	#gt=self.tg.start_thread(self.run_server,server)
 	eventlet.hubs.use_hub()
-	gt = eventlet.spawn(self.run_server, wrap.server)
+	gt = eventlet.spawn(self.run_server, server)
 	self._services.append(gt)
 
     def _start_child(self,wrap):
 	pid = os.fork()
 	if pid == 0:
-	    self._child_process(wrap)
-	#    try:
-	#        self._child_process(wrap)
-	#    finally:
-	#	wrap.server.stop()
-	    os._exit(0)
+	    try:
+	        self._child_process(wrap.server)
+	    finally:
+		wrap.server.stop()
+	    #os._exit(0)
 	wrap.children.add(pid)
 
     def launch_server(self,server,workers=1):
