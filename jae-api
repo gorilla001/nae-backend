@@ -4,12 +4,6 @@ import os
 import requests
 import service
 import config
-#import wsgi
-
-#from service import Service
-
-#config_file='paste.ini'
-#appname='api'
 
 
 docker_url=('http://{}:{}/info'.format(config.docker_host,config.docker_port))
@@ -17,15 +11,6 @@ r=requests.get(docker_url)
 if r.status_code != 200:
     print('cannot connect to docker!!!')
 
-#app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
-#server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
-#for i in [1,2,3,4,5]:
-#    pid = os.fork()
-#    if pid == 0:
-#	while True:
-#	    service=Service(server)
-#	    service.start()
-#
 if __name__ == '__main__':
     launcher = service.ProcessLauncher()
     server = service.WSGIService()
