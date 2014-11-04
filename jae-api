@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-#from eventlet import wsgi
-#import eventlet
 from paste.deploy import loadapp
 import os
 import requests
@@ -29,8 +27,6 @@ else:
     logger.debug(r.json())
 
 app=loadapp('config:{}'.format(os.path.abspath(config_file)),name=appname)
-#application=wsgi.server(eventlet.listen(('',8282)),app,log=log.WSGILogger(logger))
-
 server=wsgi.Server(app,'0.0.0.0',8282,logger,backlog=128)
 for i in [1,2,3,4,5]:
     pid = os.fork()
