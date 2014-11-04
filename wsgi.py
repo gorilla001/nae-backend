@@ -52,6 +52,7 @@ from paste.deploy import loadapp
 #		method(request,action_args)
 #
 class Server(object):
+
 	default_pool_size = 1000
 
 	def __init__(self,app,host,port,logger,backlog=128):
@@ -85,6 +86,7 @@ class Server(object):
 
 class Loader(object):
 	def __init__(self,config_path=None):
-		self.config_path='api-paste.ini'
+	    self.config_file = 'api-paste.ini'
+	    self.config_path=os.path.abspath(self.config_file)
 	def load_app(self,name):
-		return loadapp("config:%s" % self.config_path,name=name)
+	    return loadapp("config:%s" % self.config_path,name=name)
