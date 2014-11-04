@@ -14,8 +14,6 @@ from service import Service
 config_file='paste.ini'
 appname='api'
 
-#Daemon().initDaemon()
-
 logger=log.getlogger()
 
 docker_url=('http://{}:{}/info'.format(config.docker_host,config.docker_port))
