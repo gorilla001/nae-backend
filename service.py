@@ -45,7 +45,9 @@ class ProcessLauncher(object):
     def _child_process(self,server):
 	#gt=self.tg.start_thread(self.run_server,server)
 	eventlet.hubs.use_hub()
+
 	gt = eventlet.spawn(self.run_server, server)
+	print 'here'
 	self._services.append(gt)
 
     def _start_child(self,wrap):
@@ -54,7 +56,6 @@ class ProcessLauncher(object):
 	    self._child_process(wrap.server)
 	    os._exit(0)
 	wrap.children.add(pid)
-	print 'here'
 
     def launch_server(self,server,workers=1):
 	wrap = ServerWrapper(server,workers)
