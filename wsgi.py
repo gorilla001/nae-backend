@@ -1,6 +1,7 @@
 import webob
 from eventlet import wsgi
 import eventlet
+import os
 
 import log as logging
 
