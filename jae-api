@@ -14,7 +14,7 @@ from service import Service
 config_file='paste.ini'
 appname='api'
 
-//Daemon().initDaemon()
+#Daemon().initDaemon()
 
 logger=log.getlogger()
 
