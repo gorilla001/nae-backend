@@ -70,6 +70,6 @@ class ProcessLauncher(object):
         while len(wrap.children) < wrap.workers:
             self._start_child(wrap)
 
-	def wait(self):
-		while len(wrap.children) < wrap.workers:
-			self._start_child(wrap)
+    def wait(self):
+        while len(wrap.children) < wrap.workers:
+            self._start_child(wrap)
