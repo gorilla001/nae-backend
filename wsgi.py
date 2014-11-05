@@ -60,10 +60,10 @@ class Server(object):
 	default_pool_size = 1000
 
 	def __init__(self,app,host,port,logger,backlog=128):
-	    self._server = None
-	    self.app = app
-	    self._protocol = eventlet.wsgi.HttpProtocol
-	    self.pool_size = self.default_pool_size
+        self._server = None
+        self.app = app
+        self._protocol = eventlet.wsgi.HttpProtocol
+        self.pool_size = self.default_pool_size
         self._pool=eventlet.GreenPool(self.pool_size)
         self._logger = log.getlogger()
         self._wsgi_logger=logging.WSGILogger(self._logger)
