@@ -9,16 +9,16 @@ import config
 
 class WSGIService(object):
 	def __init__(self):
-		self.loader = wsgi.Loader()
-		self.app = self.loader.load_app('api')
-		self.host = '0.0.0.0'
-		self.port = config.port
+        self.loader = wsgi.Loader()
+        self.app = self.loader.load_app('api')
+        self.host = '0.0.0.0'
+        self.port = config.port
         self.logger = log.getlogger()
         self.workers = config.workers
         self.server = wsgi.Server(self.app,
-				self.host,
-				self.port,
-				self.logger)
+        			self.host,
+        			self.port,
+        			self.logger)
 	def start(self):
 		self.server.start()
 
