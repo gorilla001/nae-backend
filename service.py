@@ -8,7 +8,7 @@ import signal
 import config
 
 class WSGIService(object):
-	def __init__(self):
+    def __init__(self):
         self.loader = wsgi.Loader()
         self.app = self.loader.load_app('api')
         self.host = '0.0.0.0'
