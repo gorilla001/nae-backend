@@ -66,7 +66,7 @@ class Server(object):
 	    self.pool_size = self.default_pool_size
 	    self._pool=eventlet.GreenPool(self.pool_size)
         self._logger = log.getlogger()
-	    self._wsgi_logger=logging.WSGILogger(self._logger)
+        self._wsgi_logger=logging.WSGILogger(self._logger)
 	    
 	    bind_addr = (host,port)
 	    self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
