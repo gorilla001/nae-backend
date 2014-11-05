@@ -34,7 +34,7 @@ class ServerWrapper(object):
 
 class Launcher(object):
     @staticmethod
-    def run_service(service)
+    def run_service(service):
         service.start()
         service.wait()
 
