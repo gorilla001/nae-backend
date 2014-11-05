@@ -13,13 +13,10 @@ from database import DBAPI
 import time
 import ast
 from utils import MercurialControl
-import log
 
 import eventlet
 eventlet.monkey_patch()
 
-
-logger=log.getlogger()
 
 class ContainerAPI():
     def __init__(self):
@@ -343,7 +340,6 @@ class ContainerController(object):
         eventlet.spawn_n(self.compute_api.delete_container,_container_id,container_id,_v)
         return result_json
     def create(self,request):
-	logger.debug(request.json)
         container_image=request.json.pop('container_image')
         container_env = request.json.pop('container_environ')
         project_id = request.json.pop('container_project')
@@ -452,7 +448,6 @@ class ContainerController(object):
     	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
-	logger.debug(image_info)	
         image_id = image_info[1]
         result=self.image_api.inspect_image(image_id)
         result_json=result.json()
