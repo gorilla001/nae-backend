@@ -39,7 +39,7 @@ class Launcher(object):
 		service.wait()
 
 class ProcessLauncher(object):
-	def __init__(self):
+    def __init__(self):
         self.children = {}
         rfd,self.writepipe = os.pipe()
 
