@@ -52,6 +52,9 @@ from paste.deploy import loadapp
 #		method=getattr(self.controller,method)
 #		method(request,action_args)
 #
+
+import log
+
 class Server(object):
 
 	default_pool_size = 1000
@@ -62,7 +65,7 @@ class Server(object):
 	    self._protocol = eventlet.wsgi.HttpProtocol
 	    self.pool_size = self.default_pool_size
 	    self._pool=eventlet.GreenPool(self.pool_size)
-	    self._logger=logger
+        self._logger = log.getlogger()
 	    self._wsgi_logger=logging.WSGILogger(self._logger)
 	    
 	    bind_addr = (host,port)

@@ -13,13 +13,11 @@ class WSGIService(object):
         self.app = self.loader.load_app('api')
         self.host = '0.0.0.0'
         self.port = 8282 
-        self.logger = log.getlogger()
         self.workers = 5 
         self.server = wsgi.Server(
                     self.app,
         			self.host,
-        			self.port,
-        			self.logger)
+        			self.port)
     def start(self):
         self.server.start()
 
