@@ -65,8 +65,8 @@ class ProcessLauncher(object):
         if pid not in self.children:
             return None
         wrap = self.children.pop(pid)
-		wrap.children.remove(pid)
-		return wrap
+        wrap.children.remove(pid)
+        return wrap
 		
     def launch_server(self,server,workers=1):
         wrap = ServerWrapper(server,workers)
