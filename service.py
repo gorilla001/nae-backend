@@ -44,6 +44,11 @@ class ProcessLauncher(object):
         rfd,self.writepipe = os.pipe()
         self.running = True
 
+        signal.signal(signal.SIGTERM,self._handle_signal)
+        signal.signal(signal.SIGINT,self._handle_signal)
+    def _handle_signal(self,signo,frame):
+        self.running = False
+
     def _child_process(self,server):
         eventlet.hubs.use_hub()
 		
@@ -80,3 +85,8 @@ class ProcessLauncher(object):
                 continue
             while len(wrap.children) < wrap.workers:
                 self._start_child(wrap)
+        for pid in self.children:
+            os.kill(pid,signal.SIGTERM)
+
+        while self.children:
+            self._wait_child()
