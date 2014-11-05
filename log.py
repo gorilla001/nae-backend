@@ -9,9 +9,9 @@ def getlogger():
     return logger
 
 class WSGILogger(object):
-    def __init__(self,logger,level=logging.DEBUG):
+    def __init__(self,logger,level=logging.INFO):
         self.logger = logger
-        self.level = level
+        self.level = 10 
 
     def write(self, msg):
         print 'log'
