@@ -75,7 +75,7 @@ class ProcessLauncher(object):
 
     def wait(self):
         while self.running: 
-            wrap = self._wait_child(self)
+            wrap = self._wait_child()
             if not wrap:
                 continue
             while len(wrap.children) < wrap.workers:
