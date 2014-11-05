@@ -46,6 +46,7 @@ class ProcessLauncher(object):
 
         signal.signal(signal.SIGTERM,self._handle_signal)
         signal.signal(signal.SIGINT,self._handle_signal)
+
     def _handle_signal(self,signo,frame):
         self.running = False
 
@@ -87,6 +88,7 @@ class ProcessLauncher(object):
                 self._start_child(wrap)
         for pid in self.children:
             os.kill(pid,signal.SIGTERM)
+            print 'kill',pid
 
         while self.children:
             self._wait_child()
