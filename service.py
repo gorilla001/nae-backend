@@ -5,6 +5,7 @@ import log
 import eventlet
 import time
 import signal
+import config
 
 class WSGIService(object):
 	def __init__(self):
@@ -13,6 +14,7 @@ class WSGIService(object):
 		self.host = '0.0.0.0'
 		self.port = 8282
 		self.logger = log.getlogger()
+        self.workers = config.workers
 		self.server = wsgi.Server(self.app,
 				self.host,
 				self.port,
@@ -91,7 +93,6 @@ class ProcessLauncher(object):
                 self._start_child(wrap)
         for pid in self.children:
             os.kill(pid,signal.SIGTERM)
-            print 'kill',pid
 
         while self.children:
             self._wait_child()
