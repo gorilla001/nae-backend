@@ -42,6 +42,7 @@ class ProcessLauncher(object):
     def __init__(self):
         self.children = {}
         rfd,self.writepipe = os.pipe()
+        self.running = True
 
     def _child_process(self,server):
         eventlet.hubs.use_hub()
@@ -61,6 +62,8 @@ class ProcessLauncher(object):
 
     def _wait_child(self):
 		pid,status = os.wait()
+        if pid not in self.children:
+            return None
 		wrap = self.children.pop(pid)
 		wrap.children.remove(pid)
 		return wrap
@@ -71,5 +74,9 @@ class ProcessLauncher(object):
             self._start_child(wrap)
 
     def wait(self):
-        while len(wrap.children) < wrap.workers:
+        while self.running: 
+            wrap = self._wait_child(self):
+            if not wrap:
+                continue
+            while len(wrap.children) < wrap.workers:
             self._start_child(wrap)
