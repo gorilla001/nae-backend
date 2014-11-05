@@ -40,18 +40,14 @@ class Launcher(object):
 
 class ProcessLauncher(object):
     def __init__(self):
-        self._services=[]
-        self.tg = threadgroup.ThreadGroup()
+        self.children = {}
         rfd,self.writepipe = os.pipe()
 
     def _child_process(self,server):
         eventlet.hubs.use_hub()
         
         os.close(self.writepipe)
-        #gt=self.tg.start_thread(self.run_server,server)
-        #gt = eventlet.spawn(self.run_server, server)
-        #self._services.append(gt)
-        #self.run_server(server)
+
         launcher = Launcher()
         launcher.run_service(server)
 
@@ -61,6 +57,14 @@ class ProcessLauncher(object):
 	        self._child_process(wrap.server)
 	        os._exit(0)
 	    wrap.children.add(pid)
+        self.children[pid]=wrap
+    
+    def _wait_child(self):
+        pid,status = os.wait()
+        wrap = self.children.pop(pid)
+        wrap.children.remove(pid)
+        return wrap
+        
 
     def launch_server(self,server,workers=1):
 	    wrap = ServerWrapper(server,workers)
@@ -68,7 +72,5 @@ class ProcessLauncher(object):
 	        self._start_child(wrap)
 
     def wait(self):
-	    #for service in self._services:
-	    #    service.wait()
-        while True:
-            time.sleep(5)
+        while len(wrap.children) < wrap.workers:
+            self._start_child(wrap)
