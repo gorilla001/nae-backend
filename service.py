@@ -52,12 +52,12 @@ class ProcessLauncher(object):
 		launcher.run_service(server)
 
 	def _start_child(self,wrap):
-		pid = os.fork()
-		if pid == 0:
-		    self._child_process(wrap.server)
+        pid = os.fork()
+        if pid == 0:
+            self._child_process(wrap.server)
             os._exit(0)
-		wrap.children.add(pid)
-		self.children[pid]=wrap
+        wrap.children.add(pid)
+        self.children[pid]=wrap
 	
 	def _wait_child(self):
 		pid,status = os.wait()
