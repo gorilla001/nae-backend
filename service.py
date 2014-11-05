@@ -40,8 +40,8 @@ class Launcher(object):
 
 class ProcessLauncher(object):
     def __init__(self):
-	    self._services=[]
-	    self.tg = threadgroup.ThreadGroup()
+        self._services=[]
+        self.tg = threadgroup.ThreadGroup()
         rfd,self.writepipe = os.pipe()
 
     def _child_process(self,server):
