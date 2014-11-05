@@ -12,7 +12,7 @@ class WSGIService(object):
         self.loader = wsgi.Loader()
         self.app = self.loader.load_app('api')
         self.host = '0.0.0.0'
-        self.port = config.port
+        self.port = int(config.port)
         self.logger = log.getlogger()
         self.workers = config.workers
         self.server = wsgi.Server(self.app,
