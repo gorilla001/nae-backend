@@ -13,9 +13,11 @@ from database import DBAPI
 import time
 import ast
 from utils import MercurialControl
+import logging
 
 import eventlet
 eventlet.monkey_patch()
+
 
 
 class ContainerAPI():
@@ -271,6 +273,7 @@ class ContainerController(object):
         self.image_api=ImageAPI()
         self.db_api = DBAPI()
         self.mercurial = MercurialControl()
+	self.logger=logging.getLogger("wsgi.server")
     @webob.dec.wsgify
     def __call__(self,request):
         method=request.environ['wsgiorg.routing_args'][1]['action']
@@ -309,6 +312,7 @@ class ContainerController(object):
             }
             container.update(data)
             container_list.append(container)
+	logger.debug(container_list)
         return container_list
     def show(self,request):
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']

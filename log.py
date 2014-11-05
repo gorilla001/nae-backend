@@ -1,7 +1,7 @@
 import logging 
 
 def getlogger():
-    logger=logging.getLogger()
+    logger=logging.getLogger('wsgi.server')
     hdlr=logging.FileHandler('/var/log/jaecpn/jaecpn.log')
     formatter=logging.Formatter('%(asctime)s %(levelname)s %(message)s','%Y-%m-%d %H:%M:%S')
     hdlr.setFormatter(formatter)
