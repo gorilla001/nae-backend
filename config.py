@@ -14,6 +14,8 @@ try:
         docker_host=parser.get("default","docker_host")
         docker_port=parser.get("default","docker_port")
 		
+        
+	    port=parser.get("default","port")
 	    workers=parser.get("default","workers")
 
         PortRange = parser.get("default","PortRange")
