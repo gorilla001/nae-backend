@@ -18,7 +18,7 @@ import daemon
 from database import DBAPI
 
 def init():
-    daemon.Daemon.initDaemon()
+    daemon.Daemon().initDaemon()
  
 def get_random_port():
 	port_range=config.PortRange.strip("'").split(':')	

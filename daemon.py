@@ -5,8 +5,7 @@ import sys,os
 class Daemon():
     def __init__(self):
         self.pid_file='jaecpn.pid'
-    @classmethod
-    def initDaemon(cls):
+    def initDaemon(self):
         try:
             pid = os.fork()
             if pid > 0:
