@@ -4,6 +4,7 @@ import eventlet
 eventlet.monkey_patch(os=False)
 
 import service
+import utils
 
 
 if __name__ == '__main__':
