@@ -8,9 +8,7 @@ from utils import MercurialControl
 import os
 import utils
 import time
-import log
 
-logger=log.getlogger()
 
 
 
@@ -38,7 +36,6 @@ class ProjectAPI():
             self.mercurial.clone(repo_path)
         file_path=utils.get_file_path(repo_name)
         tar_path=utils.make_zip_tar(file_path)
-        logger.debug(tar_path)
         data=open(tar_path,'rb')
         headers={'Content-Type':'application/tar'}
         result=requests.post("{}/build?t={}".format(self.url,image_name),headers=headers,data=data)
@@ -125,7 +122,6 @@ class ProjectController(object):
             img_name = item[2]
             project_imgs.append(img_name)
         project_imgs=' '.join(project_imgs)
-        logger.debug(project_imgs)
         result_json={}
         result_json = {
                     "id" : project_id,
@@ -137,7 +133,6 @@ class ProjectController(object):
                     "imgs":project_imgs,
                     "created":project_created,
                     }
-        logger.debug(result_json)
         #if result.status_code == 200:
         #    for res in result.json():
         #        if image_id in res['Id']:
@@ -218,7 +213,6 @@ class ProjectController(object):
                 project_members = '',
                 project_hgs = '',
                 )
-        logger.debug('project_desc:%s' % project_desc)
         members_list = str(project_members).split()
         self.db_api.delete_users(project_id)
         for member in members_list:
