@@ -9,7 +9,7 @@ def getlogger():
     return logger
 
 class WSGILogger(object):
-    def __init__(self,logger,level=logging.INFO):
+    def __init__(self,logger,level=logging.NOTSET):
         self.logger = logger
         self.level = level
 
