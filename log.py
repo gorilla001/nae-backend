@@ -14,5 +14,5 @@ class WSGILogger(object):
     def __init__(self,logger):
         self.logger = logger
     def write(self, msg):
-        #self.logger.log(logging.INFO, msg.rstrip())
-        self.logger.debug(msg.rstrip())
+        self.logger.log(logging.NOTSET, msg.rstrip())
+        #self.logger.debug(msg.rstrip())
