@@ -59,7 +59,7 @@ class Server(object):
 
 	default_pool_size = 1000
 
-	def __init__(self,app,host,port,logger,backlog=128):
+	def __init__(self,app,host,port,backlog=128):
             self._server = None
             self.app = app
             self._protocol = eventlet.wsgi.HttpProtocol
