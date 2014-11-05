@@ -15,6 +15,4 @@ class WSGILogger(object):
         self.level = level 
 
     def write(self, msg):
-	print msg.rstrip()
-        self.logger.info(msg.rstrip())
         self.logger.log(self.level, msg.rstrip())
