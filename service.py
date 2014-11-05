@@ -68,5 +68,7 @@ class ProcessLauncher(object):
 	        self._start_child(wrap)
 
     def wait(self):
-	    for service in self._services:
-	        service.wait()
+	    #for service in self._services:
+	    #    service.wait()
+        while True:
+            time.sleep(5)
