@@ -15,18 +15,19 @@ class WSGIService(object):
         self.port = 8282 
         self.logger = log.getlogger()
         self.workers = 5 
-        self.server = wsgi.Server(self.app,
+        self.server = wsgi.Server(
+                    self.app,
         			self.host,
         			self.port,
         			self.logger)
-	def start(self):
-		self.server.start()
+    def start(self):
+        self.server.start()
 
-	def stop(self):
-		self.server.stop()
+    def stop(self):
+        self.server.stop()
 
-	def wait(self):
-		self.server.wait()
+    def wait(self):
+        self.server.wait()
 				
 class ServerWrapper(object):
 	def __init__(self,server,workers):
