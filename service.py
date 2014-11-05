@@ -67,4 +67,4 @@ class ProcessLauncher(object):
 
     def wait(self):
 	    for service in self._services:
-	    service.wait()
+	        service.wait()
