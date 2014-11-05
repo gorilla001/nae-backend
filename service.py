@@ -14,7 +14,7 @@ class WSGIService(object):
         self.host = '0.0.0.0'
         self.port = 8282 
         self.logger = log.getlogger()
-        self.workers = config.workers
+        self.workers = 5 
         self.server = wsgi.Server(self.app,
         			self.host,
         			self.port,
