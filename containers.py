@@ -312,7 +312,7 @@ class ContainerController(object):
             }
             container.update(data)
             container_list.append(container)
-	logger.debug(container_list)
+	self.logger.debug(container_list)
         return container_list
     def show(self,request):
         container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
