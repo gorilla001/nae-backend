@@ -42,10 +42,12 @@ class ProcessLauncher(object):
     def __init__(self):
 	    self._services=[]
 	    self.tg = threadgroup.ThreadGroup()
+        rfd,self.writepipe = os.pipe()
 
     def _child_process(self,server):
         eventlet.hubs.use_hub()
         
+        os.close(self.writepipe)
         #gt=self.tg.start_thread(self.run_server,server)
         #gt = eventlet.spawn(self.run_server, server)
         #self._services.append(gt)
