@@ -101,8 +101,8 @@ class ContainerAPI():
                 if result.status_code == 204:
             	    self.db_api.delete_container(_ctn_id)
             if result.status_code == 304:
-                	requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
-            	self.db_api.delete_container(_ctn_id)
+                   requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
+            	   self.db_api.delete_container(_ctn_id)
             if result.status_code == 404: 
             	self.db_api.delete_container(_ctn_id)
 	else:
