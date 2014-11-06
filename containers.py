@@ -81,28 +81,38 @@ class ContainerAPI():
             }
             self.start_container(kargs,container_id)
     def delete_container(self,_ctn_id,ctn_id,v):
-        self.db_api.update_container_status(
-                id = _ctn_id,
-                status = "stoping"
-        )
-	result=requests.post("{}/containers/{}/stop?t=10".format(self.url,ctn_id))
-	if result.status_code == 204:
+	status = self.db_api.get_container_status(_ctn_id)
+	if status != 'stop':
             self.db_api.update_container_status(
-        			id = _ctn_id,
-        			status = "stop"
-        	)
-            self.db_api.update_container_status(
-                	id = _ctn_id,
-                	status = "deleting"
-        	)
-            result=requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
-	    if result.status_code == 204:
-        	self.db_api.delete_container(_ctn_id)
-	if result.status_code == 304:
-            	requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
-        	self.db_api.delete_container(_ctn_id)
-	if result.status_code == 404: 
-        	self.db_api.delete_container(_ctn_id)
+                    id = _ctn_id,
+                    status = "stoping"
+            )
+            result=requests.post("{}/containers/{}/stop?t=10".format(self.url,ctn_id))
+            if result.status_code == 204:
+                self.db_api.update_container_status(
+            			id = _ctn_id,
+            			status = "stop"
+            	)
+                self.db_api.update_container_status(
+                    	id = _ctn_id,
+                    	status = "deleting"
+            	)
+                result=requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
+                if result.status_code == 204:
+            	self.db_api.delete_container(_ctn_id)
+            if result.status_code == 304:
+                	requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
+            	self.db_api.delete_container(_ctn_id)
+            if result.status_code == 404: 
+            	self.db_api.delete_container(_ctn_id)
+	else:
+		self.db_api.update_container_status(
+                    	id = _ctn_id,
+                    	status = "deleting"
+            	)
+                result=requests.delete("{}/containers/{}?v={}".format(self.url,ctn_id,v))    
+                if result.status_code == 204:
+            	self.db_api.delete_container(_ctn_id)
 		
         result=webob.Response('{"status_code":200"}')
         return result

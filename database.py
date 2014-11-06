@@ -120,6 +120,12 @@ class DBAPI():
         table=Table('containers',self.metadata,autoload=True)
         s=table.select(table.c.Id == container_id)
         return s.execute()
+
+    def get_container_status(self,ctn_id):
+        table=Table('containers',self.metadata,autoload=True)
+        s=table.select(table.c.Id == ctn_id)
+	return s.execute().fetchone()[11]
+	
     def get_container_count(self,container_name):
         table=Table('containers',self.metadata,autoload=True)
         s=table.select(table.c.ContainerName == container_name)
