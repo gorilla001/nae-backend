@@ -271,8 +271,15 @@ class ImageController(object):
         repo_path=request.json.pop('repo_path')
 	repo_branch=request.json.pop('repo_branch')
         user_name=request.json.pop('user_name')
-
         created_time = utils.human_readable_time(time.time())
+
+	img_limit = quotas.get_quotas().get('image_limit')	
+	img_count = self.db_api.get_images(project_id)
+	img_count = len(img_count.fetchall())	
+	if img_count == img_limit :
+	    LOG.info("images limit exceed,can not created anymore...")
+	    return
+
 	id=self.db_api.add_image(
                                   name=image_name,
 				  tag="latest",
