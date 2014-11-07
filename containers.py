@@ -460,10 +460,10 @@ class ContainerController(object):
     	
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
-        image_id = image_info[1]
-	if image_id is None:
+	if image_info is None:
 	    LOG.debug("image is None")
 	    return 
+        image_id = image_info[1]
         result=self.image_api.inspect_image(image_id)
         result_json=result.json()
         port=result_json['Config']['ExposedPorts']
