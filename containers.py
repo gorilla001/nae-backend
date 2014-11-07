@@ -354,7 +354,7 @@ class ContainerController(object):
         return result_json
     def create(self,request):
         container_image=request.json.pop('container_image')
-	if container_image == -1:
+	if container_image == "-1":
 	    LOG.error("image can not be empity!")
 	    return
         container_env = request.json.pop('container_environ')
@@ -465,7 +465,7 @@ class ContainerController(object):
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
 	if image_info is None:
-	    LOG.debug("image is None")
+	    LOG.error("image can not be empity!")
 	    return 
         image_id = image_info[1]
         result=self.image_api.inspect_image(image_id)
