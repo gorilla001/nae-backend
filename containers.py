@@ -371,7 +371,7 @@ class ContainerController(object):
 	ctn_count = len(ctn_count.fetchall())	
 	if ctn_count == ctn_limit :
 	    LOG.info("containers limit exceed,can not created anymore...")
-	    return
+	    return {"status":100}
         container_name = os.path.basename(container_hg) + '-' + container_code 
         max_id = self.db_api.get_max_container_id()
         max_id = max_id.fetchone()[0]
