@@ -367,11 +367,12 @@ class ContainerController(object):
         user_key = request.json.pop('user_key')
 
 	ctn_limit = quotas.get_quotas().get('container_limit')	
-	ctn_count = self.db_api.get_containers(project_id,user_name)
+	ctn_count = self.db_api.get_container_count(project_id)
 	ctn_count = len(ctn_count.fetchall())	
 	if ctn_count == ctn_limit :
-	    LOG.info("containers limit exceed,can not created anymore...")
+	    LOG.warning("containers limit exceed,can not created anymore...")
 	    return {"status":100}
+
         container_name = os.path.basename(container_hg) + '-' + container_code 
         max_id = self.db_api.get_max_container_id()
         max_id = max_id.fetchone()[0]

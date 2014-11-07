@@ -126,11 +126,10 @@ class DBAPI():
         s=table.select(table.c.Id == ctn_id)
 	return s.execute().fetchone()[11]
 	
-    def get_container_count(self,proj_id,user_id):
+    def get_container_count(self,proj_id):
         table=Table('containers',self.metadata,autoload=True)
-        s = table.select([func.count('*')]).where(and_(
+        s = table.select().where(and_(
                                     table.c.ProjectID == proj_id,
-                                    table.c.CreatedBy == user_id)
                                     )
 
         return s.execute() 
