@@ -19,6 +19,7 @@ import eventlet
 eventlet.monkey_patch()
 
 
+LOG = logging.getLogger(__name__)
 
 class ContainerAPI():
     def __init__(self):
