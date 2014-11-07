@@ -331,7 +331,7 @@ class ImageController(object):
 	img_count = len(img_count.fetchall())	
 	if img_count == img_limit :
 	    LOG.info("images limit exceed,can not created anymore...")
-	    return
+	    return { "status":100 }
 
 	self.image_api.commit(repo,tag,ctn,id)
 
