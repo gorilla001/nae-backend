@@ -130,7 +130,7 @@ class DBAPI():
         table=Table('containers',self.metadata,autoload=True)
         s = table.select().where(and_(
                                     table.c.ProjectID == proj_id,
-                                    )
+                                    ))
 
         return s.execute() 
     def delete_container(self,container_id):
