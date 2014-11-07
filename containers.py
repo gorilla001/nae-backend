@@ -367,7 +367,7 @@ class ContainerController(object):
         user_key = request.json.pop('user_key')
 
 	ctn_limit = quotas.get_quotas().get('container_limit')	
-	ctn_count = self.db_api.get_container_count(project_id)
+	ctn_count = self.db_api.get_containers(project_id,user_name)
 	ctn_count = len(ctn_count.fetchall())	
 	LOG.info(ctn_count)
 	if ctn_count == ctn_limit :
