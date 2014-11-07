@@ -147,7 +147,6 @@ class ContainerAPI():
     def _start_container(self,container_id,data):
         _url="{}/containers/{}/start".format(self.url,container_id)
         result=requests.post(_url,data=json.dumps(data),headers=self.headers)  
-        print 'result.status_code' ,result.status_code
         if result.status_code == 204:
             self.db_api.update_container_status(
         			id = self._id,
@@ -462,6 +461,9 @@ class ContainerController(object):
     def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
         image_info = self.db_api.get_image(image).fetchone()
         image_id = image_info[1]
+	if image_id is None:
+	    LOG.debug("image is None")
+	    return 
         result=self.image_api.inspect_image(image_id)
         result_json=result.json()
         port=result_json['Config']['ExposedPorts']
