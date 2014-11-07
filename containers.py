@@ -19,7 +19,7 @@ import eventlet
 eventlet.monkey_patch()
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('eventlet.wsgi.server')
 
 class ContainerAPI():
     def __init__(self):
