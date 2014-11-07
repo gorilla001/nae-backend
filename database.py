@@ -126,7 +126,7 @@ class DBAPI():
         s=table.select(table.c.Id == ctn_id)
 	return s.execute().fetchone()[11]
 	
-    def get_container_count(self,container_name):
+    def get_container_count(self,proj_id,ctn_id):
         table=Table('containers',self.metadata,autoload=True)
         s=table.select(table.c.ContainerName == container_name)
         return len(s.execute().fetchall())

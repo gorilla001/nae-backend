@@ -14,6 +14,7 @@ import time
 import ast
 from utils import MercurialControl
 import logging
+import quotas
 
 import eventlet
 eventlet.monkey_patch()
@@ -365,6 +366,11 @@ class ContainerController(object):
         user_name = request.json.pop('user_name')
         user_key = request.json.pop('user_key')
 
+	ctn_limit = quotas.get_quotas().get('container_limit')	
+	ctn_count = self.db_api.get_containers(project_id,user_name)
+	if len(ctn_count) == ctn_limit :
+	    LOG.info("containers limit exceed")
+	    return
         container_name = os.path.basename(container_hg) + '-' + container_code 
         max_id = self.db_api.get_max_container_id()
         max_id = max_id.fetchone()[0]
