@@ -369,6 +369,7 @@ class ContainerController(object):
 	ctn_limit = quotas.get_quotas().get('container_limit')	
 	ctn_count = self.db_api.get_container_count(project_id)
 	ctn_count = len(ctn_count.fetchall())	
+	LOG.info(ctn_count)
 	if ctn_count == ctn_limit :
 	    LOG.warning("containers limit exceed,can not created anymore...")
 	    return {"status":100}
