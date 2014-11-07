@@ -17,7 +17,7 @@ import eventlet
 eventlet.monkey_patch()
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('eventlet.wsgi.server')
 
 class ImageAPI():
     def __init__(self):
