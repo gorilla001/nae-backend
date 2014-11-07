@@ -354,6 +354,9 @@ class ContainerController(object):
         return result_json
     def create(self,request):
         container_image=request.json.pop('container_image')
+	if container_image == -1:
+	    LOG.error("image can not be empity!")
+	    return
         container_env = request.json.pop('container_environ')
         project_id = request.json.pop('container_project')
         container_hg=request.json.pop('container_hg')
