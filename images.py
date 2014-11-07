@@ -160,9 +160,9 @@ class ImageAPI():
         	headers={'Content-Type':'application/json'}
         	result=requests.post(_url,data=json.dumps(data),headers=headers)  
         	if result.status_code != 204:
-		    logger.debug("start for-image-edit container failed")	
+		    LOG.debug("start for-image-edit container failed")	
 	else:
-	    logger.debug("create for-image-edit container failed") 
+	    LOG.debug("create for-image-edit container failed") 
 
     def commit(self,repo,tag,ctn,id):
         eventlet.spawn_n(self._commit,repo,tag,ctn,id)
@@ -323,6 +323,15 @@ class ImageController(object):
 	tag = request.GET.pop('tag')
 	ctn = request.GET.pop('ctn')
 	id = request.GET.pop('id')
+ 	proj_id = request.GET.pop('proj_id')
+
+	img_limit = quotas.get_quotas().get('image_limit')	
+	img_count = self.db_api.get_images(proj_id)
+	img_count = len(img_count.fetchall())	
+	if img_count == img_limit :
+	    LOG.info("images limit exceed,can not created anymore...")
+	    return
+
 	self.image_api.commit(repo,tag,ctn,id)
 
 
