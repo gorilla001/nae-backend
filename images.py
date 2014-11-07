@@ -11,6 +11,7 @@ import time
 from pprint import pprint
 import webob
 import logging
+import quotas
 
 import eventlet
 eventlet.monkey_patch()
