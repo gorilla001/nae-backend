@@ -10,12 +10,13 @@ import utils
 import time
 from pprint import pprint
 import webob
+import logging
 
 import eventlet
 eventlet.monkey_patch()
 
 
-
+LOG = logging.getLogger(__name__)
 
 class ImageAPI():
     def __init__(self):
@@ -241,6 +242,9 @@ class ImageController(object):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
         result = self.db_api.get_image(image_id)
         image_info=result.fetchone()
+	if image_info is None:
+		LOG.debug("image is None")	
+		return None
         image={
                 'ImageID':image_info[1],
                 'ImageName':image_info[2],
