@@ -17,6 +17,9 @@ import daemon
 
 from database import DBAPI
 
+
+LOG = logging.getLogger('eventlet.wsgi.server')
+
 def init():
     daemon.Daemon().initDaemon()
  
@@ -141,10 +144,10 @@ class MercurialControl(object):
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
             mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
-            logging.debug('clone docker file from %s' % repo_path)
+            LOG.debug('clone docker file from %s' % repo_path)
         except Exception,error:
-            logging.error('could not clone repo:%s' % repo_path)
-            logging.error(error)
+            LOG.error('could not clone repo:%s' % repo_path)
+            LOG.error(error)
     def pull(self,user_name,repo_path):
         #source = 'ssh://localhost/%s' % repo_path
         source = repo_path
