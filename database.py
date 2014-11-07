@@ -128,13 +128,12 @@ class DBAPI():
 	
     def get_container_count(self,proj_id,user_id):
         table=Table('containers',self.metadata,autoload=True)
-        s = table.select([func.count()]).where(and_(
+        s = table.select([func.count('*')]).where(and_(
                                     table.c.ProjectID == proj_id,
                                     table.c.CreatedBy == user_id)
                                     )
 
-        #return s.execute() 
-        return s.select_from(table) 
+        return s.execute() 
     def delete_container(self,container_id):
         table=Table('containers',self.metadata,autoload=True)
         d=table.delete(table.c.Id == container_id)
