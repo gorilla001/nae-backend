@@ -4,11 +4,15 @@ import eventlet
 eventlet.monkey_patch(os=False)
 
 import service
-import utils
+import sys
+
+if sys.argv[1] == "-D":
+    import utils
 
 
 if __name__ == '__main__':
-    #utils.init()
+    if sys.argv[1] == "-D":
+        utils.init()
     launcher = service.ProcessLauncher()
     server = service.WSGIService()
     launcher.launch_server(server,workers=server.workers or 1)

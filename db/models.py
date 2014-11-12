@@ -78,5 +78,3 @@ class NetWork(BaseModel,JaeBase):
     PublicPort = Column(String(30))
     PrivateHost = Column(String(100))
     PrivatePort = Column(String(30))
-
-    
