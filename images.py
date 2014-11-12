@@ -350,6 +350,7 @@ class ImageController(object):
 			"Owner":owner,
 		}
 		ctn_list.append(ctn)
+	LOG.debug(ctn_list)
 	return ctn_list
 	
 
