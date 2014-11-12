@@ -51,7 +51,10 @@ class ProcessLauncher(object):
 
         signal.signal(signal.SIGTERM,self._handle_signal)
         signal.signal(signal.SIGINT,self._handle_signal)
-        signal.signal(signal.SIGKILL,self._handle_signal)
+	'''
+	    SIGKILL can not be catch 
+	'''
+        #signal.signal(signal.SIGKILL,self._handle_signal)
 
     def _handle_signal(self,signo,frame):
 	LOG.debug("master recived SIGTERM or SIGNIT...")
