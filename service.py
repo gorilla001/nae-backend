@@ -91,6 +91,7 @@ class ProcessLauncher(object):
         while self.running: 
 	    LOG.debug("master is running...")
             wrap = self._wait_child()
+	    LOG.debug(wrap)
             if not wrap:
                 continue
             while len(wrap.children) < wrap.workers:
