@@ -52,7 +52,7 @@ class ProcessLauncher(object):
         signal.signal(signal.SIGINT,self._handle_signal)
 
     def _handle_signal(self,signo,frame):
-	LOG.debug("Recived SIGTERM or SIGNIT...")
+	LOG.debug("master recived SIGTERM or SIGNIT...")
         self.running = False
 
     def _child_process(self,server):
@@ -88,6 +88,7 @@ class ProcessLauncher(object):
             self._start_child(wrap)
 
     def wait(self):
+	LOG.info("waiting for workers to respawn or die...")
         while self.running: 
             wrap = self._wait_child()
             if not wrap:
