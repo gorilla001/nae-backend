@@ -95,6 +95,7 @@ class ProcessLauncher(object):
                 continue
             while len(wrap.children) < wrap.workers:
                 self._start_child(wrap)
+ 	LOG.debug(self.running)
 
 	LOG.debug("master is going to die,kill workers first...")
         for pid in self.children:
