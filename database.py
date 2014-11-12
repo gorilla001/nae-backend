@@ -133,6 +133,11 @@ class DBAPI():
                                     ))
 
         return s.execute() 
+    def get_containers_by_image(self,_id):
+        table=Table('containers',self.metadata,autoload=True)
+        s=table.select(table.c.Image == _id)
+        return s.execute()
+
     def delete_container(self,container_id):
         table=Table('containers',self.metadata,autoload=True)
         d=table.delete(table.c.Id == container_id)

@@ -96,6 +96,8 @@ class ImageAPI():
 			self.db_api.update_image_status(
 				  id=id,
                                   status = "409")
+			ctn_info=self.db_api.get_containers_by_image(id)
+			return {"stauts":409}
 		if status_code == 500: 
 			self.db_api.update_image_status(
 				  id=id,
