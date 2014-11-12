@@ -43,10 +43,11 @@ class Launcher(object):
 		service.wait()
 
 class ProcessLauncher(object):
-    def __init__(self):
+    def __init__(self,wait_interval=0.01):
         self.children = {}
         rfd,self.writepipe = os.pipe()
         self.running = True
+	self.wait_interval=wait_interval
 
         signal.signal(signal.SIGTERM,self._handle_signal)
         signal.signal(signal.SIGINT,self._handle_signal)
@@ -98,6 +99,7 @@ class ProcessLauncher(object):
             wrap = self._wait_child()
 	    LOG.debug(wrap)
             if not wrap:
+		eventlet.greenthread.sleep(self.wait_interval)
                 continue
             while len(wrap.children) < wrap.workers:
                 self._start_child(wrap)
