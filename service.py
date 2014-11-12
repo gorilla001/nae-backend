@@ -88,14 +88,13 @@ class ProcessLauncher(object):
             self._start_child(wrap)
 
     def wait(self):
-	LOG.info("waiting for workers to respawn or die...")
         while self.running: 
+	    LOG.debug("master is running...")
             wrap = self._wait_child()
             if not wrap:
                 continue
             while len(wrap.children) < wrap.workers:
                 self._start_child(wrap)
- 	    LOG.debug(self.running)
 
 	LOG.debug("master is going to die,kill workers first...")
         for pid in self.children:
