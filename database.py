@@ -7,7 +7,7 @@ DATABASE_URL="mysql://jaecpn:jaecpn@localhost/jaecpn"
 
 class DBAPI():
     def __init__(self):
-        self.engine = create_engine(DATABASE_URL,convert_unicode=True)
+        self.engine = create_engine(DATABASE_URL,convert_unicode=True,pool_recycle=-1)
         self.metadata=MetaData(self.engine)
         #self.engine.echo=True
     def add_image(self,name,tag,desc,project_id,repo,branch,created,owner,status,image_id=None,size=None):
