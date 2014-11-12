@@ -52,6 +52,7 @@ class ProcessLauncher(object):
         signal.signal(signal.SIGINT,self._handle_signal)
 
     def _handle_signal(self,signo,frame):
+	LOG.debug("Recived SIGTERM or SIGNIT...")
         self.running = False
 
     def _child_process(self,server):
@@ -93,8 +94,9 @@ class ProcessLauncher(object):
                 continue
             while len(wrap.children) < wrap.workers:
                 self._start_child(wrap)
+
+	LOG.debug("master is going to die,kill workers first...")
         for pid in self.children:
-	    LOG.debug("Recived SIGTERM,kill workers...")
             os.kill(pid,signal.SIGTERM)
 
         while self.children:
