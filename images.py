@@ -105,7 +105,8 @@ class ImageAPI():
                                   status = "500")
 			return {"stauts":500}
         eventlet.spawn_n(_delete_image,self.url,image_id,f_id,id)
-        #result=webob.Response('{"status_code":200"}')
+        result=webob.Response('{"status_code":200"}')
+	return result
     def edit(self,kargs,name,port):
         eventlet.spawn_n(self._edit,kargs,name,port)
         result=webob.Response('{"status_code":200"}')
