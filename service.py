@@ -60,6 +60,9 @@ class ProcessLauncher(object):
 		
         os.close(self.writepipe)
 
+	signal.signal(signal.SIGTERM,signal.SIG_DFL)
+	signal.signal(signal.SIGINT,signal.SIG_IGN)
+
         launcher = Launcher()
         launcher.run_service(server)
 
