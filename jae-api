@@ -8,7 +8,7 @@ import utils
 
 
 if __name__ == '__main__':
-    utils.init()
+    #utils.init()
     launcher = service.ProcessLauncher()
     server = service.WSGIService()
     launcher.launch_server(server,workers=server.workers or 1)
