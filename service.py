@@ -75,6 +75,7 @@ class ProcessLauncher(object):
         self.children[pid]=wrap
 
     def _wait_child(self):
+	LOG.debug("wait for child...")
         pid,status = os.wait()
         if pid not in self.children:
             return None
