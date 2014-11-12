@@ -116,6 +116,11 @@ class Router (object):
         		action='commit',
         		conditions={'method':['POST']},
         )
+	self.mapper.connect('/images/conflict/{image_id}',
+        		controller=self.image_controller,
+        		action='conflict',
+        		conditions={'method':['GET']},
+        )
 
         #file method
         self.mapper.connect('/files',

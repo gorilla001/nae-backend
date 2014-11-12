@@ -97,7 +97,6 @@ class ImageAPI():
 			self.db_api.update_image_status(
 				  id=id,
                                   status = "409")
-			#ctn_info=self.db_api.get_containers_by_image(id)
 			#return {"stauts":409}
 		if status_code == 500: 
 			self.db_api.update_image_status(
@@ -338,6 +337,21 @@ class ImageController(object):
 	    return { "status":100 }
 
 	self.image_api.commit(repo,tag,ctn,id)
+
+    def conflict(self,request):
+	_id=request.environ['wsgiorg.routing_args'][1]['image_id']
+	ctn_info=self.db_api.get_containers_by_image(_id)
+	ctn_list=[]
+	for item in ctn_info.fetchall():
+		ctn_name=item[2]
+		owner=item[10]
+		ctn = {
+			"Name":ctn_name,
+			"Owner":owner,
+		}
+		ctn_list.append(ctn)
+	return ctn_list
+	
 
 
 def create_resource():
