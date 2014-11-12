@@ -98,3 +98,5 @@ class HgController(object):
 
 def create_resource():
     return ImageController()
+
+
