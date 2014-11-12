@@ -79,9 +79,7 @@ class ProcessLauncher(object):
         self.children[pid]=wrap
 
     def _wait_child(self):
-	LOG.debug("wait for child...")
         pid,status = os.waitpid(0,os.WNOHANG)
-	LOG.debug(pid)
         if pid not in self.children:
             return None
         wrap = self.children.pop(pid)
@@ -95,9 +93,7 @@ class ProcessLauncher(object):
 
     def wait(self):
         while self.running: 
-	    LOG.debug("master is running...")
             wrap = self._wait_child()
-	    LOG.debug(wrap)
             if not wrap:
 		eventlet.greenthread.sleep(self.wait_interval)
                 continue
