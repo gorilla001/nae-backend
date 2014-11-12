@@ -6,12 +6,12 @@ eventlet.monkey_patch(os=False)
 import service
 import sys
 
-if sys.argv[1] == "-D":
+if sys.argv[1] != "-D":
     import utils
 
 
 if __name__ == '__main__':
-    if sys.argv[1] == "-D":
+    if sys.argv[1] != "-D":
         utils.init()
     launcher = service.ProcessLauncher()
     server = service.WSGIService()
