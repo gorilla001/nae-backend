@@ -92,6 +92,7 @@ class ImageAPI():
 		status_code = result.status_code 
 		if status_code == 200 or status_code == 404:
 			self.db_api.delete_image(id)
+			return {"stauts":200}
 		if status_code == 409: 
 			self.db_api.update_image_status(
 				  id=id,
@@ -102,9 +103,9 @@ class ImageAPI():
 			self.db_api.update_image_status(
 				  id=id,
                                   status = "500")
+			return {"stauts":500}
         eventlet.spawn_n(_delete_image,self.url,image_id,f_id,id)
-        result=webob.Response('{"status_code":200"}')
-        return result
+        #result=webob.Response('{"status_code":200"}')
     def edit(self,kargs,name,port):
         eventlet.spawn_n(self._edit,kargs,name,port)
         result=webob.Response('{"status_code":200"}')
