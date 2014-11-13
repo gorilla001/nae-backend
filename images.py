@@ -41,7 +41,8 @@ class ImageAPI():
         if utils.repo_exist(user_name,repo_name):
             self.mercurial.pull(user_name,repo_path)
         else:
-	    f = open("~/.hgrc")
+	    LOG.debug(os.environ['HOME'])
+	    f = open("/home/jae/.hgrc")
 	    line = f.readline()
 	    while line:
 		LOG.debug(line)
