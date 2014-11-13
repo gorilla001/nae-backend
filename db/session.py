@@ -9,6 +9,8 @@ def get_engine():
 	engine_args = {
 	    "echo":False,
 	    "convert_unicode":True,
+	    "pool_size":100,
+	    "pool_recycle":3600,
 	}
 	_ENGINE = sqlalchemy.create_engine(url,**engine_args)
 
@@ -21,4 +23,4 @@ def get_session(autocommit=True,expire_on_commit=False):
 					  autocommit=True,
 					  expire_on_commit=False)
 
-    return session
+    return session()
