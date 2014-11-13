@@ -137,19 +137,11 @@ class MercurialControl(object):
         self._ui = mercurial.ui.ui()
         self.path=os.path.join(os.path.dirname(__file__),'files')
     def clone(self,user_name,repo_path):
-	LOG.debug(user_name)
-	LOG.debug(repo_path)
         source = repo_path
         path = os.path.join(self.path,user_name)
-
-        if not os.path.exists(path):
-            os.mkdir(path)
-		 
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
             LOG.debug('clone docker file from %s' % repo_path)
-	    LOG.debug(str(source))
-	    LOG.debug(str(dest))
             mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
         except Exception,error:
             LOG.error('could not clone repo:%s' % repo_path)

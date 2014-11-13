@@ -41,13 +41,6 @@ class ImageAPI():
         if utils.repo_exist(user_name,repo_name):
             self.mercurial.pull(user_name,repo_path)
         else:
-	    LOG.debug(os.environ['HOME'])
-	    f = open("/home/jae/.hgrc")
-	    line = f.readline()
-	    while line:
-		LOG.debug(line)
-		line = f.readline()
-	    f.close() 
             self.mercurial.clone(user_name,repo_path)
         self.mercurial.update(user_name,repo_path,repo_branch)
         file_path=utils.get_file_path(user_name,repo_name)
