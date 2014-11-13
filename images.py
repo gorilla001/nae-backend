@@ -49,8 +49,6 @@ class ImageAPI():
             data=open(tar_path,'rb')
             headers={'Content-Type':'application/tar'}
             rs=requests.post("{}/build?t={}".format(url,image_name),headers=headers,data=data)
-	    with open("/tmp/aaabbb",'w') as f:
-	    	f.write('{}'.format(rs.status_code))
 	    if rs.status_code == 200:
             	result=self.inspect_image(image_name)
 		if result.status_code == 200:

@@ -138,9 +138,12 @@ class MercurialControl(object):
         self._ui = mercurial.ui.ui()
         self.path=os.path.join(os.path.dirname(__file__),'files')
     def clone(self,user_name,repo_path):
-        #source = 'ssh://localhost/%s' % repo_path
         source = repo_path
         path = os.path.join(self.path,user_name)
+
+        if not os.path.exists(path):
+            os.mkdir(user_home)
+		 
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
             mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
@@ -149,7 +152,6 @@ class MercurialControl(object):
             LOG.error('could not clone repo:%s' % repo_path)
             LOG.error(error)
     def pull(self,user_name,repo_path):
-        #source = 'ssh://localhost/%s' % repo_path
         source = repo_path
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
