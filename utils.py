@@ -137,6 +137,8 @@ class MercurialControl(object):
         self._ui = mercurial.ui.ui()
         self.path=os.path.join(os.path.dirname(__file__),'files')
     def clone(self,user_name,repo_path):
+	LOG.debug(user_name)
+	LOG.debug(repo_path)
         source = repo_path
         path = os.path.join(self.path,user_name)
 
