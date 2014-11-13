@@ -92,7 +92,7 @@ class ImageAPI():
 			self.db_api.delete_image(id)
 			#return {"stauts":200}
 		if status_code == 409: 
-			if not get_containers_by_image(id).fetchone():	
+			if not self.db_api.get_containers_by_image(id).fetchone():	
 				self.db_api.delete_image(id)	
 				return
 			self.db_api.update_image_status(
