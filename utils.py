@@ -166,7 +166,10 @@ class MercurialControl(object):
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
         repo=mercurial.hg.repository(self._ui,local_repo_path)
-        mercurial.commands.update(self._ui,repo,rev=branch,clean=True)
+	try:
+            mercurial.commands.update(self._ui,repo,rev=branch,clean=True)
+        except RepoError as err:
+	    LOG.error(err)
 
 
 if __name__ == '__main__':
