@@ -46,7 +46,6 @@ def get_file_path(user_name,repo_name):
 
 def repo_exist(user_name,repo_name):
     base_dir=os.path.dirname(__file__)
-    print base_dir,user_name
     user_dir=os.path.join(base_dir,'files',user_name)
     repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
@@ -146,8 +145,8 @@ class MercurialControl(object):
 		 
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
-            mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
             LOG.debug('clone docker file from %s' % repo_path)
+            mercurial.commands.clone(self._ui,str(source),str(dest),pull=False,uncompressed=False,rev=False,noupdate=False)
         except Exception,error:
             LOG.error('could not clone repo:%s' % repo_path)
             LOG.error(error)
@@ -156,14 +155,17 @@ class MercurialControl(object):
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
         repo=mercurial.hg.repository(self._ui,local_repo_path)
-        mercurial.commands.pull(self._ui,repo,source=source)
+	try:
+            mercurial.commands.pull(self._ui,repo,source=source)
+        except Exception,error:
+            LOG.error('could not pull repo:%s' % repo_path)
+            LOG.error(error)
     def update(self,user_name,repo_path,branch=None):
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
-        print 'local_repo_path',local_repo_path
         repo=mercurial.hg.repository(self._ui,local_repo_path)
         mercurial.commands.update(self._ui,repo,rev=branch,clean=True)
 
 
 if __name__ == '__main__':
-	print get_random_port()
+    pass
