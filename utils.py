@@ -142,7 +142,7 @@ class MercurialControl(object):
         path = os.path.join(self.path,user_name)
 
         if not os.path.exists(path):
-            os.mkdir(user_home)
+            os.mkdir(path)
 		 
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
