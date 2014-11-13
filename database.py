@@ -7,9 +7,26 @@ DATABASE_URL="mysql://jaecpn:jaecpn@localhost/jaecpn"
 
 class DBAPI():
     def __init__(self):
-        self.engine = create_engine(DATABASE_URL,convert_unicode=True,pool_recycle=-1)
+        self.engine = create_engine(
+				DATABASE_URL,
+				convert_unicode=True,
+				pool_size=100,
+				pool_recycle=3600)
         self.metadata=MetaData(self.engine)
-        #self.engine.echo=True
+	#event.listen(self.engine,'checkout',self.checkout_listener)	
+
+    #@staticmethod
+    #def checkout_listener(dbapi_con,con_record,con_proxy):
+    #     try:
+    #        dbapi_conn.cursor().execute('select 1')
+    #     except dbapi_con.OperationalError, ex:
+    #        if ex.args[0] in (2006, 2013, 2014, 2045, 2055):
+    #            LOG.warn('Got mysql server has gone away: %s', ex)
+    #    	LOG.warn('reconnect it...')
+    #            dbapi_conn.cursor().execute('select 1')
+    #        else:
+    #            raise
+
     def add_image(self,name,tag,desc,project_id,repo,branch,created,owner,status,image_id=None,size=None):
         table=Table('images',self.metadata,autoload=True) 
         i=table.insert()
