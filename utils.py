@@ -156,6 +156,7 @@ class MercurialControl(object):
         except Exception,error:
             LOG.error('could not pull repo:%s' % repo_path)
             LOG.error(error)
+	    raise
     def update(self,user_name,repo_path,branch=None):
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
