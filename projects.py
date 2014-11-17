@@ -109,7 +109,16 @@ class ProjectController(object):
             hg = _item[1]
             hg_list.append(hg)
         project_hgs = ' '.join(hg_list) 
-        project_admin = project_info[5]
+
+        #project_admin = project_info[5]
+	_user_info = self.db_api.get_users_by_role(project_id,1)
+	user_info=_user_info.fetchall()
+	project_admin = []
+	for item in user_info:
+	    admin=item[1]
+	    project_admin.append(admin)	
+	project_admin=' '.join(project_admin)
+
         _members = self.db_api.get_users(project_id=project_id)
         project_members=list()
         for memb in _members.fetchall():

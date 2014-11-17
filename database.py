@@ -227,6 +227,14 @@ class DBAPI():
         s=table.select(table.c.UserID == user_id)
         return s.execute()
 
+    def get_users_by_role(project_id,role_id):
+        table = Table('users',self.metadata,autoload=True)
+        s = table.select().where(and_(
+                                    table.c.ProjectID == project_id,
+                                    table.c.RoleID == role_id)
+                                    )
+        return s.execute()
+	
     def show_project(self,project_id):
         table=Table('projects',self.metadata,autoload=True)
         s=table.select(table.c.ProjectID == project_id)
