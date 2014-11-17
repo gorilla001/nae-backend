@@ -214,6 +214,14 @@ class DBAPI():
             s=table.select(table.c.ProjectID == project_id)
         r=s.execute()
         return r
+    def get_user(self,user_id,project_id):
+        table = Table('users',self.metadata,autoload=True)
+        s = table.select().where(and_(
+                                    table.c.ProjectID == project_id,
+                                    table.c.UserID == user_id)
+                                    )
+        return s.execute()
+	
     def get_project_id_by_user_id(self,user_id):
         table=Table('users',self.metadata,autoload=True)
         s=table.select(table.c.UserID == user_id)
