@@ -69,7 +69,7 @@ class UserController(object):
 	proj_id=request.GET.get('project_id')
 	_user_info=self.db_api.get_user(user_id,proj_id)	
 	user_info=_user_info.fetchone()	
-	if user_info:
+	if user_info is not None:
 	    user = {
 		"UserID":user_info[1],
 		"Email":user_info[2],
