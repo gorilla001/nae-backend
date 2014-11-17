@@ -69,12 +69,14 @@ class UserController(object):
 	proj_id=request.GET.get('project_id')
 	_user_info=self.db_api.get_user(user_id,proj_id)	
 	user_info=_user_info.fetchone()	
-	user = {
+	if user_info:
+	    user = {
 		"UserID":user_info[1],
 		"Email":user_info[2],
 		"RoleID":user_info[5],
-	}
-        return user 
+	    }
+            return user 
+	return {}
 
     def inspect(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
@@ -92,7 +94,6 @@ class UserController(object):
         role_id=request.json.pop('role_id')
         project_id=request.json.pop('project_id')
         created=utils.human_readable_time(time.time()) 
-        print user_id
         self.db_api.add_user(
                 user_id = user_id,
                 user_email = email,
