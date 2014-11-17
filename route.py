@@ -193,6 +193,11 @@ class Router (object):
 
         self.mapper.connect('/users/{id}',
 				controller=self.user_controller,
+				action='show',
+				conditions={'method':['GET']},
+		)
+        self.mapper.connect('/users/{id}',
+				controller=self.user_controller,
 				action='delete',
 				conditions={'method':['DELETE']},
 		)

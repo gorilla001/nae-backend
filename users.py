@@ -62,19 +62,20 @@ class UserController(object):
                 'Created':item[6],
                 }
             result_json.append(user)
-        #result=self.image_api.get_images()
-        #if result.status_code == 200:
-        #    result_json=result.json()
         return result_json
+
     def show(self,request):
-        result_json={}
-        image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result = self.image_api.get_image_by_id(image_id)
-        if result.status_code == 200:
-            for res in result.json():
-                if image_id in res['Id']:
-                    result_json = res   
-        return result_json
+        user_id=request.environ['wsgiorg.routing_args'][1]['id']
+	proj_id=request.GET.get('project_id')
+	_user_info=self.db_api.get_user(user_id,project_id)	
+	user_info=_user_info.fetchone()	
+	user = {
+		"UserID":user_info[1],
+		"Email":user_info[2],
+		"RoleID":user_info[5],
+	}
+        return user 
+
     def inspect(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
         result = self.image_api.inspect_image(image_id)
@@ -106,6 +107,3 @@ class UserController(object):
         self.db_api.delete_user(user_id)
         result='{"status":200}'
         return result
-
-def create_resource():
-    return ImageController()
