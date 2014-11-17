@@ -59,9 +59,9 @@ class DBAPI():
 
     def get_images(self,project_id=None):
         table=Table('images',self.metadata,autoload=True) 
-        s=table.select()
+        s=table.select().order_by(table.c.ID)
         if project_id is not None:
-            s=table.select(table.c.ProjectID == project_id)
+            s=table.select(table.c.ProjectID == project_id).order_by(table.c.ID)
         r=s.execute() 
         return r
     def get_image(self,image_id):
