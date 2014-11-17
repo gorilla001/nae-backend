@@ -67,7 +67,7 @@ class UserController(object):
     def show(self,request):
         user_id=request.environ['wsgiorg.routing_args'][1]['id']
 	proj_id=request.GET.get('project_id')
-	_user_info=self.db_api.get_user(user_id,project_id)	
+	_user_info=self.db_api.get_user(user_id,proj_id)	
 	user_info=_user_info.fetchone()	
 	user = {
 		"UserID":user_info[1],
