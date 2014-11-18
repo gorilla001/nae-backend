@@ -45,7 +45,7 @@ class Launcher(object):
 class ProcessLauncher(object):
     def __init__(self,wait_interval=0.01):
         self.children = {}
-        #rfd,self.writepipe = os.pipe()
+        rfd,self.writepipe = os.pipe()
         self.running = True
 	self.wait_interval=wait_interval
 
@@ -63,7 +63,7 @@ class ProcessLauncher(object):
     def _child_process(self,server):
         eventlet.hubs.use_hub()
 		
-        #os.close(self.writepipe)
+        os.close(self.writepipe)
 
 	signal.signal(signal.SIGTERM,signal.SIG_DFL)
 	signal.signal(signal.SIGINT,signal.SIG_IGN)
