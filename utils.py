@@ -163,7 +163,7 @@ class MercurialControl(object):
         repo=mercurial.hg.repository(self._ui,local_repo_path)
 	try:
             mercurial.commands.update(self._ui,repo,rev=branch,clean=True)
-        except RepoError as err:
+        except Exception as err:
 	    LOG.error(err)
 
 
