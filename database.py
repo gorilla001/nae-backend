@@ -405,6 +405,7 @@ if __name__ == '__main__':
     )
     base_image = Table('baseimages',metadata,
 	    Column('Id',Integer,primary_key=True,autoincrement=True),
+	    Column('ID',String(50)),
 	    Column('Name',String(150)),
 	    Column('Tag',String(150)),
 	    Column('Size',String(150)),
