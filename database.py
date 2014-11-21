@@ -406,6 +406,11 @@ if __name__ == '__main__':
     base_image = Table('baseimages',metadata,
 	    Column('Id',Integer,primary_key=True,autoincrement=True),
 	    Column('Name',String(150)),
+	    Column('Tag',String(150)),
+	    Column('Size',String(150)),
+	    Column('Desc',String(150)),
+	    Column('Created',String(150)),
+	    Column('Owner',String(150)),
     )
 
     #sftp_table = Table('sftp',metadata,
