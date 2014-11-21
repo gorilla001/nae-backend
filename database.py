@@ -324,6 +324,11 @@ class DBAPI():
         s=table.select(table.c.ContainerID == container_id)
         return s.execute()
 
+    def get_baseimages(self):
+        table=Table('baseimages',self.metadata,autoload=True)
+        s=table.select()
+        return s.execute()
+	
 
 
 
@@ -398,6 +403,10 @@ if __name__ == '__main__':
             Column('ProjectID',Integer),
             Column('Created',String(150)),
     )
+    base_image = Table('baseimages',metadata,
+	    Column('Id',Integer,primary_key=True,autoincrement=True),
+	    Column('Name',String(150)),
+    )
 
     #sftp_table = Table('sftp',metadata,
     #        Column('Id',Integer,primary_key=True,autoincrement=True),
@@ -423,6 +432,7 @@ if __name__ == '__main__':
     users_table.create(checkfirst=True)
     containers_table.create(checkfirst=True)
     hgs_table.create(checkfirst=True)
+    base_image.create(checkfirst=True)
     #sftp_table.create(checkfirst=True)
     network_table.create(checkfirst=True)
 
