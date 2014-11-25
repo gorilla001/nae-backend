@@ -162,6 +162,7 @@ class ProjectController(object):
         project_admin=request.json.pop('project_admin')
         project_desc=request.json.pop('project_desc')
         admin_email=request.json.pop('admin_email')
+        base_image=request.json.pop('base_image')
         created_time = utils.human_readable_time(time.time())
 
         project_id=self.db_api.add_project(
@@ -184,6 +185,19 @@ class ProjectController(object):
             role_id = 1, # 0 for admin
             created = created_time,
         )
+
+	name,_,tag=base_image.partition(':')
+	self.db_api.add_image(
+                                  name=name,
+				  tag=tag,
+                                  desc='base image',
+                                  project_id=project_id,
+                                  repo = '',
+				  branch = '', 
+                                  created= created_time,
+                                  owner='',
+                                  status = 'ok'
+	)
         #self.db_api.add_user(
         #        )
         result_json={"status":200}
