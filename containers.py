@@ -172,6 +172,7 @@ class ContainerAPI():
                             pri_host = private_host,
                             pri_port = private_port,
                         )
+	    os.system("/etc/init.d/iptables save")
             #self.db_api.update_container_network(
         	#	id = self._id,
         	#	network = str(network_config),
