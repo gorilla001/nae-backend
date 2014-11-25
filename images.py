@@ -355,17 +355,16 @@ class ImageController(object):
 	return ctn_list
 
     def base(self,request):
-        result_json=[]
+        baseimage=[]
         rs = self.db_api.get_baseimages()
         for item in rs.fetchall():
             image={
                 'ID':item[0],
-                'ImageId':item[1],
-                'ImageName':item[2],
-		'ImageTag':item[3],
+                'ImageName':item[1],
+		'ImageTag':item[2],
                 }
-            result_json.append(image)
-        return result_json
+            baseimage.append(image)
+        return baseimage 
 
 	
 
