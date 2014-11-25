@@ -8,8 +8,9 @@ from utils import MercurialControl
 import os
 import utils
 import time
+import logging
 
-
+LOG=logging.getLogger('eventlet.wsgi.server')
 
 
 class ProjectAPI():
@@ -196,12 +197,10 @@ class ProjectController(object):
 				  branch = '', 
                                   created= created_time,
                                   owner='',
-                                  status = 'ok'
-	)
-        #self.db_api.add_user(
-        #        )
-        result_json={"status":200}
-        return result_json
+                                  status = 'ok')
+	LOG.debug('create project succeed')
+
+        return {"status":200}
     def delete(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
         self.db_api.delete_project(project_id)
