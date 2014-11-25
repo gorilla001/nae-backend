@@ -78,7 +78,12 @@ class Router (object):
         		action='create',
         		conditions={'method':['POST']},
         )
-        
+
+        self.mapper.connect('/images/base',
+        		controller=self.image_controller,
+        		action='base',
+        		conditions={'method':['GET']},
+        )
         self.mapper.connect('/images',
         		controller=self.image_controller,
         		action='index',
@@ -122,11 +127,7 @@ class Router (object):
         		conditions={'method':['GET']},
         )
 
-	self.mapper.connect('/images/base',
-        		controller=self.image_controller,
-        		action='base',
-        		conditions={'method':['GET']},
-        )
+	
 
         #file method
         self.mapper.connect('/files',
