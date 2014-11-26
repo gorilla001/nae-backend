@@ -328,6 +328,11 @@ class DBAPI():
         table=Table('baseimages',self.metadata,autoload=True)
         s=table.select()
         return s.execute()
+    def get_baseimage(self,img_id):
+        table=Table('baseimages',self.metadata,autoload=True)
+        s=table.select(table.c.Id == img_id)
+        return s.execute()
+	
 	
 
 

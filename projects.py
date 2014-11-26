@@ -187,17 +187,22 @@ class ProjectController(object):
             created = created_time,
         )
 
-	name,_,tag=base_image.partition(':')
-	self.db_api.add_image(
-                                  name=name,
-				  tag=tag,
-                                  desc='base image',
-                                  project_id=project_id,
-                                  repo = '',
-				  branch = '', 
-                                  created= created_time,
-                                  owner='',
-                                  status = 'ok')
+	img_info=self.db_api.get_baseimage(base_image)
+	ID=img_info[1]
+	name=img_info[2]
+	tag=img_info[3]
+	size=img_info[4]
+	id=self.db_api.add_image(
+            name=name,
+	    tag=tag,
+            desc='base image',
+            project_id=project_id,
+            repo = '',
+	    branch = '', 
+            created= created_time,
+            owner='',
+            status = 'ok')
+	self.db_api.update_image(id,ID,size,'ok')
 	LOG.debug('create project succeed')
 
         return {"status":200}
