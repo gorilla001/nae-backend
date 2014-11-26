@@ -187,7 +187,7 @@ class ProjectController(object):
             created = created_time,
         )
 
-	img_info=self.db_api.get_baseimage(base_image)
+	img_info=self.db_api.get_baseimage(base_image).fetchone()
 	ID=img_info[1]
 	name=img_info[2]
 	tag=img_info[3]
