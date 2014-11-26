@@ -360,8 +360,8 @@ class ImageController(object):
         for item in rs.fetchall():
             image={
                 'ID':item[0],
-                'ImageName':item[1],
-		'ImageTag':item[2],
+                'ImageName':item[2],
+		'ImageTag':item[3],
                 }
             baseimage.append(image)
         return baseimage 
