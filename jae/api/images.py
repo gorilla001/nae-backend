@@ -196,7 +196,7 @@ class Controller(Base):
     def commit(self,request):
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')
-	ctn = request.GET.pop('ctn')
+	#ctn = request.GET.pop('ctn')
 	id = request.GET.pop('id')
  	project_id = request.GET.pop('proj_id')
 
@@ -215,7 +215,7 @@ class Controller(Base):
         try:
             data = {"repository"     : repo,
                     "tag"            : tag,
-                    "container_name" : ctn,
+                    #"container_name" : ctn,
                     "id"             : id,
                     "project_id"     : project_id}
             response=self.http.post("%s/commit" % image_service_endpoint,

@@ -138,7 +138,8 @@ class Manager(base.Base):
 	"""
         self.driver.destroy(name)
 
-    def commit(self,image_id,repository,tag,container_name):
+    #def commit(self,image_id,repository,tag,container_name):
+    def commit(self,image_id,repository,tag):
         """commit image for online edit.""" 
         LOG.info("COMMIT +job commit %s" % container_name)
         resp = self.driver.commit(container_name,repository,tag)
@@ -161,7 +162,7 @@ class Manager(base.Base):
                 else:
                     LOG.info("PUSH -job push %s = ERR" % tag)
                     self.db.update_image(id=image_id,status="error")
-            self.driver.destroy(container_name)
+            #self.driver.destroy(container_name)
                      
         if resp.status_code == 404:
             image_uuid = resp.json()['Id'] 

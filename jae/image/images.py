@@ -126,7 +126,7 @@ class Controller(base.Base):
         tag = body.get('tag')
         image_id = body.get('id')
         project_id = body.get('project_id') 
-        container_name = body.get('container_name')
+        #container_name = body.get('container_name')
 
         project = self.db.get_project(project_id)
         if not project:
@@ -149,8 +149,8 @@ class Controller(base.Base):
             eventlet.spawn_n(self._manager.commit,
                          new_image_id,
                          repository,
-                         tag,
-                         container_name)
+                         tag)
+                         #container_name)
         #NOTE(nmg):there may be a bug here.
         return ResponseObject({"id":new_image_id})
 
