@@ -58,6 +58,7 @@ class Controller(Base):
                     'name':item.name,
                     'repos': item.repos,
                     'branch': item.branch,
+                    'image_id': item.image_id,
 		    'network':item.fixed_ip,
                     'created':timeutils.isotime(item.created),
                     'status':item.status,
