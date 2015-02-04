@@ -1,0 +1,13 @@
+eventlet
+PasteDeploy
+requests
+paste
+webob
+sqlalchemy
+routes
+humanize
+netifaces
+repoze.lru
+mercurial
+netaddr
+jsonschema
