@@ -251,22 +251,30 @@ class Manager(base.Base):
 	query = self.db.get_container(id)
 	uuid = query.uuid
 	network = query.fixed_ip
-	image_id = query.image_id
-	image = self.db.get_image(image_id)
-	resp = self.driver.inspect_image(image.uuid)
-        port=resp.json()['Config']['ExposedPorts']
-	PB={}
-        EP=port
-        for key in EP.keys():
-            nt_list=[]
-            nt = { "HostIp":network,
-                   "HostPort":key.rpartition("/")[0]}
-            nt_list.append(nt)
-            PB[key] = nt_list
-	kwargs={"Cmd":["/usr/bin/supervisord"],
-		"PortBindings":PB}
+	#image_id = query.image_id
+	#image = self.db.get_image(image_id)
+	#resp = self.driver.inspect_image(image.uuid)
+        #port=resp.json()['Config']['ExposedPorts']
+	#PB={}
+        #EP=port
+        #for key in EP.keys():
+        #    nt_list=[]
+        #    nt = { "HostIp":network,
+        #           "HostPort":key.rpartition("/")[0]}
+        #    nt_list.append(nt)
+        #    PB[key] = nt_list
+	#kwargs={"Cmd":["/usr/bin/supervisord"],
+	#	"PortBindings":PB}
+        kwargs={"Cmd":["/usr/bin/supervisord"]}
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
+            """If container start succeed, inject fixed_ip
+               to container."""
+            try:
+                nwutils.inject_fixed_ip(uuid,network)
+            except:
+                raise
+            """Update container status to running."""
 	    self.db.update_container(id,status="running")
 	LOG.info("START -job start %s" % id)
 

@@ -128,7 +128,7 @@ def inject_fixed_ip(uuid,addr):
         LOG.info("UP internal veth eth1")
 	subprocess.check_call("sudo nsenter -t %s -n ip link set eth1 up" % pid.strip(),shell=True)
     except subprocess.CalledProcessError:
-	raise
+        raise
     
     """Set external veth to UP"""
     try:

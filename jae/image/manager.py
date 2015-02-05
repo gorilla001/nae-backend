@@ -138,11 +138,10 @@ class Manager(base.Base):
 	"""
         self.driver.destroy(name)
 
-    #def commit(self,image_id,repository,tag,container_name):
-    def commit(self,image_id,repository,tag):
+    def commit(self,image_id,repository,tag,container_id):
         """commit image for online edit.""" 
-        LOG.info("COMMIT +job commit %s" % container_name)
-        resp = self.driver.commit(container_name,repository,tag)
+        LOG.info("COMMIT +job commit %s" % container_id)
+        resp = self.driver.commit(container_id,repository,tag)
         if resp.status_code == 201:
             """update image uuid."""
             image_uuid = resp.json()['Id'] 
@@ -158,7 +157,7 @@ class Manager(base.Base):
                 if push_status == 200:
                     LOG.info("PUSH -job push %s = OK" % tag)
                     self.db.update_image(id=image_id,status="ok")
-                    LOG.info("COMMIT -job commit %s = OK" % container_name)
+                    LOG.info("COMMIT -job commit %s = OK" % container_id)
                 else:
                     LOG.info("PUSH -job push %s = ERR" % tag)
                     self.db.update_image(id=image_id,status="error")
@@ -169,5 +168,5 @@ class Manager(base.Base):
             self.db.update_image(id=image_id,
                                   uuid=image_uuid,
                                   status="error")
-            LOG.info("COMMIT -job commit %s = ERR" % container_name)
+            LOG.info("COMMIT -job commit %s = ERR" % container_id)
         

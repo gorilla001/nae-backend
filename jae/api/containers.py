@@ -40,6 +40,7 @@ class Controller(Base):
             - name 
             - repos
             - branch
+            - image
             - network
             - created
             - status
@@ -63,6 +64,15 @@ class Controller(Base):
                     'created':timeutils.isotime(item.created),
                     'status':item.status,
                     }
+            container.setdefault("image","")
+            """Get the image name and tag by the `image_id`.
+               if the image not found, use the default."""
+            image_id = item.image_id
+            image_instance = self.db.get_image(image_id)
+            if image_instance:
+                image = "%s:%s" % (image_instance.name,image_instance.tag)
+                container.update({"image":image})
+
             containers.append(container)
         return ResponseObject(containers)
 
