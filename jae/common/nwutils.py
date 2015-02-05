@@ -153,3 +153,10 @@ def inject_fixed_ip(uuid,addr):
         subprocess.check_call("sudo nsenter -t %s -n ip route add default via %s dev eth1" %(pid.strip(),DEFAULT_GATEWAY),shell=True) 
     except subprocess.CalledProcessError:
 	raise
+
+    """Flush gateway's arp caching"""
+    try:
+        LOG.info("Flush gateway's arp caching")
+        subprocess.check_call("sudo nsenter -t %s -n -- arping -c 1 %s %s" % (pid.strip(),addr,DEFAULT_GATEWAY),shell=True)
+    except subprocess.CalledProcessError:
+        raise
