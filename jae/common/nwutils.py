@@ -160,3 +160,10 @@ def inject_fixed_ip(uuid,addr):
     #    subprocess.check_call("sudo nsenter -t %s -n -- arping -c 1 -s %s %s" % (pid.strip(),addr,DEFAULT_GATEWAY),shell=True)
     #except subprocess.CalledProcessError:
     #    raise
+    """Ping gateway"""
+    try:
+        LOG.info("Flush gateway's arp caching")
+        subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(),DEFAULT_GATEWAY),shell=True)
+    except subprocess.CalledProcessError:
+        raise
+       
