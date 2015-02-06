@@ -28,19 +28,19 @@ class Manager(base.Base):
         """Create rpc producer and customers here."""
         return NotImplementedError()
     
-    def prepare_start(self,
-		      user,
-                      key,
-                      repos,
-                      branch):
-	"""pull or clone code from repos repos and update to branch branch."""
-        user_home=utils.make_user_home(user,key)
-        repo_name=os.path.basename(repos)
-        if utils.repo_exist(user_home,repo_name):
-            self.mercurial.pull(user,repos)
-        else:
-            self.mercurial.clone(user,repos)
-        self.mercurial.update(user,repos,branch)
+    #def prepare_start(self,
+    #    	      user,
+    #                  key,
+    #                  repos,
+    #                  branch):
+    #    """pull or clone code from repos repos and update to branch branch."""
+    #    user_home=utils.make_user_home(user,key)
+    #    repo_name=os.path.basename(repos)
+    #    if utils.repo_exist(user_home,repo_name):
+    #        self.mercurial.pull(user,repos)
+    #    else:
+    #        self.mercurial.clone(user,repos)
+    #    self.mercurial.update(user,repos,branch)
 
     def create(self,
                 id,
@@ -59,19 +59,20 @@ class Manager(base.Base):
 	    os.mkdir(user_home)
         if utils.repo_exist(user_id,repo_name):
 	    try:
-                self.mercurial.pull(user_id,repos)
+                self.mercurial.pull(user_home,repos)
 	    except:
                 LOG.error("pull %s failed!" % repos)
                 self.db.update_image(id,status="error")
                 raise
         else:
 	    try:
-                self.mercurial.clone(user_id,repos)
+                self.mercurial.clone(user_home,repos)
 	    except:
                 LOG.error("clone %s failed!" % repos)
                 self.db.update_image(id,status="error")
                 raise
-        self.mercurial.update(user_id,repos,branch)
+        self.mercurial.update(user_home,repos,branch)
+
         tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 
 	with open(tar_path,'rb') as data:
