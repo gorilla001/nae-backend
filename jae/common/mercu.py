@@ -71,6 +71,8 @@ class MercurialControl(object):
         repo=mercurial.hg.repository(self._ui,
                                      local_repo_path)
 	try:
+            if isinstance(repo,unicode):
+                LOG.info("repo is unicode")
             mercurial.commands.update(self._ui,
                                       repo,
                                       rev=branch,clean=True)
