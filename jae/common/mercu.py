@@ -73,7 +73,7 @@ class MercurialControl(object):
 	try:
             mercurial.commands.update(self._ui,
                                       repo,
-                                      rev=branch,clean=True,check=True)
+                                      rev=branch,clean=True)
         except:
             LOG.error('Could not update repo %s to branch %s' % (repo_path,branch))
 	    raise
