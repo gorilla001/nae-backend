@@ -106,7 +106,7 @@ def generate_docker_file():
     os.mkdir(temp_path)
     LOG.info("temp_path:%s" % temp_path)
     with open(os.path.join(temp_path,"Dockerfile"),'w') as docker_file:
-        docker_file.write("FROM centos:6.6\n")
+        docker_file.write("FROM centos:6.4\n")
         docker_file.write("EXPOSE 80 22\n")
     return temp_path
 

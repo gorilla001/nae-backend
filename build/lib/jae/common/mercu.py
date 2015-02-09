@@ -71,11 +71,12 @@ class MercurialControl(object):
         repo=mercurial.hg.repository(self._ui,
                                      local_repo_path)
 	try:
+            if isinstance(repo,unicode):
+                LOG.info("repo is unicode")
             mercurial.commands.update(self._ui,
                                       repo,
                                       rev=branch,clean=True)
-        except RepoError as err:
-            LOG.error('Could not update repo %s to branch %s' % (repo_path),branch)
-	    LOG.error(err)
+        except:
+            LOG.error('Could not update repo %s to branch %s' % (repo_path,branch))
 	    raise
 

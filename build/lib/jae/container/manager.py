@@ -149,6 +149,8 @@ class Manager(base.Base):
             1. Create code and logs directory for each container.
             2. Clone or Pull the specified code and update to the specified branch.
 	    """
+	    self.db.update_container(id,uuid=uuid,status="init")
+
             short_uuid = uuid[:12]
 
             root_path = utils.create_root_path(user_id,short_uuid)
