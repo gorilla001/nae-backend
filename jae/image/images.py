@@ -37,7 +37,7 @@ class Controller(base.Base):
 	
     def create(self,request,body):
         """create image."""
-        name       = body.get('name')
+        name       = body.get('name').lower()
         desc       = body.get('desc')
         project_id = body.get('project_id')
         repos      = body.get('repos')

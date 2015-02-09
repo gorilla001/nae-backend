@@ -75,7 +75,6 @@ class Manager(base.Base):
 
         tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 
-        name = name.lower()
 	with open(tar_path,'rb') as data:
 	    status=self.driver.build(name,data)
         if status == 404:
