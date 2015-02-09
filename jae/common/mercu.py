@@ -75,6 +75,6 @@ class MercurialControl(object):
                                       repo,
                                       rev=branch,clean=True)
         except:
-            LOG.error('Could not update repo %s to branch %s' % (repo_path),branch)
+            LOG.error('Could not update repo %s to branch %s' % (repo_path,branch))
 	    raise
 
