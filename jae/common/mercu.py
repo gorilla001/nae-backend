@@ -74,8 +74,7 @@ class MercurialControl(object):
             mercurial.commands.update(self._ui,
                                       repo,
                                       rev=branch,clean=True)
-        except RepoError as err:
+        except:
             LOG.error('Could not update repo %s to branch %s' % (repo_path),branch)
-	    LOG.error(err)
 	    raise
 
