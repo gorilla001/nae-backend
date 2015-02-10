@@ -198,7 +198,7 @@ class Manager(base.Base):
                    ip addr to container"""
 	        network = self.network.get_fixed_ip() 
                 try:
-                    nwutils.inject_fixed_ip(uuid,network) 
+                    nwutils.set_fixed_ip(uuid,network) 
                 except:
                     raise
                 """Update container's network"""
