@@ -197,10 +197,18 @@ class Manager(base.Base):
                 """If start container succeed, inject fixed
                    ip addr to container"""
 	        network = self.network.get_fixed_ip() 
+                
+                """
+                Add db entry immediately to prevent this fixed ip be used again.
+                """
+                network_id=self.db.add_network(dict(container_id=uuid,fixed_ip=network))
                 try:
-                    nwutils.inject_fixed_ip(uuid,network) 
+                    nwutils.set_fixed_ip(uuid,network) 
                 except:
-                    raise
+                    LOG.error("Set fixed ip %s to container % failed" % (network,uuid))
+                    """Cleanup db entry for ip reuse"""
+                    self.db.delete_network(network_id)
+
                 """Update container's network"""
 	        self.db.update_container(id,fixed_ip=network)
                 """Update container's status"""
