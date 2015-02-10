@@ -276,14 +276,15 @@ class Manager(base.Base):
 	query = self.db.get_container(id)
 	uuid = query.uuid
 	network = query.fixed_ip
-        kwargs={"Cmd":["/usr/bin/supervisord"]}
+        kwargs={"Cmd":["/opt/start.sh"]}
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
             """If container start succeed, inject fixed_ip
                to container."""
             try:
-                nwutils.inject_fixed_ip(uuid,network)
+                nwutils.set_fixed_ip(uuid,network)
             except:
+	        self.db.update_container(id,status="error")
                 raise
             """Update container status to running."""
 	    self.db.update_container(id,status="running")
