@@ -201,13 +201,14 @@ class Manager(base.Base):
                 """
                 Add db entry immediately to prevent this fixed ip be used again.
                 """
-                network_id=self.db.add_network(dict(container_id=uuid,fixed_ip=network))
+                self.db.add_network(dict(container_id=id,fixed_ip=network))
                 try:
                     nwutils.set_fixed_ip(uuid,network) 
                 except:
-                    LOG.error("Set fixed ip %s to container % failed" % (network,uuid))
+                    LOG.error("Set fixed ip %s to container %s failed" % (network,uuid))
                     """Cleanup db entry for ip reuse"""
-                    self.db.delete_network(network_id)
+                    self.db.delete_network(id)
+                    return 
 
                 """Update container's network"""
 	        self.db.update_container(id,fixed_ip=network)
@@ -229,6 +230,8 @@ class Manager(base.Base):
 
 	LOG.info("CREATE -job create %s = OK" % id)
     def delete(self,id):
+        """Delete container by `id`."""
+        ##FIXME(nmg):
 	LOG.info("DELETE +job delete %s" % id)
 	query = self.db.get_container(id)
 	if query.status == 'running':
@@ -239,6 +242,7 @@ class Manager(base.Base):
 		status = self.driver.delete(query.uuid)
 		if status in (204,404):
 		    self.db.delete_container(id)
+                    self.db.delete_network(id)
 	    if status == 500:
 		LOG.error("I donot known what to do")
 		return 
@@ -247,13 +251,16 @@ class Manager(base.Base):
 	    status = self.driver.delete(query.uuid)
 	    if status in (204,404):
 		self.db.delete_container(id)
+                self.db.delete_network(id)
 	elif query.status == "stoped":
 	    status = self.driver.delete(query.uuid)
 	    if status in (204,404):
 		self.db.delete_container(id)
+                self.db.delete_network(id)
 	else:
            self.db.update_container(id,status="deleting")
            self.db.delete_container(id)
+           self.db.delete_network(id)
         #try:
         #    nwutils.delete_virtual_iface(query.uuid[:8])
         #except:

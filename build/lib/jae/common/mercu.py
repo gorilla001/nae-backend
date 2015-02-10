@@ -4,6 +4,10 @@ import mercurial.hg
 import os
 from jae.common import log as logging
 from jae.common import cfg
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 CONF=cfg.CONF
 
@@ -71,8 +75,6 @@ class MercurialControl(object):
         repo=mercurial.hg.repository(self._ui,
                                      local_repo_path)
 	try:
-            if isinstance(repo,unicode):
-                LOG.info("repo is unicode")
             mercurial.commands.update(self._ui,
                                       repo,
                                       rev=branch,clean=True)

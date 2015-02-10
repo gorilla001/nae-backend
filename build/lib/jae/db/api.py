@@ -173,11 +173,11 @@ def get_network(id):
     return model_query(models.Network,
                        id=id).first() 
 
-def get_networks(container_id):
+def get_networks():
     return model_query(models.Network).all()
 
 def delete_network(id):
-    return model_query(models.Network,id=id).delete()
+    return model_query(models.Network,container_id=id).delete()
 
 
 ### host api ###
