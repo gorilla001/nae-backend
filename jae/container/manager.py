@@ -334,9 +334,3 @@ class Manager(base.Base):
                 self.db.update_container(id,status="refresh-failed")
                 raise
             LOG.info("REFRESH -job refresh %s = OK" % id)
-    def create_container_dir(self,user_id,uuid):
-        """This method created the container directory for each user
-           and each container.
-        """
-        dir = utils.create_container_dir(user_id,uuid)
-        return dir
