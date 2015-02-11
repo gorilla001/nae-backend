@@ -270,7 +270,11 @@ class Manager(base.Base):
 	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,id):
-	"""start container"""
+	"""
+        Start container by id.
+
+        :params id: container id
+        """
 	LOG.info("START +job start %s" % id)
 	self.db.update_container(id,status="starting") 
 	query = self.db.get_container(id)
@@ -292,7 +296,8 @@ class Manager(base.Base):
 
     def stop(self,id):
 	"""
-	stop container for a given id.
+	Stop container by id.
+        :params id: container id
 	"""
 	LOG.info("STOP +job stop %s" % id)
 	
@@ -308,13 +313,15 @@ class Manager(base.Base):
 
     def destroy(self,name):
 	"""
-	destroy a temporary container by a given name.
+	Destroy a temporary container by a given name.
+        :params name: container name
 	"""
 	self.driver.stop(name)
 	self.driver.delete(name)
 
     def refresh(self,id):
-        """refresh code in container."""
+        """Refresh code in container."""
+        :params id: container id
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)
         if query:
