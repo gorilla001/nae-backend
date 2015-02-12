@@ -1,5 +1,6 @@
 import webob.exc
 import os 
+import traceback
 
 from jae.common import cfg
 from jae.common import log as logging
@@ -36,33 +37,6 @@ class Manager(base.Base):
         """
         return NotImplementedError()
     
-    def _prepare_start(self,
-		      user,
-                      uuid,
-                      repos,
-                      branch):
-        """
-        This method contains the following two steps:
-        1. Create container directory for each user if not exists.
-        2. Pull or Clone the codes and update to `branch`.
-        """
-        user_home=utils.make_user_home(user,uuid)
-        repo_name=os.path.basename(repos)
-        if utils.repo_exist(user_home,repo_name):
-            try:
-                self.mercurial.pull(user,repos)
-            except:
-                raise
-        else:
-            try:
-                self.mercurial.clone(user,repos)
-            except:
-                raise
-        try:
-            self.mercurial.update(user,repos,branch)
-        except:
-            raise
-
     def create(self,
                 id,
 		name,
@@ -161,6 +135,7 @@ class Manager(base.Base):
                 try:
                     self.mercurial.pull(root_path,repos)
                 except:
+                    LOG.error("Pull code from %s failed" % repos)
                     raise
             else:
                 try:
