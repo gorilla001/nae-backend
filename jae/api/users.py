@@ -19,8 +19,9 @@ class Controller(base.Base):
 	super(Controller,self).__init__()
 
     def index(self,request):
-        """Get users by `project_id`."""
-        
+        """
+        Get users by `project_id`.
+        """
         users=[]
         project_id = request.GET.get('project_id')
         project = self.db.get_project(project_id)
@@ -38,7 +39,9 @@ class Controller(base.Base):
         return ResponseObject(users)
 
     def show(self,request,id):
-        """Get user detail according `id`"""
+        """
+        Get user detail according `id`
+        """
 	query = self.db.get_user(id)	
         if query is None:
             LOG.error("no such user %s" % id)
@@ -63,7 +66,7 @@ class Controller(base.Base):
 
     def create(self,request,body):
         """
-        add user db entry for specified project.
+        Add user db entry for specified project.
        
         NOTE(nmg):`project` isa `project instance` which
                    get from db. you must insert a `project
@@ -102,11 +105,11 @@ class Controller(base.Base):
             LOG.error(ex)
             return webob.exc.HTTPBadRequest()
 
-        name=body.get("name","")
-        email=body.get("email","")
-        role_id=body.get("role_id","")
-        project_id=body.get("project_id","")
-	project = self.db.get_project(project_id) 
+        name       = body.pop("name","")
+        email      = body.pop("email","")
+        role_id    = body.pop("role_id","")
+        project_id = body.pop("project_id","")
+	project    = self.db.get_project(project_id) 
         
         try:
             user_ref=self.db.add_user(dict(id = uuid.uuid4().hex,
@@ -120,10 +123,12 @@ class Controller(base.Base):
         
         return webob.exc.HTTPCreated() 
 
-    
     def delete(self,request,id):
-        """delete user by `id`"""
+        """
+        Delete user by `id`
+        """
         try:
+            LOG.info("Delete user %s" % id)
             self.db.delete_user(id)
         except:
             raise

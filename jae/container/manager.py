@@ -136,17 +136,21 @@ class Manager(base.Base):
                     self.mercurial.pull(root_path,repos)
                 except:
                     LOG.error("Pull code from %s failed" % repos)
-                    raise
+                    LOG.error(traceback.format_exc())
+                    return
             else:
                 try:
                     self.mercurial.clone(root_path,repos)
                 except:
-                    raise
+                    LOG.error("Clone code from %s failed" % repos)
+                    LOG.error(traceback.format_exc())
+                    return
             try:
                 self.mercurial.update(root_path,repos,branch)
             except:
-                raise
-    
+                LOG.error("Update repos %s to branch %s failed" % (repos,branch))
+                LOG.error(traceback.format_exc())
+                return 
 
             www_path = ["/home/www","/home/jm/www"]
             log_pathes = ["/home/jm/logs","/home/logs"]
@@ -295,8 +299,9 @@ class Manager(base.Base):
 	self.driver.delete(name)
 
     def refresh(self,id):
-        """Refresh code in container."""
+        """Refresh code in container
         :params id: container id
+        """
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)
         if query:

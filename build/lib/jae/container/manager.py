@@ -1,5 +1,6 @@
 import webob.exc
 import os 
+import traceback
 
 from jae.common import cfg
 from jae.common import log as logging
@@ -36,33 +37,6 @@ class Manager(base.Base):
         """
         return NotImplementedError()
     
-    def _prepare_start(self,
-		      user,
-                      uuid,
-                      repos,
-                      branch):
-        """
-        This method contains the following two steps:
-        1. Create container directory for each user if not exists.
-        2. Pull or Clone the codes and update to `branch`.
-        """
-        user_home=utils.make_user_home(user,uuid)
-        repo_name=os.path.basename(repos)
-        if utils.repo_exist(user_home,repo_name):
-            try:
-                self.mercurial.pull(user,repos)
-            except:
-                raise
-        else:
-            try:
-                self.mercurial.clone(user,repos)
-            except:
-                raise
-        try:
-            self.mercurial.update(user,repos,branch)
-        except:
-            raise
-
     def create(self,
                 id,
 		name,
@@ -161,17 +135,22 @@ class Manager(base.Base):
                 try:
                     self.mercurial.pull(root_path,repos)
                 except:
-                    raise
+                    LOG.error("Pull code from %s failed" % repos)
+                    LOG.error(traceback.format_exc())
+                    return
             else:
                 try:
                     self.mercurial.clone(root_path,repos)
                 except:
-                    raise
+                    LOG.error("Clone code from %s failed" % repos)
+                    LOG.error(traceback.format_exc())
+                    return
             try:
                 self.mercurial.update(root_path,repos,branch)
             except:
-                raise
-    
+                LOG.error("Update repos %s to branch %s failed" % (repos,branch))
+                LOG.error(traceback.format_exc())
+                return 
 
             www_path = ["/home/www","/home/jm/www"]
             log_pathes = ["/home/jm/logs","/home/logs"]
@@ -270,7 +249,11 @@ class Manager(base.Base):
 	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,id):
-	"""start container"""
+	"""
+        Start container by id.
+
+        :params id: container id
+        """
 	LOG.info("START +job start %s" % id)
 	self.db.update_container(id,status="starting") 
 	query = self.db.get_container(id)
@@ -292,7 +275,8 @@ class Manager(base.Base):
 
     def stop(self,id):
 	"""
-	stop container for a given id.
+	Stop container by id.
+        :params id: container id
 	"""
 	LOG.info("STOP +job stop %s" % id)
 	
@@ -308,13 +292,16 @@ class Manager(base.Base):
 
     def destroy(self,name):
 	"""
-	destroy a temporary container by a given name.
+	Destroy a temporary container by a given name.
+        :params name: container name
 	"""
 	self.driver.stop(name)
 	self.driver.delete(name)
 
     def refresh(self,id):
-        """refresh code in container."""
+        """Refresh code in container
+        :params id: container id
+        """
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)
         if query:
@@ -334,9 +321,3 @@ class Manager(base.Base):
                 self.db.update_container(id,status="refresh-failed")
                 raise
             LOG.info("REFRESH -job refresh %s = OK" % id)
-    def create_container_dir(self,user_id,uuid):
-        """This method created the container directory for each user
-           and each container.
-        """
-        dir = utils.create_container_dir(user_id,uuid)
-        return dir
