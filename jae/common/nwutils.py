@@ -106,29 +106,33 @@ def set_fixed_ip(uuid,addr):
         LOG.info("Attach internal %s to container" % veth_int)
 	subprocess.check_call("sudo ip link set netns %s dev %s" % (pid.strip(),veth_int),shell=True)
 
-        """Rename internal veth web-int to eth1"""
-        LOG.info("Rename internal veth %s to eth1" % veth_int)
-	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth1" % (pid.strip(),veth_int),shell=True)
+        #"""Rename original interface `eth0` to `eth1`"""
+        #LOG.info("Rename original eth0 to eth1")
+        #subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 name eth1" % pid.strip(),shell=True)
+
+        """Rename internal veth web-int to eth0"""
+        LOG.info("Rename internal veth %s to eth0" % veth_int)
+	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(),veth_int),shell=True)
 
         """Set internal veth to UP"""
-        LOG.info("UP internal veth eth1")
-	subprocess.check_call("sudo nsenter -t %s -n ip link set eth1 up" % pid.strip(),shell=True)
+        LOG.info("UP internal veth eth0")
+	subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 up" % pid.strip(),shell=True)
 
         """Set external veth to UP"""
         LOG.info("UP external %s" % veth_ext)
 	subprocess.check_call("sudo ip link set %s up" % veth_ext,shell=True)
 
-        """Set fixed ip to internal veth `eth1`"""
+        """Set fixed ip to internal veth `eth0`"""
         IP_ADDR="%s/%s" % (addr,DEFAULT_NET_MASK)
 
-        LOG.info("Attach fixed IP to internal veth eth1")
-	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth1" % (pid.strip(),IP_ADDR),shell=True)
+        LOG.info("Attach fixed IP to internal veth eth0")
+	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth0" % (pid.strip(),IP_ADDR),shell=True)
 
         """Set default gateway to br0's gateway"""
         DEFAULT_GATEWAY=get_default_gateway()    
         LOG.info("Set default gateway to %s" % DEFAULT_GATEWAY)
-        subprocess.check_call("sudo nsenter -t %s -n ip route del default" % pid.strip(),shell=True)
-        subprocess.check_call("sudo nsenter -t %s -n ip route add default via %s dev eth1" %(pid.strip(),DEFAULT_GATEWAY),shell=True) 
+        #subprocess.check_call("sudo nsenter -t %s -n ip route del default" % pid.strip(),shell=True)
+        subprocess.check_call("sudo nsenter -t %s -n ip route add default via %s dev eth0" %(pid.strip(),DEFAULT_GATEWAY),shell=True) 
 
         #"""Flush gateway's arp caching"""
         #LOG.info("Flush gateway's arp caching")

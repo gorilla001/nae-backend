@@ -100,7 +100,7 @@ class Manager(base.Base):
 	                              "APP_TYPE=%s" % app_type,
 	                              "APP_ENV=%s" % app_env,
                                       "SSH_KEY=%s" % ssh_key],
-            	  'Cmd'            : ["/opt/start.sh"], 
+            	  'Cmd'            : ["/bin/init"], 
                   'Dns'            : None,
 	          'Image'          : image_uuid,
                   'Volumes'        : {},
@@ -166,6 +166,7 @@ class Manager(base.Base):
                     [
                       CONF.dns
                     ],
+                "NetworkMode": "none",
             }
 
 	    """
@@ -259,7 +260,9 @@ class Manager(base.Base):
 	query = self.db.get_container(id)
 	uuid = query.uuid
 	network = query.fixed_ip
-        kwargs={"Cmd":["/opt/start.sh"]}
+        kwargs={"Cmd":["/bin/init"],
+                "NetworkMode": "none",
+        }
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
             """If container start succeed, inject fixed_ip

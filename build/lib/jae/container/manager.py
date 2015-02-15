@@ -166,6 +166,7 @@ class Manager(base.Base):
                     [
                       CONF.dns
                     ],
+                "NetworkMode": "none",
             }
 
 	    """
@@ -260,6 +261,8 @@ class Manager(base.Base):
 	uuid = query.uuid
 	network = query.fixed_ip
         kwargs={"Cmd":["/opt/start.sh"]}
+        #        "NetworkMode": "none",
+        #}
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
             """If container start succeed, inject fixed_ip
