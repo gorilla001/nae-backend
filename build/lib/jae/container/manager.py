@@ -264,7 +264,7 @@ class Manager(base.Base):
             """If container start succeed, inject fixed_ip
                to container."""
             try:
-                nwutils.set_fixed_ip(uuid,network)
+                nwutils.set_fixed_ip_again(uuid,network)
             except:
 	        self.db.update_container(id,status="error")
                 raise
@@ -285,6 +285,7 @@ class Manager(base.Base):
 	self.db.update_container(id,status="stoping") 
 	status = self.driver.stop(query.uuid)
 	if status == 204:
+            nwutils.del_ext_veth(query.uuid)
 	    self.db.update_container(id,status="stoped")
     
 	LOG.info("STOP -job stop %s" % id)
