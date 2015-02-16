@@ -96,11 +96,12 @@ class Manager(base.Base):
                   'OpenStdin'      : True,
                   'StdinOnce'      : False,
 		  'Env'            : ["REPO_PATH=%s" % repos,
-			              "BRANCH=%s" % branch,
-	                              "APP_TYPE=%s" % app_type,
-	                              "APP_ENV=%s" % app_env,
-                                      "SSH_KEY=%s" % ssh_key],
-            	  'Cmd'            : ["/opt/start.sh"], 
+			              "BRANCH=%s"    % branch,
+	                              "APP_TYPE=%s"  % app_type,
+	                              "APP_ENV=%s"   % app_env,
+                                      "SSH_KEY=%s"   % ssh_key,
+                                      "APP_NAME=%s"  % repos.split("/")[-1]],
+            	  'Cmd'            : [CONF.init_script], 
                   'Dns'            : None,
 	          'Image'          : image_uuid,
                   'Volumes'        : {},
@@ -162,10 +163,6 @@ class Manager(base.Base):
                       '%s:%s' % (log_path,log_pathes[0]),
                       '%s:%s' % (log_path,log_pathes[1]),
                      ],
-                'Dns':
-                    [
-                      CONF.dns
-                    ],
                 "NetworkMode": "none",
             }
 
@@ -260,9 +257,8 @@ class Manager(base.Base):
 	query = self.db.get_container(id)
 	uuid = query.uuid
 	network = query.fixed_ip
-        kwargs={"Cmd":["/opt/start.sh"]}
-        #        "NetworkMode": "none",
-        #}
+        kwargs={"Cmd":[CONF.init_script],
+                "NetworkMode": "none"}
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
             """If container start succeed, inject fixed_ip

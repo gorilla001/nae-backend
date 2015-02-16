@@ -141,5 +141,10 @@ def set_fixed_ip(uuid,addr):
         """Ping gateway"""
         LOG.info("Flush gateway's arp caching")
         subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(),DEFAULT_GATEWAY),shell=True)
+
+        """Startup Host Init"""
+        LOG.info("Init host")
+        subprocess.check_call("sudo nsenter -t %s --mount -n /usr/local/bin/host.init" % pid.strip(),shell=True)
+        
     except subprocess.CalledProcessError:
 	raise
