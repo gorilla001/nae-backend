@@ -83,8 +83,14 @@ class Manager(base.Base):
 
         """
         """
+	fixed_ip = self.network.get_fixed_ip() 
+        project = repos.split("/")[-1]
+        ip_list = fixed_ip.split(".")
+        project_template = "%s%s%s" % (project,ip_list[2],ip_list[3])
+        hostname = CONF.hostname_template % (project_template,app_env)
+
         port=resp.json()['Config']['ExposedPorts']
-	kwargs = {'Hostname'       : '',
+	kwargs = {'Hostname'       : hostname.lower(),
                   'User'           : '',
                   'Memory'         : '',
                   'MemorySwap'     : '',
@@ -102,7 +108,7 @@ class Manager(base.Base):
                                       "SSH_KEY=%s"   % ssh_key,
                                       "APP_NAME=%s"  % repos.split("/")[-1]],
             	  'Cmd'            : [CONF.init_script], 
-                  'Dns'            : None,
+                  'Dns'            : CONF.dns.split(","), 
 	          'Image'          : image_uuid,
                   'Volumes'        : {},
                   'VolumesFrom'    : '',
@@ -163,6 +169,8 @@ class Manager(base.Base):
                       '%s:%s' % (log_path,log_pathes[0]),
                       '%s:%s' % (log_path,log_pathes[1]),
                      ],
+                'Dns' : CONF.dns.split(","), 
+                "DnsSearch"  : CONF.domainname,
                 "NetworkMode": "none",
             }
 
@@ -173,7 +181,8 @@ class Manager(base.Base):
 	    if status == 204:
                 """If start container succeed, inject fixed
                    ip addr to container"""
-	        network = self.network.get_fixed_ip() 
+	        #network = self.network.get_fixed_ip() 
+                network = fixed_ip
                 
                 """
                 Add db entry immediately to prevent this fixed ip be used again.
