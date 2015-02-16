@@ -105,8 +105,9 @@ def generate_docker_file():
     temp_path = "/tmp/%s" % _str
     os.mkdir(temp_path)
     LOG.info("temp_path:%s" % temp_path)
+    IMAGE_REGISTRY=CONF.image_registry_endpoint
     with open(os.path.join(temp_path,"Dockerfile"),'w') as docker_file:
-        docker_file.write("FROM centos:6.4\n")
+        docker_file.write("FROM %s/%s:%s\n" % (IMAGE_REGISTRY,"centos","6.4"))
         docker_file.write("EXPOSE 80 22\n")
     return temp_path
 
