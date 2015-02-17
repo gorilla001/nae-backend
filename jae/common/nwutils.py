@@ -145,81 +145,95 @@ def set_fixed_ip(uuid,addr):
         LOG.info("Flush gateway's arp caching")
         subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(),DEFAULT_GATEWAY),shell=True)
 
-        """Startup Host Init"""
-        LOG.info("Init host")
-        subprocess.check_call("sudo nsenter -t %s --mount -n /usr/local/bin/host.init" % pid.strip(),shell=True)
-        
     except subprocess.CalledProcessError:
 	raise
 
-def del_ext_veth(uuid):
-    if len(uuid) > 8:
-        uuid = uuid[:8]
-
-    uuid_reverse = uuid[::-1]
-    veth_int = "%s%s" % ("veth",uuid_reverse)
-    veth_ext = "%s%s" % ("veth",uuid) 
-
+def host_init(uuid):
     try:
-        LOG.info("Delete ext veth:%s" % veth_ext)
-        subprocess.check_call("sudo ip link del %s type veth" % veth_ext,shell=True) 
-    except subprocess.CalledProcessError:
-	raise
-
-def set_fixed_ip_again(uuid,addr):
-    if len(uuid) > 8:
-	uuid = uuid[:8]
-
-    uuid_reverse = uuid[::-1]
-    veth_int = "%s%s" % ("veth",uuid_reverse)
-    veth_ext = "%s%s" % ("veth",uuid) 
-
-    try:
-        """First create veth pair: web-int and vethuuid"""
-        LOG.info("Create veth pair: %s and %s" % (veth_int,veth_ext))
-        subprocess.check_call("sudo ip link add %s type veth peer name %s" % (veth_int,veth_ext),shell=True) 
-
-        """Second add external veth to bridge `br0`""" 
-        LOG.info("Attach external veth %s to bridge `br0`" % veth_ext)
-        subprocess.check_call("sudo brctl addif br0 %s" % veth_ext,shell=True)
-
         """Get container's pid namespace"""
         LOG.info("Get container's namespace pid")
         pid=subprocess.check_output("sudo docker inspect --format '{{.State.Pid}}' %s" % uuid,shell=True) 
 	LOG.info("Pid is %s" % pid.strip())
 
-        """Add internal veth web-int to container"""
-        LOG.info("Attach internal %s to container" % veth_int)
-	subprocess.check_call("sudo ip link set netns %s dev %s" % (pid.strip(),veth_int),shell=True)
-
-        """Rename internal veth web-int to eth0"""
-        LOG.info("Rename internal veth %s to eth0" % veth_int)
-	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(),veth_int),shell=True)
-
-        """Set internal veth to UP"""
-        LOG.info("UP internal veth eth0")
-	subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 up" % pid.strip(),shell=True)
-
-        """Set external veth to UP"""
-        LOG.info("UP external %s" % veth_ext)
-	subprocess.check_call("sudo ip link set %s up" % veth_ext,shell=True)
-
-        """Set fixed ip to internal veth `eth0`"""
-        IP_ADDR="%s/%s" % (addr,DEFAULT_NET_MASK)
-
-        LOG.info("Attach fixed IP to internal veth eth0")
-	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth0" % (pid.strip(),IP_ADDR),shell=True)
-
-        """Set default gateway to br0's gateway"""
-        DEFAULT_GATEWAY=get_default_gateway()    
-        LOG.info("Set default gateway to %s" % DEFAULT_GATEWAY)
-        #subprocess.check_call("sudo nsenter -t %s -n ip route del default" % pid.strip(),shell=True)
-        subprocess.check_call("sudo nsenter -t %s -n ip route add default via %s dev eth0" %(pid.strip(),DEFAULT_GATEWAY),shell=True) 
-
-        """Ping gateway"""
-        LOG.info("Flush gateway's arp caching")
-        subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(),DEFAULT_GATEWAY),shell=True)
-
+        """Startup Host Init"""
+        LOG.info("Init host")
+        subprocess.check_call("sudo nsenter -t %s --mount -n /usr/local/bin/host.init" % pid.strip(),shell=True)
     except subprocess.CalledProcessError:
 	raise
+        
+
+def delete_virtual_interface(uuid):
+    """This method contains the following two steps:
+       1. Delete interface from bridge
+       2. Delete interface thorough
+    """
+    if len(uuid) > 8:
+        uuid = uuid[:8]
+    veth_ext = "%s%s" % ("veth",uuid) 
+
+    try:
+        LOG.info("Delete interface %s from bridge br0" % veth_ext)
+        subprocess.check_call("sudo brctl delif br0 %s" % veth_ext,shell=True) 
+
+        LOG.info("Delete interface %s" % veth_ext)
+        subprocess.check_call("sudo ip link del %s" % veth_ext,shell=True) 
+    except subprocess.CalledProcessError:
+	raise
+
+#def set_fixed_ip_again(uuid,addr):
+#    if len(uuid) > 8:
+#	uuid = uuid[:8]
+#
+#    uuid_reverse = uuid[::-1]
+#    veth_int = "%s%s" % ("veth",uuid_reverse)
+#    veth_ext = "%s%s" % ("veth",uuid) 
+#
+#    try:
+#        """First create veth pair: web-int and vethuuid"""
+#        LOG.info("Create veth pair: %s and %s" % (veth_int,veth_ext))
+#        subprocess.check_call("sudo ip link add %s type veth peer name %s" % (veth_int,veth_ext),shell=True) 
+#
+#        """Second add external veth to bridge `br0`""" 
+#        LOG.info("Attach external veth %s to bridge `br0`" % veth_ext)
+#        subprocess.check_call("sudo brctl addif br0 %s" % veth_ext,shell=True)
+#
+#        """Get container's pid namespace"""
+#        LOG.info("Get container's namespace pid")
+#        pid=subprocess.check_output("sudo docker inspect --format '{{.State.Pid}}' %s" % uuid,shell=True) 
+#	LOG.info("Pid is %s" % pid.strip())
+#
+#        """Add internal veth web-int to container"""
+#        LOG.info("Attach internal %s to container" % veth_int)
+#	subprocess.check_call("sudo ip link set netns %s dev %s" % (pid.strip(),veth_int),shell=True)
+#
+#        """Rename internal veth web-int to eth0"""
+#        LOG.info("Rename internal veth %s to eth0" % veth_int)
+#	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(),veth_int),shell=True)
+#
+#        """Set internal veth to UP"""
+#        LOG.info("UP internal veth eth0")
+#	subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 up" % pid.strip(),shell=True)
+#
+#        """Set external veth to UP"""
+#        LOG.info("UP external %s" % veth_ext)
+#	subprocess.check_call("sudo ip link set %s up" % veth_ext,shell=True)
+#
+#        """Set fixed ip to internal veth `eth0`"""
+#        IP_ADDR="%s/%s" % (addr,DEFAULT_NET_MASK)
+#
+#        LOG.info("Attach fixed IP to internal veth eth0")
+#	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth0" % (pid.strip(),IP_ADDR),shell=True)
+#
+#        """Set default gateway to br0's gateway"""
+#        DEFAULT_GATEWAY=get_default_gateway()    
+#        LOG.info("Set default gateway to %s" % DEFAULT_GATEWAY)
+#        #subprocess.check_call("sudo nsenter -t %s -n ip route del default" % pid.strip(),shell=True)
+#        subprocess.check_call("sudo nsenter -t %s -n ip route add default via %s dev eth0" %(pid.strip(),DEFAULT_GATEWAY),shell=True) 
+#
+#        """Ping gateway"""
+#        LOG.info("Flush gateway's arp caching")
+#        subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(),DEFAULT_GATEWAY),shell=True)
+#
+#    except subprocess.CalledProcessError:
+#	raise
 

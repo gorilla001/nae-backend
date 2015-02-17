@@ -52,9 +52,7 @@ class Manager(base.Base):
 		fixed_ip,
 		user_id):
 	"""
-           Create new container.
-           There are  steps to do this:
-           1. Pull specified images from docker registry.
+        Create new container
         """
 
 	LOG.info("CREATE +job create %s" % id)
@@ -194,12 +192,20 @@ class Manager(base.Base):
                     LOG.error("Set fixed ip %s to container %s failed" % (network,uuid))
                     """Cleanup db entry for ip reuse"""
                     self.db.delete_network(id)
+                    """Update container's status"""
+		    self.db.update_container(id,status="error")
                     return 
 
                 """Update container's network"""
 	        self.db.update_container(id,fixed_ip=network)
                 """Update container's status"""
 		self.db.update_container(id,status="running")
+
+                try:
+                    nwutils.host_init(uuid)
+                except:
+                    LOG.warning("Container %s start succeed,but init failed" % uuid)
+
 	    if status == 500:
 		LOG.error("start container %s error" % uuid)
 		self.db.update_container(id,status="error")
@@ -220,39 +226,54 @@ class Manager(base.Base):
         ##FIXME(nmg):
 	LOG.info("DELETE +job delete %s" % id)
 	query = self.db.get_container(id)
-	if query.status == 'running':
-	    self.db.update_container(id,status="stoping")
-	    status = self.driver.stop(query.uuid)
-	    if status in (204,304,404):
-		self.db.update_container(id,status="deleting")
-		status = self.driver.delete(query.uuid)
-		if status in (204,404):
-		    self.db.delete_container(id)
-                    self.db.delete_network(id)
-	    if status == 500:
-		LOG.error("I donot known what to do")
-		return 
-	elif query.status == 'error':
-	    self.db.update_container(id,status="deleting")
-	    status = self.driver.delete(query.uuid)
-	    if status in (204,404):
-		self.db.delete_container(id)
-                self.db.delete_network(id)
-	elif query.status == "stoped":
-	    status = self.driver.delete(query.uuid)
-	    if status in (204,404):
-		self.db.delete_container(id)
-                self.db.delete_network(id)
-	else:
-           self.db.update_container(id,status="deleting")
-           self.db.delete_container(id)
-           self.db.delete_network(id)
-        #try:
-        #    nwutils.delete_virtual_iface(query.uuid[:8])
-        #except:
-        #    LOG.warning("delete virtual interface error")  
-        #    raise
+	self.db.update_container(id,status="deleting")
+	status = self.driver.delete(query.uuid)
+	if status == 500:
+	    LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
+        self.db.delete_container(id)
+	#if query.status == 'running':
+	#    #self.db.update_container(id,status="stoping")
+	#    #status = self.driver.stop(query.uuid)
+	#    #if status in (204,304,404):
+	#    #    self.db.update_container(id,status="deleting")
+	#    #    status = self.driver.delete(query.uuid)
+	#    #    if status in (204,404):
+	#    #        self.db.delete_container(id)
+        #    #        self.db.delete_network(id)
+	#    #if status == 500:
+	#    #    LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
+        #    #    self.db.delete_container(id)
+        #    #    self.db.delete_network(id)
+	#    self.db.update_container(id,status="deleting")
+	#    status = self.driver.delete(query.uuid)
+	#    if status == 500:
+	#        LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
+        #        self.db.delete_container(id)
+        #        self.db.delete_network(id)
+	#elif query.status == 'error':
+	#    self.db.update_container(id,status="deleting")
+	#    status = self.driver.delete(query.uuid)
+	#    if status in (204,404):
+	#	self.db.delete_container(id)
+        #        self.db.delete_network(id)
+	#elif query.status == "stoped":
+        #    self.db.update_container(id,status="deleting")
+	#    status = self.driver.delete(query.uuid)
+	#    if status in (204,404):
+	#	self.db.delete_container(id)
+        #        self.db.delete_network(id)
+	#else:
+        #   self.db.update_container(id,status="deleting")
+        #   self.db.delete_container(id)
+        #   self.db.delete_network(id)
 
+        """Try to delete container's virtual interface"""
+        try:
+            nwutils.delete_virtual_interface(query.uuid[:8])
+            self.db.delete_network(id)
+        except:
+            LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8] )  
+            
 	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,id):
@@ -266,19 +287,28 @@ class Manager(base.Base):
 	query = self.db.get_container(id)
 	uuid = query.uuid
 	network = query.fixed_ip
-        kwargs={"Cmd":[CONF.init_script],
-                "NetworkMode": "none"}
+        kwargs={"Cmd"         : [CONF.init_script],
+                "NetworkMode" : "none",
+                'Dns'         : CONF.dns.split(","), 
+                "DnsSearch"   : CONF.domainname}
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
             """If container start succeed, inject fixed_ip
                to container."""
             try:
-                nwutils.set_fixed_ip_again(uuid,network)
+                nwutils.set_fixed_ip(uuid,network)
             except:
 	        self.db.update_container(id,status="error")
                 raise
+
             """Update container status to running."""
 	    self.db.update_container(id,status="running")
+
+            try:
+                nwutils.host_init(uuid)
+            except:
+                LOG.warning("Container %s start succeed,but init failed" % uuid)
+
 	LOG.info("START -job start %s" % id)
 
     def stop(self,id):
@@ -294,7 +324,10 @@ class Manager(base.Base):
 	self.db.update_container(id,status="stoping") 
 	status = self.driver.stop(query.uuid)
 	if status == 204:
-            nwutils.del_ext_veth(query.uuid)
+            try:
+                nwutils.delete_virtual_interface(query.uuid)
+            except:
+                LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8] )  
 	    self.db.update_container(id,status="stoped")
     
 	LOG.info("STOP -job stop %s" % id)

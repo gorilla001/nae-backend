@@ -93,14 +93,14 @@ class API(object):
          """Stop the container specified by uuid"""
          #TODO(nmg): exceptions should be catched.
          #response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
-         response = self.http.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
+         response = self.http.post("http://%s:%s/containers/%s/stop?t=5" % (self.host,self.port,uuid))
          return response.status_code
 
     def delete(self,uuid):
          """Delete the container uuid"""
          #TODO(nmg): exceptions should be catched.
          #response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
-         response = self.http.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
+         response = self.http.delete("http://%s:%s/containers/%s?force=1" % (self.host,self.port,uuid))
          return response.status_code
     
     def inspect(self,uuid):
