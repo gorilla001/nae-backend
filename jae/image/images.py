@@ -17,33 +17,33 @@ from jae.image import driver
 from jae.common import cfg
 
 
-CONF=cfg.CONF
-LOG=logging.getLogger(__name__)
+CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 
 class Controller(base.Base):
     def __init__(self):
-	super(Controller,self).__init__()
+        super(Controller, self).__init__()
 
-        #self.mercurial=MercurialControl()
+        # self.mercurial=MercurialControl()
         #self.driver=driver.API()
         self._manager = manager.Manager()
 
-    def index(self,request):
+    def index(self, request):
         return webob.exc.HTTPMethodNotAllowed()
 
-    def show(self,request,id):
+    def show(self, request, id):
         return webob.exc.HTTPMethodNotAllowed()
-	
-    def create(self,request,body):
+
+    def create(self, request, body):
         """create image."""
-        name       = body.get('name').lower()
-        desc       = body.get('desc')
+        name = body.get('name').lower()
+        desc = body.get('desc')
         project_id = body.get('project_id')
-        repos      = body.get('repos')
-        branch     = body.get('branch')
-        user_id    = body.get('user_id')
-        id         = uuid.uuid4().hex
+        repos = body.get('repos')
+        branch = body.get('branch')
+        user_id = body.get('user_id')
+        id = uuid.uuid4().hex
 
         project = self.db.get_project(project_id)
         if not project:
@@ -52,15 +52,15 @@ class Controller(base.Base):
 
         """add db entry first."""
         self.db.add_image(dict(
-                id=id,
-                name=name,
-                tag="latest",
-                desc=desc,
-                repos = repos,
-                branch = branch,
-                user_id = user_id,
-                status = 'building'),
-                project = project)
+            id=id,
+            name=name,
+            tag="latest",
+            desc=desc,
+            repos=repos,
+            branch=branch,
+            user_id=user_id,
+            status='building'),
+                          project=project)
 
         eventlet.spawn_n(self._manager.create,
                          id,
@@ -68,24 +68,24 @@ class Controller(base.Base):
                          desc,
                          repos,
                          branch,
-                         user_id) 
+                         user_id)
 
-        return ResponseObject({"id":id})
+        return ResponseObject({"id": id})
 
-    def delete(self,request,id):
-	"""
-        Delete image by id.
-        
-        :param request: `wsgi.Request` object
-        :param id     : image id
+    def delete(self, request, id):
         """
-	
-	eventlet.spawn_n(self._manager.delete,id)
+            Delete image by id.
 
-	return Response(200)
+            :param request: `wsgi.Request` object
+            :param id     : image id
+            """
 
-	    
-    def edit(self,request,id):
+        eventlet.spawn_n(self._manager.delete, id)
+
+        return Response(200)
+
+
+    def edit(self, request, id):
         """edit image online.
         this method is not very correct,change this if you can."""
 
@@ -93,13 +93,13 @@ class Controller(base.Base):
         CONF.host instead.
         http_host=request.environ['HTTP_HOST'].rpartition(":")[0]
         """
-        http_host=CONF.host
-	name = utils.random_str()
-	port = 17698 
+        http_host = CONF.host
+        name = utils.random_str()
+        port = 17698
         image_instance = self.db.get_image(id)
         if image_instance:
             image_uuid = image_instance.uuid
-            kwargs = {"Image":image_uuid}
+            kwargs = {"Image": image_uuid}
             """this method should not be ina greenthread cause 
                it is beatter to prepare edit before client to 
                connect.
@@ -114,24 +114,24 @@ class Controller(base.Base):
                              kwargs,
                              http_host,
                              name,
-                             port) 
+                             port)
 
-        response = {"url":"http://%s:%s" % \
-                   (http_host,port),
-                   "name": name}
-        return ResponseObject(response) 
+        response = {"url": "http://%s:%s" % \
+                           (http_host, port),
+                    "name": name}
+        return ResponseObject(response)
 
-    def commit(self,request,body):
+    def commit(self, request, body):
         """
         Commit specified container to named image.
         if image repository is provided, use the provided repository
         as the new image's repository, otherwise get the image name
         by `image_id` for the repoistory.
-        """ 
-        repository   = body.pop('repository')
-        tag          = body.pop('tag')
-        image_id     = body.pop('id')
-        project_id   = body.pop('project_id') 
+        """
+        repository = body.pop('repository')
+        tag = body.pop('tag')
+        image_id = body.pop('id')
+        project_id = body.pop('project_id')
         container_id = body.pop('container_id')
 
         project = self.db.get_project(project_id)
@@ -139,7 +139,7 @@ class Controller(base.Base):
             LOG.error("no such project %s" % project_id)
             return Response(404)
 
-        container_instance=self.db.get_container(container_id)
+        container_instance = self.db.get_container(container_id)
         if not container_instance:
             LOG.error("no such container %s" % container_id)
             return Response(404)
@@ -156,28 +156,29 @@ class Controller(base.Base):
 
         new_image_id = uuid.uuid4().hex
         self.db.add_image(dict(
-                         id=new_image_id,
-                         name=repository,
-                         tag=tag,
-                         desc=image_instance.desc,
-                         repos = image_instance.repos,
-                         branch = image_instance.branch,
-                         user_id = image_instance.user_id,
-                         status = 'building'),
-                         project=project)
+            id=new_image_id,
+            name=repository,
+            tag=tag,
+            desc=image_instance.desc,
+            repos=image_instance.repos,
+            branch=image_instance.branch,
+            user_id=image_instance.user_id,
+            status='building'),
+                          project=project)
         eventlet.spawn_n(self._manager.commit,
-                     new_image_id,
-                     repository,
-                     tag,
-                     container_uuid)
-        #NOTE(nmg):there may be a bug here.
-        return ResponseObject({"id":new_image_id})
+                         new_image_id,
+                         repository,
+                         tag,
+                         container_uuid)
+        # NOTE(nmg):there may be a bug here.
+        return ResponseObject({"id": new_image_id})
 
-    def destroy(self,request,id):
+    def destroy(self, request, id):
         """destroy temporary container for image edit."""
-        eventlet.spawn_n(self._manager.destroy,id)
-      
+        eventlet.spawn_n(self._manager.destroy, id)
+
         return Response(200)
-	 
+
+
 def create_resource():
     return wsgi.Resource(Controller())

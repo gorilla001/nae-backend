@@ -21,8 +21,9 @@ from sqlalchemy import Column, String
 
 def upgrade():
     op.add_column("containers",
-        Column("errmsg",String(500))
+                  Column("errmsg", String(500))
     )
 
+
 def downgrade():
-    op.drop_column("containers","errmsg")
+    op.drop_column("containers", "errmsg")
