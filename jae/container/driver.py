@@ -155,7 +155,7 @@ class API(object):
             LOG.info("Exec composer update -q")
             #os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
             try:
-                subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
+                subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_directory,shell=True)
             except subprocess.CalledProcessError as ex:
                 LOG.error("Exec composer update -q failed...skip")
                 LOG.error(ex)
