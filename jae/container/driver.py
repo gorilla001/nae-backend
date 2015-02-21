@@ -150,7 +150,7 @@ class API(object):
 
         """If composer.json exists, do update"""
         code_directory = "%s/%s" % (root_path,os.path.basename(repo_path)) 
-        if os.path.isfile("%s/%s" % (code_directory,"composer.json"):
+        if os.path.isfile("%s/%s" % (code_directory,"composer.json")):
             os.system("cd %s && composer update -q")
 
         """Change the directory's owner back to orginal owner"""
