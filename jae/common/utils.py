@@ -144,7 +144,7 @@ def create_log_path(container_dir):
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 
-    change_dir_owner(root_path,"jae")
+    change_dir_owner(log_path,"jae")
     return log_path
 
 def change_dir_owner(home,user_name):
