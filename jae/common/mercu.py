@@ -61,8 +61,8 @@ class MercurialControl(object):
                                     source=source)
         except:
             LOG.error('Could not pull repo:%s' % repo_path)
-            LOG.error(error)
 	    raise
+
     def update(self,root_path,repo_path,branch=None):
         """
         Update repo to branch.
