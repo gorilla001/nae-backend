@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import pwd
 
 from jae.common import cfg
 from jae.common.cfg import Int, Str
@@ -126,6 +127,12 @@ class API(object):
         >>>/home/jae/{user_id}/{uuid}/www/{repos}<<< 
         """ 
         root_path = "/home/jae/%s/%s/www" % (user_id,uuid[:12]) 
+        if not os.path.exists(root_path):
+            LOG.info("%s not exists...skip" % root_path)
+
+        origin_user_id = os.stat(root_path).st_uid
+        current_user_id = os.getuid() 
+        os.system("sudo chown -R %s %s" % (current_user_id,root_path))         
         repo_path = repos
         try:
             mercurial.pull(root_path,repo_path)   
@@ -139,3 +146,4 @@ class API(object):
             LOG.error("Update code failed for code sync")
             raise
         
+        os.system("sudo chown -R %s %s" % (origin_user_id,root_path))         
