@@ -162,6 +162,7 @@ def host_init(uuid):
         LOG.info("Init host")
         subprocess.check_call("sudo nsenter -t %s --mount -n --pid /usr/local/bin/host.init" % pid.strip(), shell=True)
     except subprocess.CalledProcessError:
+        """Raise the exception, the caller will be catch it"""
         raise
 
 
