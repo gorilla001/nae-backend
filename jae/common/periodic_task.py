@@ -31,9 +31,9 @@ class PeriodicTaskMeta(type):
                 task = value
 
                 if task._periodic_interval < 0:
-                    LOG.info("""Skipping periodic task %(task)s because
-                                 its interval is negative"""),
-                    {'task': task.__name__})
+                    #LOG.info("""Skipping periodic task %(task)s because
+                    #             its interval is negative"""),
+                    #{'task': task.__name__})
                     continue
 
                 """A periodic interval of zero indicates that this task should be 
