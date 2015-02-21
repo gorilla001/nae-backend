@@ -156,12 +156,8 @@ class API(object):
             #os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
             try:
                 subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_directory,shell=True)
-            except subprocess.CalledProcessError as ex:
-                LOG.error("Exec composer update -q failed...skip")
-                LOG.error(ex)
-            except OSError as ex:
-                LOG.error("Exec composer update -q failed...skip")
-                LOG.error(ex)
+            except:
+                LOG.error("Exec composer update -q failed...do it manually")
 
         """Change the directory's owner back to orginal owner"""
         os.system("sudo chown -R %s:%s %s" % (origin_uid,origin_gid,root_path))         
