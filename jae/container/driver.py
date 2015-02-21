@@ -133,9 +133,9 @@ class API(object):
 
         """For escape permission, we first change the code directory owner to current user, and
            change it back after refresh"""
-        origin_user_id = os.stat(root_path).st_uid
-        current_user_id = os.getuid() 
-        os.system("sudo chown -R %s %s" % (current_user_id,root_path))         
+        origin_uid, origin_gid  = os.stat(root_path).st_uid, os.stat(root_path).st_gid
+        current_uid, current_gid = os.getuid(), os.getgid() 
+        os.system("sudo chown -R %s:%s %s" % (current_uid,current_gid,root_path))         
         repo_path = repos
         try:
             mercurial.pull(root_path,repo_path)   
@@ -160,4 +160,4 @@ class API(object):
                 LOG.error("Exec composer update -q failed...skip")
 
         """Change the directory's owner back to orginal owner"""
-        os.system("sudo chown -R %s %s" % (origin_user_id,root_path))         
+        os.system("sudo chown -R %s:%s %s" % (origin_uid,origin_gid,root_path))         
