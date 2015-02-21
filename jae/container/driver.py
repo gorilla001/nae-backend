@@ -130,6 +130,8 @@ class API(object):
         if not os.path.exists(root_path):
             LOG.info("%s not exists...skip" % root_path)
 
+        """For escape permission, we first change the code directory owner to current user, and
+           change it back after refresh"""
         origin_user_id = os.stat(root_path).st_uid
         current_user_id = os.getuid() 
         os.system("sudo chown -R %s %s" % (current_user_id,root_path))         
@@ -137,13 +139,19 @@ class API(object):
         try:
             mercurial.pull(root_path,repo_path)   
         except:
-            LOG.error("Pull code failed for code sync")
-            raise
+            LOG.error("Pull code failed for code refresh...droped")
+            return
 
         try:
             mercurial.update(root_path,repo_path,branch)
         except:
-            LOG.error("Update code failed for code sync")
-            raise
-        
+            LOG.error("Update code failed for code refresh...droped")
+            return 
+
+        """If composer.json exists, do update"""
+        code_directory = "%s/%s" % (root_path,os.path.basename(repo_path)) 
+        if os.path.isfile("%s/%s" % (code_directory,"composer.json"):
+            os.system("cd %s && composer update -q")
+
+        """Change the directory's owner back to orginal owner"""
         os.system("sudo chown -R %s %s" % (origin_user_id,root_path))         
