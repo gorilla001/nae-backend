@@ -152,7 +152,7 @@ class API(object):
         code_directory = "%s/%s" % (root_path,os.path.basename(repo_path)) 
         if os.path.isfile("%s/%s" % (code_directory,"composer.json")):
             LOG.info("Exec composer update -q")
-            os.system("cd %s && composer update -q" % code_directory)
+            os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
 
         """Change the directory's owner back to orginal owner"""
         os.system("sudo chown -R %s %s" % (origin_user_id,root_path))         
