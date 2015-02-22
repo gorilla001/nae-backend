@@ -168,7 +168,13 @@ class Controller(base.Base):
         return webob.exc.HTTPOk()
 
     def delete(self, request, id):
-        """delete project by `id`"""
+        """Delete project by `id`
+
+           params: request: `wsgi.Request`
+           params: id: project id
+           
+           returns: `wsgi.Response`
+        """
         LOG.info("DELETE +job delete %s" % id)
         try:
             self.db.delete_project(id)
@@ -178,9 +184,8 @@ class Controller(base.Base):
             return Response(500)
 
         LOG.info("DELETE -job delete = OK")
-        #"""return webob.exc.HTTPNoContent() seems more better."""
-        #return webob.exc.HTTPNoContent()
-        return Response(204)
+        """return webob.exc.HTTPNoContent() seems more better."""
+        return webob.exc.HTTPNoContent()
 
 
 def create_resource():
