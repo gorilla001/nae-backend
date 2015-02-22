@@ -178,8 +178,9 @@ class Controller(base.Base):
             return Response(500)
 
         LOG.info("DELETE -job delete = OK")
-        """return webob.exc.HTTPNoContent() seems more better."""
-        return webob.exc.HTTPNoContent()
+        #"""return webob.exc.HTTPNoContent() seems more better."""
+        #return webob.exc.HTTPNoContent()
+        return Response(204)
 
 
 def create_resource():
