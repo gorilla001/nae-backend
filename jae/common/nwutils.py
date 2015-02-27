@@ -150,6 +150,15 @@ def set_fixed_ip(uuid, addr):
     except subprocess.CalledProcessError:
         raise
 
+def service_init(uuid, user_id, repos):
+    """This method is used for service init"""
+    try: 
+        LOG.info("Start maven packaging...")
+        root_path = "/home/jae/%s/%s/www/%s" % (user_id, uuid[:12], os.path.basename(repos)) 
+        subprocess.check_call("sudo" )
+    except subprocess.CalledProcessError:
+        """Reraise the exception, the caller will catch it"""
+        raise
 
 def host_init(uuid):
     try:

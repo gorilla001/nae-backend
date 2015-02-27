@@ -168,7 +168,7 @@ class Controller(base.Base):
         return webob.exc.HTTPOk()
 
     def delete(self, request, id):
-        """Delete project by `id`
+        """Delete project according to project's id 
 
            params: request: `wsgi.Request`
            params: id: project id

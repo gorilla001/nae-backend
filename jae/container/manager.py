@@ -1,6 +1,7 @@
 import webob.exc
 import os
 import traceback
+import requests
 
 from jae.common import cfg
 from jae.common import log as logging
@@ -53,7 +54,7 @@ class Manager(base.Base):
                user_id):
         """
             Create new container
-            """
+        """
 
         LOG.info("CREATE +job create %s" % id)
 
@@ -155,6 +156,9 @@ class Manager(base.Base):
                 LOG.error(traceback.format_exc())
                 return
 
+            
+
+            """Begin to start the container"""
             www_path = ["/home/www", "/home/jm/www"]
             log_pathes = ["/home/jm/logs", "/home/logs"]
 
@@ -203,6 +207,32 @@ class Manager(base.Base):
                     nwutils.host_init(uuid)
                 except:
                     LOG.warning("Container %s start succeed,but init failed" % uuid)
+
+                """Update the container's code and start the service after container started"""
+                SWAN_ENDPOINT = "https://swan.int.jumei.com/adminset/server/expand/projects/?keys=4c1342dc-c89e-11e4-b942-002219d55db7"
+                data = requests.get(SWAN_ENDPOINT)
+                for project in data.json():
+                    if project["codes"]["repo"] == repos:
+                        is_java = project["codes"]["java"]
+                        if is_java == "true":
+                            path_split = project["codes"]["path"].split("-JM")
+                            maven_flags = path_split[0]
+                            root_war = path_split[1] 
+                            project_type = "java" 
+                        else:
+                            project_type = "php"
+
+                if project_type == "php":
+                    codeutils.composer_code(uuid,
+                                            user_id,
+                                            repos)
+      
+                if project_type == "java":
+                    codeutils.maven_code(uuid,
+                                         user_id,
+                                         repos,
+                                         maven_flags,
+                                         root_war)
 
             if status == 500:
                 LOG.error("start container %s error" % uuid)
@@ -283,6 +313,10 @@ class Manager(base.Base):
             """
         LOG.info("START +job start %s" % id)
         self.db.update_container(id, status="starting")
+        """Update container's code first"""
+        self.refresh(id)
+       
+        """Get container's uuid from db entry"""
         query = self.db.get_container(id)
         uuid = query.uuid
         network = query.fixed_ip
@@ -313,7 +347,9 @@ class Manager(base.Base):
     def stop(self, id):
         """
         Stop container by id.
-            :params id: container id
+
+        :params id: container id
+
         """
         LOG.info("STOP +job stop %s" % id)
 
@@ -334,14 +370,18 @@ class Manager(base.Base):
     def destroy(self, name):
         """
         Destroy a temporary container by a given name.
-            :params name: container name
+
+        :params name: container name
         """
         self.driver.stop(name)
         self.driver.delete(name)
 
     def refresh(self, id):
-        """Refresh code in container
+        """
+        Refresh code in container
+
         :params id: container id
+
         """
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)

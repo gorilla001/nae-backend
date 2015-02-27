@@ -52,7 +52,7 @@ class APIRouter(wsgi.Router):
                             action='commit',
                             conditions={'method': ['POST']})
 
-        """The above commands establishes the following convention:
+        """The above commands establishes the following conventions:
            >>> GET    /images      => images.index()
            >>> GET    /images/id   => images.show(id)
            >>> POST   /images      => images.create()
@@ -66,7 +66,7 @@ class APIRouter(wsgi.Router):
         self.mapper.resource('project', 'projects',
                              controller=projects.create_resource())
 
-        """The above commands establishes the following convention:
+        """The above commands establishes the following conventions:
            >>> GET    /projects       => projects.index()
            >>> GET    /projects/id    => projects.show(id)
            >>> POST   /projects       => projects.create()
@@ -77,7 +77,7 @@ class APIRouter(wsgi.Router):
         self.mapper.resource('user', 'users',
                              controller=users.create_resource())
 
-        """The above commands establishes the following convention:
+        """The above commands establishes the following conventions:
            >>> GET    /users       => users.index()
            >>> GET    /users/id    => users.show(id)
            >>> POST   /users       => users.create()
@@ -88,7 +88,7 @@ class APIRouter(wsgi.Router):
         self.mapper.resource('repository', 'repos',
                              controller=repos.create_resource())
 
-        """The above commands establishes the following convention:
+        """The above commands establishes the following conventions:
            >>> GET    /repos       => repos.index()
            >>> GET    /repos/id    => repos.show(id)
            >>> POST   /repos       => repos.create()

@@ -22,6 +22,7 @@ jae/common/__init__.py
 jae/common/cfg.py
 jae/common/client.py
 jae/common/cmdutils.py
+jae/common/codeutils.py
 jae/common/daemon.py
 jae/common/exception.py
 jae/common/executils.py
