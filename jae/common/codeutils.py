@@ -30,8 +30,12 @@ def maven_code(uuid, user_id, repos, maven_flags, root_war):
         LOG.info("Pid is %s" % pid.strip())
 
         """Startup Service Init"""
-        LOG.info("Init host")
-        subprocess.check_call("sudo nsenter -t %s --mount -n --pid /etc/init.d/tomcat stop && rm -rf /home/jm/tomcat/webapps/* && cp %s /home/jm/tomcat/webapps/ROOT.war && chown -R tomcat:tomcat /home/jm/tomcat/webapps/ && /etc/init.d/tomcat start" % (pid.strip(),new_root_war), shell=True)
+        LOG.info("Service init...")
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- /etc/init.d/tomcat stop" % pid.strip(), shell=True)
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- rm -rf /home/jm/tomcat/webapps/*" % pid.strip(), shell=True)
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- cp %s /home/jm/tomcat/webapps/ROOT.war" % (pid.strip(),new_root_war), shell=True)
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- chown -R tomcat:tomcat /home/jm/tomcat/webapps/" % pid.strip(), shell=True)
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- /etc/init.d/tomcat start" % pid.strip(), shell=True)
         LOG.info("Start tomcat succeed")
     except subprocess.CalledProcessError as ex:
         LOG.error("Tomcat start failed...check it")
