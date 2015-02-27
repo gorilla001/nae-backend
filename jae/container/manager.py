@@ -212,15 +212,17 @@ class Manager(base.Base):
                 SWAN_ENDPOINT = "https://swan.int.jumei.com/adminset/server/expand/projects/?keys=4c1342dc-c89e-11e4-b942-002219d55db7"
                 data = requests.get(SWAN_ENDPOINT)
                 for project in data.json():
-                    if project["codes"]["repo"] == repos:
-                        is_java = project["codes"]["java"]
-                        if is_java == "true":
-                            path_split = project["codes"]["path"].split("-JM")
-                            maven_flags = path_split[0]
-                            root_war = path_split[1] 
-                            project_type = "java" 
-                        else:
-                            project_type = "php"
+                    codes_list = project["codes"]
+                    for codes in codes_list:
+                        if codes["repo"] == repos:
+                            is_java = codes["java"]
+                            if is_java == "true":
+                                path_split = codes["path"].split("-JM")
+                                maven_flags = path_split[0]
+                                root_war = path_split[1] 
+                                project_type = "java" 
+                            else:
+                                project_type = "php"
 
                 if project_type == "php":
                     codeutils.composer_code(uuid,
