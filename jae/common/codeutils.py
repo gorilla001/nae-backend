@@ -11,9 +11,11 @@ def maven_code(uuid, user_id, repos, maven_flags, root_war):
     code_path = "/home/jae/%s/%s/www/%s" % (user_id,uuid[:12],os.path.basename(repos))
 
     """Packaging..."""
+    LOG.info("Begin packaging...")
     try:
         #subprocess.check_call("source /etc/profile",shell=True)
         subprocess.check_call("source /etc/profile && /home/jm/maven/bin/mvn -f %s clean package %s -JM%s" % (code_path,maven_flags,root_war),shell=True)
+        LOG.info("Packaging succeed")
     except:
         LOG.error("maven packaging failed...skip")
         return
