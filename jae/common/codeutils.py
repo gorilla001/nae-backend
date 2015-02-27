@@ -14,8 +14,8 @@ def maven_code(uuid, user_id, repos, maven_flags, root_war):
     LOG.info("Begin packaging...")
     try:
         #subprocess.check_call("source /etc/profile",shell=True)
-        subprocess.check_call("source /etc/profile && /home/jm/maven/bin/mvn -f %s clean package %s" % (code_path,maven_flags),shell=True)
         LOG.info("/home/jm/maven/bin/mvn -f %s clean package %s" % (code_path,maven_flags))
+        subprocess.check_call("source /etc/profile && /home/jm/maven/bin/mvn -f %s clean package %s" % (code_path,maven_flags),shell=True)
         LOG.info("Packaging succeed")
     except:
         LOG.error("maven packaging failed...skip")
