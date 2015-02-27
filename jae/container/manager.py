@@ -216,7 +216,7 @@ class Manager(base.Base):
                     for codes in codes_list:
                         if codes["repo"] == repos:
                             is_java = codes["java"]
-                            if is_java == "true":
+                            if is_java:
                                 path_split = codes["path"].split("-JM")
                                 maven_flags = path_split[0]
                                 root_war = path_split[1] 
