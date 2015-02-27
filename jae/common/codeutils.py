@@ -21,6 +21,7 @@ def maven_code(uuid, user_id, repos, maven_flags, root_war):
         return
 
     new_root_war = "/home/jm/www/%s/%s" % (os.path.basename(repos),root_war) 
+    """Restart tomcat..."""
     try:
         """Get container's pid namespace"""
         LOG.info("Get container's namespace pid")
@@ -30,6 +31,7 @@ def maven_code(uuid, user_id, repos, maven_flags, root_war):
         """Startup Service Init"""
         LOG.info("Init host")
         subprocess.check_call("sudo nsenter -t %s --mount -n --pid /etc/init.d/tomcat stop && rm -rf /home/jm/tomcat/webapps/* && cp %s /home/jm/tomcat/webapps/ROOT.war && chown -R tomcat:tomcat /home/jm/tomcat/webapps/ && /etc/init.d/tomcat start" % (pid.strip(),new_root_war), shell=True)
+        LOG.info("Start tomcat succeed")
     except subprocess.CalledProcessError as ex:
         LOG.error("Tomcat start failed...check it")
         LOG.error(ex)
