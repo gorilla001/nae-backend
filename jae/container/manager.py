@@ -10,6 +10,7 @@ from jae.common import utils
 from jae.common.mercu import MercurialControl
 from jae.common.exception import NetWorkError
 from jae.common import nwutils
+from jae.common import codeutils
 
 from jae.container import driver
 from jae import base
