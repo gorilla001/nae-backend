@@ -1,7 +1,10 @@
 import os
 import subprocess
 
+from jae.common import log as logging
 
+
+LOG = logging.getLogger(__name__)
 
 
 def maven_code(uuid, user_id, repos, maven_flags, root_war):
