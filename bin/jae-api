@@ -4,13 +4,145 @@ import eventlet
 eventlet.monkey_patch(os=False)
 
 import sys
+import requests
+import uuid
 from jae import service
 from jae.common import cfg
 from jae.common import log as logging
+from jae import db
+import sqlalchemy.exc
+
+DB = db.API()
+
+LOG = logging.getLogger(__name__)
+
+SWAN_ENDPOINT = "https://swan.int.jumei.com/adminset/server/expand/projects/?keys=4c1342dc-c89e-11e4-b942-002219d55db7"
+
+data = requests.get(SWAN_ENDPOINT)
+
+
+def init_db():
+    LOG.info("Begin project init...")
+    for item in data.json():
+        """Add Project"""
+        name = item["name"]
+        desc = item["name"]
+        project_id = uuid.uuid4().hex
+        LOG.info("Add project %s..." % name)
+        try:
+            DB.add_project(dict(
+                id=project_id,
+                name=name,
+                desc=desc))
+            LOG.info("Done")
+        except sqlalchemy.exc.IntegrityError :
+            LOG.info("Project %s has already added" % name)
+            continue
+    
+        """Add User"""
+        for user in item["dev"]:
+            name = user 
+            email = user + "@jumei.com" 
+            role_id = 1 
+            project_id = project_id 
+            project = DB.get_project(project_id)
+           
+            LOG.info("Add user %s..." % name)
+            try:
+                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                 name=name,
+                                                 email=email,
+                                                 role_id=role_id),
+                                            project=project)
+                LOG.info("Done")
+            except IntegrityError, err:
+                LOG.error(err)
+                continue
+    
+        for user in item["test"]:
+            name = user 
+            email = user + "@jumei.com" 
+            role_id = 2 
+            project_id = project_id 
+            project = DB.get_project(project_id)
+    
+            LOG.info("Add user %s..." % name)
+            try:
+                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                 name=name,
+                                                 email=email,
+                                                 role_id=role_id),
+                                            project=project)
+                LOG.info("Done")
+            except IntegrityError, err:
+                LOG.error(err)
+                continue
+    
+        for user in item["sa"]:
+            name = user 
+            email = user + "@jumei.com" 
+            role_id = 0 
+            project_id = project_id 
+            project = DB.get_project(project_id)
+    
+            LOG.info("Add user %s..." % name)
+            try:
+                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                 name=name,
+                                                 email=email,
+                                                 role_id=role_id),
+                                            project=project)
+                LOG.info("Done")
+            except IntegrityError, err:
+                LOG.error(err)
+                continue
+    
+        for user in item["pm"]:
+            name = user 
+            email = user + "@jumei.com" 
+            role_id = 3 
+            project_id = project_id 
+            project = DB.get_project(project_id)
+    
+            LOG.info("Add user %s..." % name)
+            try:
+                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                 name=name,
+                                                 email=email,
+                                                 role_id=role_id),
+                                            project=project)
+                LOG.info("Done")
+            except IntegrityError, err:
+                LOG.error(err)
+                continue
+    
+        """Add Repos"""
+        for repos in item["codes"]:
+            repo_path = repos["repo"]
+            path = repos["path"]  
+            java = repos["java"]
+            project = DB.get_project(id=project_id)
+    
+            if not project:
+                LOG.error("Add repos: no such project %s" % project_id)
+                sys.exit(2)
+            LOG.info("Add repos %s..." % repo_path)
+            try:
+                DB.add_repo(dict(
+                    id=uuid.uuid4().hex,
+                    repo_path=repo_path,
+                    path=path,
+                    java=java),
+                    project=project)
+                LOG.info("Done")
+            except IntegrityError as ex:
+                LOG.error(ex)
+                continue
 
 if __name__ == '__main__':
     cfg.parse_config()
     logging.setup()
+    init_db()
     launcher = service.ProcessLauncher()
     server = service.WSGIService('api')
     launcher.launch_server(server,workers=server.workers or 1)

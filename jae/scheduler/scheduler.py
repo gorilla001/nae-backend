@@ -34,9 +34,11 @@ class SimpleScheduler(driver.Scheduler):
                      image_id,
                      repos,
                      branch,
+                     app_type,
                      env,
                      user_key,
-                     zone_id):
+                     zone_id,
+                     maven_flags):
         """schedule the instance for creation and handle creating the DB entry."""
 
         """
@@ -96,9 +98,11 @@ class SimpleScheduler(driver.Scheduler):
                       project_id=project_id,
                       repos=repos,
                       branch=branch,
+                      app_type=app_type,
                       image_id=image_id,
                       user_id=user_id,
-                      user_key=user_key)
+                      user_key=user_key,
+                      maven_flags=maven_flags)
         except ConnectionError, err:
             LOG.error(err)
             """post failed,cleanup db record."""

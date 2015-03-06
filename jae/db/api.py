@@ -1,5 +1,5 @@
-from  session import get_session
-import models
+from jae.db.session import get_session
+from jae.db import models
 from sqlalchemy.orm import joinedload
 from sqlalchemy import asc
 from sqlalchemy import inspect

@@ -38,6 +38,8 @@ class Controller(base.Base):
             repo = {
                 'id': item.id,
                 'repo_path': item.repo_path,
+                'java': item.java,
+                'path': item.path,
                 'created': isotime(item.created),
             }
             repos.append(repo)
@@ -62,6 +64,8 @@ class Controller(base.Base):
         repo = {
             'id': query.id,
             'repo_path': query.repo_path,
+            'java': query.java,
+            'path': query.path,
             'project_id': query.project_id,
             'created': isotime(query.created)
         }
@@ -118,6 +122,21 @@ class Controller(base.Base):
         """return webob.exc.HTTPNoContent seems more better."""
         return webob.exc.HTTPNoContent()
 
+    def mavens(self,request,id):
+        print id
+        query = self.db.get_repo(id)
+        if query is None:
+            return {}
+        repo = {
+            'id': query.id,
+            'repo_path': query.repo_path,
+            'java': query.java,
+            'path': query.path,
+            'project_id': query.project_id,
+            'created': isotime(query.created)
+        }
+
+        return ResponseObject(repo)
 
 def create_resource():
     return wsgi.Resource(Controller())

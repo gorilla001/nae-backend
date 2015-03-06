@@ -10,6 +10,7 @@ from jae.common import utils
 from jae.common.mercu import MercurialControl
 from jae.common.exception import NetWorkError
 from jae.common import nwutils
+from jae.common import codeutils
 
 from jae.container import driver
 from jae import base
@@ -51,7 +52,8 @@ class Manager(base.Base):
                app_env,
                ssh_key,
                fixed_ip,
-               user_id):
+               user_id,
+               maven_flags):
         """
             Create new container
         """
@@ -208,34 +210,35 @@ class Manager(base.Base):
                 except:
                     LOG.warning("Container %s start succeed,but init failed" % uuid)
 
-                """Update the container's code and start the service after container started"""
-                SWAN_ENDPOINT = "https://swan.int.jumei.com/adminset/server/expand/projects/?keys=4c1342dc-c89e-11e4-b942-002219d55db7"
-                data = requests.get(SWAN_ENDPOINT)
-                for project in data.json():
-                    codes_list = project["codes"]
-                    for codes in codes_list:
-                        if codes["repo"] == repos:
-                            is_java = codes["java"]
-                            if is_java == "true":
-                                path_split = codes["path"].split("-JM")
-                                maven_flags = path_split[0]
-                                root_war = path_split[1] 
-                                project_type = "java" 
-                            else:
-                                project_type = "php"
+                #"""Update the container's code and start the service after container started"""
+                #SWAN_ENDPOINT = "https://swan.int.jumei.com/adminset/server/expand/projects/?keys=4c1342dc-c89e-11e4-b942-002219d55db7"
+                #data = requests.get(SWAN_ENDPOINT)
+                #for project in data.json():
+                #    codes_list = project["codes"]
+                #    for codes in codes_list:
+                #        if codes["repo"] == repos:
+                #            is_java = codes["java"]
+                #            if is_java:
+                #                path_split = codes["path"].split("-JM")
+                #                maven_flags = path_split[0]
+                #                root_war = path_split[1] 
+                #                project_type = "java" 
+                #            else:
+                #                project_type = "php"
 
-                if project_type == "php":
+                if app_type == "php":
                     codeutils.composer_code(uuid,
                                             user_id,
                                             repos)
       
-                if project_type == "java":
+                print "maven_flags",maven_flags
+                if app_type == "java":
                     codeutils.maven_code(uuid,
                                          user_id,
                                          repos,
-                                         maven_flags,
-                                         root_war)
+                                         maven_flags)
 
+                self.db.update_container(id, flags=maven_flags)
             if status == 500:
                 LOG.error("start container %s error" % uuid)
                 self.db.update_container(id, status="error")
@@ -392,11 +395,13 @@ class Manager(base.Base):
             user_id = query.user_id
             repos = query.repos
             branch = query.branch
+            maven_flags=query.flags
             try:
                 self.driver.refresh(uuid=uuid,
                                     user_id=user_id,
                                     repos=repos,
                                     branch=branch,
+                                    maven_flags=maven_flags,
                                     mercurial=self.mercurial)
                 self.db.update_container(id, status="running")
             except:

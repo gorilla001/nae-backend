@@ -185,6 +185,12 @@ class Controller(Base):
         if not zone_id:
             zone_id = 0
 
+        app_type = body.pop('app_type')
+        if not app_type:
+            app_type = "php"
+
+        maven_flags = body.pop("maven_flags")
+        
         """Call the scheduler to decide which host the container will 
            be run on.
         """
@@ -195,9 +201,11 @@ class Controller(Base):
                                                     image_id,
                                                     repos,
                                                     branch,
+                                                    app_type,
                                                     env,
                                                     user_key,
-                                                    zone_id)
+                                                    zone_id,
+                                                    maven_flags)
         except exception.NoValidHost:
             raise
 

@@ -1,8 +1,10 @@
 import sqlalchemy
 from jae.common import cfg
 from jae.common.cfg import Bool, Int
+from jae.common import log as logging
 
 CONF = cfg.CONF
+
 
 _ENGINE = None
 _MAKER = None
@@ -25,7 +27,7 @@ def get_engine():
         if CONF.pool_size:
             pool_size = Int(CONF.pool_size)
 
-        poll_recycle = DEFAULT_POOL_RECYCLE
+        pool_recycle = DEFAULT_POOL_RECYCLE
         if CONF.pool_recycle:
             pool_recycle = Int(CONF.pool_recycle)
 

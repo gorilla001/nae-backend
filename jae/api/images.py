@@ -79,13 +79,17 @@ class Controller(Base):
             image = {'id': query.id,
                      'uuid': query.uuid,
                      'name': query.name,
-                     'repos': query.repos,
+                     'repos_id': query.repos,
                      'tag': query.tag,
                      'desc': query.desc,
                      'project_id': query.project_id,
                      'created': isotime(query.created),
                      'user_id': query.user_id,
                      'status': query.status}
+            print query.repos
+            repos = self.db.get_repo(query.repos)
+            data = { "repo_path": repos.repo_path }
+            image.update(data)
 
         return ResponseObject(image)
 
@@ -108,8 +112,8 @@ class Controller(Base):
         name = body.get('name', utils.random_str())
         desc = body.get('desc', '')
 
-        repos = body.get('repos')
-        if not repos:
+        repos_id = body.get('repos_id')
+        if not repos_id:
             LOG.error('repos cannot be None!')
             return webob.exc.HTTPBadRequest()
 

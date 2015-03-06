@@ -75,6 +75,10 @@ class MercurialControl(object):
         local_repo_path = os.path.join(path, os.path.basename(repo_path))
         repo = mercurial.hg.repository(self._ui,
                                        local_repo_path)
+        LOG.info("repo: %s" % repo)
+        if isinstance(repo,unicode):
+            LOG.info("unicode object: %s" % repo)
+
         try:
             mercurial.commands.update(self._ui,
                                       repo,

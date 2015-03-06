@@ -18,6 +18,7 @@ jae/api/images.py
 jae/api/projects.py
 jae/api/repos.py
 jae/api/users.py
+jae/api/wsgi.py
 jae/common/__init__.py
 jae/common/cfg.py
 jae/common/client.py

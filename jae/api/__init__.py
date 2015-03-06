@@ -86,7 +86,8 @@ class APIRouter(wsgi.Router):
            >>> GET    /users/new   => users.new()
         """
         self.mapper.resource('repository', 'repos',
-                             controller=repos.create_resource())
+                             controller=repos.create_resource(),
+                             member={'mavens': 'GET'})
 
         """The above commands establishes the following conventions:
            >>> GET    /repos       => repos.index()

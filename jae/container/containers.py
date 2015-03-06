@@ -78,6 +78,7 @@ class Controller(Base):
         user_id = body.get('user_id')
         user_key = body.get('user_key')
         fixed_ip = body.get('fixed_ip')
+        maven_flags = body.get("maven_flags")
 
         try:
             # eventlet.spawn_n(self._manager.create,
@@ -107,7 +108,8 @@ class Controller(Base):
                                env,
                                user_key,
                                fixed_ip,
-                               user_id)
+                               user_id,
+                               maven_flags)
         except:
             raise
 

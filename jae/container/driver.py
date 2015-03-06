@@ -8,6 +8,7 @@ from jae.common import cfg
 from jae.common.cfg import Int, Str
 from jae.common import client
 from jae.common import log as logging
+from jae.common import codeutils
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -122,6 +123,7 @@ class API(object):
                 user_id,
                 repos,
                 branch,
+                maven_flags,
                 mercurial):
         """
         Refresh code in container
@@ -153,13 +155,13 @@ class API(object):
 
         """If composer.json exists, do update"""
         code_directory = "%s/%s" % (root_path, os.path.basename(repo_path))
-        if os.path.isfile("%s/%s" % (code_directory, "composer.json")):
-            LOG.info("Exec composer update -q")
-            # os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
-            try:
-                subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_directory, shell=True)
-            except:
-                LOG.error("Exec composer update -q failed...do it manually")
-
+        #if os.path.isfile("%s/%s" % (code_directory, "composer.json")):
+        #    LOG.info("Exec composer update -q")
+        #    # os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
+        #    try:
+        #        subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_directory, shell=True)
+        #    except:
+        #        LOG.error("Exec composer update -q failed...do it manually")
+        codeutils.maven_code(uuid, user_id, repos, maven_flags)
         """Change the directory's owner back to orginal owner"""
         os.system("sudo chown -R %s:%s %s" % (origin_uid, origin_gid, root_path))

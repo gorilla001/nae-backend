@@ -7,7 +7,9 @@ from jae.common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-def maven_code(uuid, user_id, repos, maven_flags, root_war):
+def maven_code(uuid, user_id, repos, maven_flags):
+    root_war = maven_flags.split("-JM")[1]
+    maven_flags = maven_flags.split("-JM")[0]
     code_path = "/home/jae/%s/%s/www/%s" % (user_id,uuid[:12],os.path.basename(repos))
 
     """Packaging..."""

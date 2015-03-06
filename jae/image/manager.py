@@ -48,7 +48,7 @@ class Manager(base.Base):
                id,
                name,
                desc,
-               repos,
+               repos_id,
                branch,
                user_id):
         """
@@ -62,39 +62,40 @@ class Manager(base.Base):
             :params user_id: the user_id used for creating home directory
             """
         LOG.info("BUILD +job build %s" % name)
-        repo_name = os.path.basename(repos)
+        repos = self.db.get_repo(repos_id)
+        repo_path = repos.repo_path
+        repo_name = os.path.basename(repo_path) 
         user_home = os.path.join(os.path.expandvars('$HOME'), user_id)
         if not os.path.exists(user_home):
             os.mkdir(user_home)
         if utils.repo_exist(user_id, repo_name):
             try:
-                self.mercurial.pull(user_home, repos)
+                self.mercurial.pull(user_home, repo_path)
             except RepoError:
                 self.db.update_image(id, status="CREATED-FAILED")
-                msg = "Pull repos %s failed: no such repos" % repos
+                msg = "Pull repos %s failed: no such repos" % repo_path
                 self.db.update_image(id, errmsg=msg)
                 LOG.error(msg)
                 LOG.info("BUILD -job build %s = ERR" % name)
                 return
         else:
             try:
-                self.mercurial.clone(user_home, repos)
+                self.mercurial.clone(user_home, repo_path)
             except RepoError:
                 self.db.update_image(id, status="CREATED-FAILED")
-                msg = "Clone repos %s failed: no such repos" % repos
+                msg = "Clone repos %s failed: no such repos" % repo_path
                 self.db.update_image(id, errmsg=msg)
                 LOG.error(msg)
                 LOG.info("BUILD -job build %s = ERR" % name)
                 return
         try:
-            self.mercurial.update(user_home, repos, branch)
+            self.mercurial.update(user_home, repo_path, branch)
         except:
+            raise
+            LOG.error("Update repos %s to branch %s failed" % (repo_path,branch))
             self.db.update_image(id, status="CREATED-FAILED")
-            msg = "Update repos %s to branch %s failed" % (repos, branch)
+            msg = "Update repos %s to branch %s failed" % (repo_path, branch)
             self.db.update_image(id, errmsg=msg)
-            LOG.error(msg)
-            LOG.info("BUILD -job build %s = ERR" % name)
-            return
 
         tar_path = utils.make_zip_tar(os.path.join(user_home, repo_name))
 

@@ -8,6 +8,7 @@ from jae import base
 from jae.common.timeutils import isotime
 from jae.common import log as logging
 from jae.common.response import Response, ResponseObject
+from jae.common import timeutils
 
 LOG = logging.getLogger(__name__)
 
@@ -51,6 +52,8 @@ class Controller(base.Base):
         for repo_instance in project_instance.repos:
             repo = {"id": repo_instance.id,
                     "repo_path": repo_instance.repo_path,
+                    "java": repo_instance.java,
+                    "path": repo_instance.path,
                     "created": isotime(repo_instance.created)}
             repo_list.append(repo)
 
@@ -68,13 +71,27 @@ class Controller(base.Base):
                      'status': image_instance.status}
             image_list.append(image)
 
+        """ get project container list """
+        container_list = []
+        for container_instance in project_instance.containers:
+            container = {'id': container_instance.id,
+                         'name': container_instance.name,
+                         'repos': container_instance.repos,
+                         'branch': container_instance.branch,
+                         'image_id': container_instance.image_id,
+                         'network': container_instance.fixed_ip,
+                         'created': timeutils.isotime(container_instance.created),
+                         'status': container_instance.status} 
+            container_list.append(container)
+
         project = {"id": project_instance.id,
                    "name": project_instance.name,
                    "desc": project_instance.desc,
                    "created": isotime(project_instance.created),
                    "users": user_list,
                    "repos": repo_list,
-                   "images": image_list}
+                   "images": image_list,
+                   "containers": container_list}
 
         # query=self.db_api.get_repos(project_id=id)
         #repos=[]

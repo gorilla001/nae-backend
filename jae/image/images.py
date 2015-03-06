@@ -40,7 +40,7 @@ class Controller(base.Base):
         name = body.get('name').lower()
         desc = body.get('desc')
         project_id = body.get('project_id')
-        repos = body.get('repos')
+        repos_id = body.get('repos_id')
         branch = body.get('branch')
         user_id = body.get('user_id')
         id = uuid.uuid4().hex
@@ -56,7 +56,7 @@ class Controller(base.Base):
             name=name,
             tag="latest",
             desc=desc,
-            repos=repos,
+            repos=repos_id,
             branch=branch,
             user_id=user_id,
             status='building'),
@@ -66,7 +66,7 @@ class Controller(base.Base):
                          id,
                          name,
                          desc,
-                         repos,
+                         repos_id,
                          branch,
                          user_id)
 

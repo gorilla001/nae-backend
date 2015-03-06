@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func, PrimaryKeyConstraint, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func, PrimaryKeyConstraint, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import text
 
@@ -32,7 +32,7 @@ class Project(BaseModel):
     __tablename__ = 'projects'
 
     id = Column(String(32), primary_key=True)
-    name = Column(String(50))
+    name = Column(String(50), unique=True, nullable=False)
     desc = Column(String(300), default='')
     created = Column(DateTime, default=func.now())
 
@@ -88,6 +88,7 @@ class Container(BaseModel):
     fixed_ip = Column(String(32))
     status = Column(String(100))
     errmsg = Column(String(500), default="")
+    flags = Column(String(500), default="")
 
 
 class User(BaseModel):
@@ -114,6 +115,8 @@ class Repos(BaseModel):
 
     id = Column(String(32), primary_key=True)
     repo_path = Column(String(300))
+    java = Column(Boolean, default=False)
+    path = Column(String(500))
     project_id = Column(String(32), ForeignKey('projects.id', ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('repos',
