@@ -123,7 +123,6 @@ class API(object):
                 user_id,
                 repos,
                 branch,
-                app_type, 
                 maven_flags,
                 mercurial):
         """
@@ -154,16 +153,11 @@ class API(object):
             LOG.error("Update code failed for code refresh...droped")
             return
 
-        if app_type == "java":
+        code_directory = "%s/%s" % (root_path, os.path.basename(repo_path))
+        if os.path.isfile("%s/%s" % (code_directory, "composer.json")):
+            codeutils.composer_code(uuid,user_id,repos)
+        else:
             codeutils.maven_code(uuid, user_id, repos, maven_flags)
-        if app_type == "php":
-            codeutils.composer_code(uuid, user_id, repos)
-
-        #code_directory = "%s/%s" % (root_path, os.path.basename(repo_path))
-        #if os.path.isfile("%s/%s" % (code_directory, "composer.json")):
-        #    codeutils.composer_code(uuid,user_id,repos)
-        #else:
-        #    codeutils.maven_code(uuid, user_id, repos, maven_flags)
         #    LOG.info("Exec composer update -q")
         #    # os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
         #    try:

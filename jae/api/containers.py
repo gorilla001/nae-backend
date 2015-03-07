@@ -159,9 +159,9 @@ class Controller(Base):
             LOG.error(msg)
             return webob.exc.HTTPForbidden(explanation=msg)
 
-        repos_id = body.pop('repos_id')
-        if not repos_id:
-            msg = "repos_id must be provided"
+        repos = body.pop('repos')
+        if not repos:
+            msg = "repos must be provided"
             LOG.error(msg)
             return webob.exc.HTTPBadRequest(explanaiton=msg)
 
@@ -199,7 +199,7 @@ class Controller(Base):
             instance = self._scheduler.run_instance(project_id,
                                                     user_id,
                                                     image_id,
-                                                    repos_id,
+                                                    repos,
                                                     branch,
                                                     app_type,
                                                     env,
