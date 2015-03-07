@@ -84,8 +84,10 @@ class Manager(base.Base):
 
         """
         """
+        repos = self.db.get_repo(repos_id)
+
         fixed_ip = self.network.get_fixed_ip()
-        project = repos.split("/")[-1]
+        project = repos.repo_path.split("/")[-1]
         ip_list = fixed_ip.split(".")
         project_template = "%s%s%s" % (project, ip_list[2], ip_list[3])
         hostname = CONF.hostname_template % (project_template, app_env)
@@ -136,7 +138,6 @@ class Manager(base.Base):
             root_path = utils.create_root_path(user_id, short_uuid)
             log_path = utils.create_log_path(root_path)
 
-            repos = self.db.get_repo(repos_id)
             repo_name = os.path.basename(repos.repo_path)
             if utils.repo_exist(root_path, repo_name):
                 try:
