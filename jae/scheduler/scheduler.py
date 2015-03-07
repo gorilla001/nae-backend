@@ -96,7 +96,7 @@ class SimpleScheduler(driver.Scheduler):
                       name=name,
                       env=env,
                       project_id=project_id,
-                      repos=repos,
+                      repos_id=repos_id,
                       branch=branch,
                       app_type=app_type,
                       image_id=image_id,
