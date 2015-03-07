@@ -166,7 +166,7 @@ class Manager(base.Base):
                 www_path = maven_flags
          
             if app_type == "java":
-                www_path = "/home/jm/wwww"
+                www_path = "/home/jm/www"
 
             log_pathes = ["/home/jm/logs", "/home/logs"]
 
