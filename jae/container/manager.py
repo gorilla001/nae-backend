@@ -231,6 +231,7 @@ class Manager(base.Base):
                 #            else:
                 #                project_type = "php"
 
+                LOG.info("APP_TYPE: %s" % app_type)
                 if app_type == "php":
                     codeutils.composer_code(uuid,
                                             user_id,
