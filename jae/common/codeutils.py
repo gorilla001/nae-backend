@@ -45,9 +45,11 @@ def maven_code(uuid, user_id, repos, maven_flags):
 
 def composer_code(uuid, user_id, repos):
     code_path = "/home/jae/%s/%s/www/%s" % (user_id,uuid[:12],os.path.basename(repos))
+    origin_uid, origin_gid = os.stat(code_path).st_uid, os.stat(code_path).st_gid 
     try:
         LOG.info("Running %s" % ("cd %s && sudo /usr/local/bin/composer update -q" % code_path))
         subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_path, shell=True) 
+        os.system("sudo chown -R %s:%s %s" % (origin_uid, origin_gid, code_path))
     except:
         LOG.error("Exec composer update -q failed...do it manually")
 
