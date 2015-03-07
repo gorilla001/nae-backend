@@ -231,13 +231,14 @@ class Manager(base.Base):
                 #            else:
                 #                project_type = "php"
 
-                LOG.info("APP_TYPE: %s" % app_type)
                 if app_type == "php":
+                    LOG.info("I am PHP project...")
                     codeutils.composer_code(uuid,
                                             user_id,
                                             repos)
       
                 if app_type == "java":
+                    LOG.info("I am JAVA Project...")
                     codeutils.maven_code(uuid,
                                          user_id,
                                          repos,
