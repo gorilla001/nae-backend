@@ -123,7 +123,7 @@ def generate_docker_file(is_java):
             docker_file.write("FROM %s/%s%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4","java"))
             docker_file.write("EXPOSE 8080 22\n")
         else:
-            docker_file.write("FROM %s/%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4"))
+            docker_file.write("FROM %s/%s%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4","php"))
             docker_file.write("EXPOSE 80 22\n")
     return temp_path
 
