@@ -107,6 +107,7 @@ class Manager(base.Base):
                           "APP_TYPE=%s" % app_type,
                           "APP_ENV=%s" % app_env,
                           "SSH_KEY=%s" % ssh_key,
+                          "APP_PATH=%s" % maven_flags,
                           "APP_NAME=%s" % repos.split("/")[-1]],
                   'Cmd': [CONF.init_script],
                   'Dns': CONF.dns.split(","),
