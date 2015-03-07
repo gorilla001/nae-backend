@@ -107,6 +107,7 @@ class Manager(base.Base):
                           "APP_TYPE=%s" % app_type,
                           "APP_ENV=%s" % app_env,
                           "SSH_KEY=%s" % ssh_key,
+                          "APP_PATH=%s" % maven_flags,
                           "APP_NAME=%s" % repos.split("/")[-1]],
                   'Cmd': [CONF.init_script],
                   'Dns': CONF.dns.split(","),
@@ -161,13 +162,18 @@ class Manager(base.Base):
             
 
             """Begin to start the container"""
-            www_path = ["/home/www", "/home/jm/www"]
+            #www_path = ["/home/www", "/home/jm/www"]
+            if app_type == "php":
+                www_path = maven_flags
+         
+            if app_type == "java":
+                www_path = "/home/jm/www"
+
             log_pathes = ["/home/jm/logs", "/home/logs"]
 
             kwargs = {
                 'Binds':
-                    ['%s:%s' % (root_path, www_path[0]),
-                     '%s:%s' % (root_path, www_path[1]),
+                    ['%s:%s' % (root_path, www_path),
                      '%s:%s' % (log_path, log_pathes[0]),
                      '%s:%s' % (log_path, log_pathes[1]),
                     ],
@@ -227,11 +233,13 @@ class Manager(base.Base):
                 #                project_type = "php"
 
                 if app_type == "php":
+                    LOG.info("I am PHP project...")
                     codeutils.composer_code(uuid,
                                             user_id,
                                             repos)
       
                 if app_type == "java":
+                    LOG.info("I am JAVA Project...")
                     codeutils.maven_code(uuid,
                                          user_id,
                                          repos,
@@ -395,12 +403,14 @@ class Manager(base.Base):
             repos = query.repos
             branch = query.branch
             maven_flags=query.flags
+            app_type=query.app_type
             try:
                 self.driver.refresh(uuid=uuid,
                                     user_id=user_id,
                                     repos=repos,
                                     branch=branch,
                                     maven_flags=maven_flags,
+                                    app_type=app_type,
                                     mercurial=self.mercurial)
                 self.db.update_container(id, status="running")
             except:

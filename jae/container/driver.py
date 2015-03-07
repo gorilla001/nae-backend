@@ -140,7 +140,10 @@ class API(object):
            change it back after refresh"""
         origin_uid, origin_gid = os.stat(root_path).st_uid, os.stat(root_path).st_gid
         current_uid, current_gid = os.getuid(), os.getgid()
+        
+        LOG.info("Change owner of root_path %s to %s:%s" % (root_path, current_uid, current_gid)) 
         os.system("sudo chown -R %s:%s %s" % (current_uid, current_gid, root_path))
+
         repo_path = repos
         try:
             mercurial.pull(root_path, repo_path)
@@ -171,4 +174,5 @@ class API(object):
         #    except:
         #        LOG.error("Exec composer update -q failed...do it manually")
         """Change the directory's owner back to orginal owner"""
+        LOG.info("Change owner of root_path %s back to %s:%s" % (root_path, origin_uid, origin_gid)) 
         os.system("sudo chown -R %s:%s %s" % (origin_uid, origin_gid, root_path))
