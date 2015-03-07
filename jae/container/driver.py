@@ -138,7 +138,8 @@ class API(object):
 
         """For escape permission, we first change the code directory owner to current user, and
            change it back after refresh"""
-        origin_uid, origin_gid = os.stat(root_path).st_uid, os.stat(root_path).st_gid
+        code_path = "%s/%s" % (root_path, os.path.basename(repos))
+        origin_uid, origin_gid = os.stat(code_path).st_uid, os.stat(code_path).st_gid
         current_uid, current_gid = os.getuid(), os.getgid()
         
         LOG.info("Change owner of root_path %s to %s:%s" % (root_path, current_uid, current_gid)) 
