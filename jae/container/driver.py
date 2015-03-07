@@ -153,15 +153,16 @@ class API(object):
             LOG.error("Update code failed for code refresh...droped")
             return
 
-        """If composer.json exists, do update"""
         code_directory = "%s/%s" % (root_path, os.path.basename(repo_path))
-        #if os.path.isfile("%s/%s" % (code_directory, "composer.json")):
+        if os.path.isfile("%s/%s" % (code_directory, "composer.json")):
+            codeutils.composer_code(uuid,user_id,repos)
+        else:
+            codeutils.maven_code(uuid, user_id, repos, maven_flags)
         #    LOG.info("Exec composer update -q")
         #    # os.system("cd %s && sudo /usr/local/bin/composer update -q" % code_directory)
         #    try:
         #        subprocess.check_call("cd %s && sudo /usr/local/bin/composer update -q" % code_directory, shell=True)
         #    except:
         #        LOG.error("Exec composer update -q failed...do it manually")
-        codeutils.maven_code(uuid, user_id, repos, maven_flags)
         """Change the directory's owner back to orginal owner"""
         os.system("sudo chown -R %s:%s %s" % (origin_uid, origin_gid, root_path))

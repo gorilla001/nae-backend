@@ -91,13 +91,12 @@ class Manager(base.Base):
         try:
             self.mercurial.update(user_home, repo_path, branch)
         except:
-            raise
             LOG.error("Update repos %s to branch %s failed" % (repo_path,branch))
             self.db.update_image(id, status="CREATED-FAILED")
             msg = "Update repos %s to branch %s failed" % (repo_path, branch)
             self.db.update_image(id, errmsg=msg)
 
-        tar_path = utils.make_zip_tar(os.path.join(user_home, repo_name))
+        tar_path = utils.make_zip_tar(os.path.join(user_home, repo_name),is_java=repos.java)
 
         with open(tar_path, 'rb') as data:
             status = self.driver.build(name, data)

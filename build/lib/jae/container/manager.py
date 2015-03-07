@@ -231,7 +231,6 @@ class Manager(base.Base):
                                             user_id,
                                             repos)
       
-                print "maven_flags",maven_flags
                 if app_type == "java":
                     codeutils.maven_code(uuid,
                                          user_id,
