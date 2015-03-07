@@ -173,7 +173,7 @@ class Manager(base.Base):
 
             kwargs = {
                 'Binds':
-                    ['%s:%s' % (root_path, www_path),
+                    ['%s/%s:%s' % (root_path, os.path.basename(repos), www_path),
                      '%s:%s' % (log_path, log_pathes[0]),
                      '%s:%s' % (log_path, log_pathes[1]),
                     ],
