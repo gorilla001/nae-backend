@@ -89,6 +89,7 @@ class Container(BaseModel):
     status = Column(String(100))
     errmsg = Column(String(500), default="")
     flags = Column(String(500), default="")
+    app_type = Column(String(10),default="")
 
 
 class User(BaseModel):

@@ -400,12 +400,14 @@ class Manager(base.Base):
             repos = query.repos
             branch = query.branch
             maven_flags=query.flags
+            app_type=query.app_type
             try:
                 self.driver.refresh(uuid=uuid,
                                     user_id=user_id,
                                     repos=repos,
                                     branch=branch,
                                     maven_flags=maven_flags,
+                                    app_type=app_type,
                                     mercurial=self.mercurial)
                 self.db.update_container(id, status="running")
             except:

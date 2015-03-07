@@ -88,7 +88,8 @@ class SimpleScheduler(driver.Scheduler):
                         branch,
                         image_id,
                         user_id,
-                        host_id)
+                        host_id,
+                        app_type)
         try:
             self.post(host,
                       port,
@@ -167,7 +168,8 @@ class SimpleScheduler(driver.Scheduler):
                    branch,
                    image_id,
                    user_id,
-                   host_id):
+                   host_id,
+                   app_type):
         """creating db entry for creation"""
         project = self.db.get_project(project_id)
         if not project:
@@ -182,6 +184,7 @@ class SimpleScheduler(driver.Scheduler):
             image_id=image_id,
             user_id=user_id,
             host_id=host_id,
+            app_type=app_type,
             status="building"),
                               project=project)
 
