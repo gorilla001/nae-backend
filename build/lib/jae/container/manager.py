@@ -46,7 +46,7 @@ class Manager(base.Base):
                image_uuid,
                repository,
                tag,
-               repos,
+               repos_id,
                branch,
                app_type,
                app_env,
@@ -136,32 +136,37 @@ class Manager(base.Base):
             root_path = utils.create_root_path(user_id, short_uuid)
             log_path = utils.create_log_path(root_path)
 
-            repo_name = os.path.basename(repos)
+            repos = self.db.get_repo(repos_id)
+            repo_name = os.path.basename(repos.repo_path)
             if utils.repo_exist(root_path, repo_name):
                 try:
-                    self.mercurial.pull(root_path, repos)
+                    self.mercurial.pull(root_path, repos.repo_path)
                 except:
-                    LOG.error("Pull code from %s failed" % repos)
+                    LOG.error("Pull code from %s failed" % repos.repo_path)
                     LOG.error(traceback.format_exc())
                     return
             else:
                 try:
-                    self.mercurial.clone(root_path, repos)
+                    self.mercurial.clone(root_path, repos.repo_path)
                 except:
-                    LOG.error("Clone code from %s failed" % repos)
+                    LOG.error("Clone code from %s failed" % repos.repo_path)
                     LOG.error(traceback.format_exc())
                     return
             try:
-                self.mercurial.update(root_path, repos, branch)
+                self.mercurial.update(root_path, repos.repo_path, branch)
             except:
-                LOG.error("Update repos %s to branch %s failed" % (repos, branch))
+                LOG.error("Update repos %s to branch %s failed" % (repos.repo_path, branch))
                 LOG.error(traceback.format_exc())
                 return
 
             
 
             """Begin to start the container"""
-            www_path = ["/home/www", "/home/jm/www"]
+            if app_type == "php":
+                www_path = maven_flags
+            if app_type == "java":
+                www_path = "/home/jm/www" 
+            #www_path = ["/home/www", "/home/jm/www"]
             log_pathes = ["/home/jm/logs", "/home/logs"]
 
             kwargs = {
@@ -229,12 +234,12 @@ class Manager(base.Base):
                 if app_type == "php":
                     codeutils.composer_code(uuid,
                                             user_id,
-                                            repos)
+                                            repos.repo_path)
       
                 if app_type == "java":
                     codeutils.maven_code(uuid,
                                          user_id,
-                                         repos,
+                                         repos.repo_path,
                                          maven_flags)
 
                 self.db.update_container(id, flags=maven_flags)
@@ -392,14 +397,21 @@ class Manager(base.Base):
         if query:
             uuid = query.uuid
             user_id = query.user_id
-            repos = query.repos
+            repos_id = query.repos
             branch = query.branch
             maven_flags=query.flags
+            repos = self.db.get_repo(repos_id)
+            app_type = repos.java
+            if app_type:
+                app_type = java
+            else:
+                app_type = php
             try:
                 self.driver.refresh(uuid=uuid,
                                     user_id=user_id,
-                                    repos=repos,
+                                    repos=repos.repo_path,
                                     branch=branch,
+                                    app_type=app_type,
                                     maven_flags=maven_flags,
                                     mercurial=self.mercurial)
                 self.db.update_container(id, status="running")
