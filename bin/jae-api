@@ -28,7 +28,7 @@ def init_db():
         project_name = item["name"]
         project_desc = item["name"]
         project_id = uuid.uuid4().hex
-        LOG.info("Add project %s..." % name)
+        LOG.info("Add project %s..." % project_name)
         try:
             DB.add_project(dict(
                 id=project_id,
