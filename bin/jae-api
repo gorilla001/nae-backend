@@ -10,7 +10,7 @@ from jae import service
 from jae.common import cfg
 from jae.common import log as logging
 from jae import db
-import sqlalchemy.exc
+from sqlalchemy.exc IntegrityError
 
 DB = db.API()
 
@@ -35,7 +35,7 @@ def init_db():
                 name=name,
                 desc=desc))
             LOG.info("Done")
-        except sqlalchemy.exc.IntegrityError :
+        except IntegrityError :
             LOG.info("Project %s has already added" % name)
     
         """Add User"""
