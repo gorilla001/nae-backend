@@ -23,9 +23,9 @@ data = requests.get(SWAN_ENDPOINT)
 
 def init_db():
     LOG.info("Begin project init...")
-    DB.truncate_projects()
-    DB.truncate_users()
-    DB.truncate_repos()
+    #DB.truncate_projects()
+    #DB.truncate_users()
+    #DB.truncate_repos()
 
     for item in data.json():
         """Add Project"""
@@ -43,95 +43,107 @@ def init_db():
             LOG.info("Project %s has already added" % project_name)
     
         """Add User"""
+
+        project = DB.get_project_by_name(project_name)
+        project_user = [ user.name for user in project.users]
+
+        project_repos = [ repo.repo_path for repo in project.repos]
+
+        """Add User"""
         for user in item["dev"]:
-            name = user 
-            email = user + "@jumei.com" 
-            role_id = 1 
-            project = DB.get_project_by_name(project_name)
-           
-            LOG.info("Add user %s..." % name)
-            try:
-                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
-                                                 name=name,
-                                                 email=email,
-                                                 role_id=role_id),
-                                            project=project)
-                LOG.info("Done")
-            except IntegrityError, err:
-                LOG.error(err)
-    
+            if user not in project_user:    
+                name = user
+                email = user + "@jumei.com"
+                role_id = 1
+                project = DB.get_project_by_name(project_name)
+
+                LOG.info("Add user %s..." % name)
+                try:
+                    user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                     name=name,
+                                                     email=email,
+                                                     role_id=role_id),
+                                                project=project)
+                    LOG.info("Done")
+                except IntegrityError, err:
+                    LOG.error(err)
+
         for user in item["test"]:
-            name = user 
-            email = user + "@jumei.com" 
-            role_id = 2 
-            project = DB.get_project_by_name(project_name)
-    
-            LOG.info("Add user %s..." % name)
-            try:
-                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
-                                                 name=name,
-                                                 email=email,
-                                                 role_id=role_id),
-                                            project=project)
-                LOG.info("Done")
-            except IntegrityError, err:
-                LOG.error(err)
-    
+            if user not in project_user:    
+                name = user
+                email = user + "@jumei.com"
+                role_id = 2
+                project = DB.get_project_by_name(project_name)
+
+                LOG.info("Add user %s..." % name)
+                try:
+                    user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                     name=name,
+                                                     email=email,
+                                                     role_id=role_id),
+                                                project=project)
+                    LOG.info("Done")
+                except IntegrityError, err:
+                    LOG.error(err)
+
         for user in item["sa"]:
-            name = user 
-            email = user + "@jumei.com" 
-            role_id = 0 
-            project = DB.get_project_by_name(project_name)
-    
-            LOG.info("Add user %s..." % name)
-            try:
-                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
-                                                 name=name,
-                                                 email=email,
-                                                 role_id=role_id),
-                                            project=project)
-                LOG.info("Done")
-            except IntegrityError, err:
-                LOG.error(err)
-    
+            if user not in project_user:    
+                name = user
+                email = user + "@jumei.com"
+                role_id = 0
+                project = DB.get_project_by_name(project_name)
+
+                LOG.info("Add user %s..." % name)
+                try:
+                    user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                     name=name,
+                                                     email=email,
+                                                     role_id=role_id),
+                                                project=project)
+                    LOG.info("Done")
+                except IntegrityError, err:
+                    LOG.error(err)
+
         for user in item["pm"]:
-            name = user 
-            email = user + "@jumei.com" 
-            role_id = 3 
-            project = DB.get_project_by_name(project_name)
-    
-            LOG.info("Add user %s..." % name)
-            try:
-                user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
-                                                 name=name,
-                                                 email=email,
-                                                 role_id=role_id),
-                                            project=project)
-                LOG.info("Done")
-            except IntegrityError, err:
-                LOG.error(err)
-    
+            if user not in project_user:    
+                name = user
+                email = user + "@jumei.com"
+                role_id = 3
+                project = DB.get_project_by_name(project_name)
+
+                LOG.info("Add user %s..." % name)
+                try:
+                    user_ref = DB.add_user(dict(id=uuid.uuid4().hex,
+                                                     name=name,
+                                                     email=email,
+                                                     role_id=role_id),
+                                                project=project)
+                    LOG.info("Done")
+                except IntegrityError, err:
+                    LOG.error(err)
+
         """Add Repos"""
         for repos in item["codes"]:
             repo_path = repos["repo"]
-            path = repos["path"]  
-            java = repos["java"]
-            project = DB.get_project_by_name(project_name)
-    
-            if not project:
-                LOG.error("Add repos: no such project %s" % project_id)
-                sys.exit(2)
-            LOG.info("Add repos %s..." % repo_path)
-            try:
-                DB.add_repo(dict(
-                    id=uuid.uuid4().hex,
-                    repo_path=repo_path,
-                    path=path,
-                    java=java),
-                    project=project)
-                LOG.info("Done")
-            except IntegrityError as ex:
-                LOG.error(ex)
+            if repo_path not in project_repos:
+                path = repos["path"]
+                java = repos["java"]
+                project = DB.get_project_by_name(project_name)
+
+                if not project:
+                    LOG.error("Add repos: no such project %s" % project_id)
+                    sys.exit(2)
+                LOG.info("Add repos %s..." % repo_path)
+                try:
+                    DB.add_repo(dict(
+                        id=uuid.uuid4().hex,
+                        repo_path=repo_path,
+                        path=path,
+                        java=java),
+                        project=project)
+                    LOG.info("Done")
+                except IntegrityError as ex:
+                    LOG.error(ex)
 
 if __name__ == '__main__':
     cfg.parse_config()
