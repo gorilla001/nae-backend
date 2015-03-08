@@ -10,7 +10,7 @@ from jae import service
 from jae.common import cfg
 from jae.common import log as logging
 from jae import db
-from sqlalchemy.exc IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 DB = db.API()
 
