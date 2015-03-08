@@ -122,7 +122,14 @@ def get_project(id):
 def get_project_by_name(name):
     return model_query(models.Project, name=name).first()
 
+def truncate_projects():
+    return model_query(models.Project).delete() 
 
+def truncate_users():
+    return model_query(models.User).delete() 
+
+def truncate_repos():
+    return model_query(models.Repos).delete() 
 
 def delete_project(id):
     return model_query(models.Project, id=id).delete()

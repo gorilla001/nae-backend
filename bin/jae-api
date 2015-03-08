@@ -23,6 +23,10 @@ data = requests.get(SWAN_ENDPOINT)
 
 def init_db():
     LOG.info("Begin project init...")
+    DB.truncate_projects()
+    DB.truncate_users()
+    DB.truncate_repos()
+
     for item in data.json():
         """Add Project"""
         project_name = item["name"]
