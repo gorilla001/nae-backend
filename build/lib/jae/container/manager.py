@@ -90,6 +90,7 @@ class Manager(base.Base):
         project_template = "%s%s%s" % (project, ip_list[2], ip_list[3])
         hostname = CONF.hostname_template % (project_template, app_env)
 
+        image_name = "%s/%s:%s" % (CONF.image_registry_endpoint,repository,tag)
         port = resp.json()['Config']['ExposedPorts']
         kwargs = {'Hostname': hostname.lower(),
                   'User': '',
@@ -111,7 +112,8 @@ class Manager(base.Base):
                           "APP_NAME=%s" % repos.split("/")[-1]],
                   'Cmd': [CONF.init_script],
                   'Dns': CONF.dns.split(","),
-                  'Image': image_uuid,
+                  #'Image': image_uuid,
+                  'Image': image_name,
                   'Volumes': {},
                   'VolumesFrom': '',
                   'ExposedPorts': port,
