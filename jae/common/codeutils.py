@@ -23,7 +23,7 @@ def maven_code(uuid, user_id, repos, maven_flags):
         LOG.error("maven packaging failed...skip")
         return
 
-    new_root_war = "/home/jm/www/%s/%s" % (os.path.basename(repos),root_war) 
+    new_root_war = "/home/jm/www/%s" % root_war 
     """Restart tomcat..."""
     try:
         """Get container's pid namespace"""
