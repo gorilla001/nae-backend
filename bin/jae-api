@@ -37,7 +37,6 @@ def init_db():
             LOG.info("Done")
         except sqlalchemy.exc.IntegrityError :
             LOG.info("Project %s has already added" % name)
-            continue
     
         """Add User"""
         for user in item["dev"]:
@@ -57,7 +56,6 @@ def init_db():
                 LOG.info("Done")
             except IntegrityError, err:
                 LOG.error(err)
-                continue
     
         for user in item["test"]:
             name = user 
@@ -76,7 +74,6 @@ def init_db():
                 LOG.info("Done")
             except IntegrityError, err:
                 LOG.error(err)
-                continue
     
         for user in item["sa"]:
             name = user 
@@ -95,7 +92,6 @@ def init_db():
                 LOG.info("Done")
             except IntegrityError, err:
                 LOG.error(err)
-                continue
     
         for user in item["pm"]:
             name = user 
@@ -114,7 +110,6 @@ def init_db():
                 LOG.info("Done")
             except IntegrityError, err:
                 LOG.error(err)
-                continue
     
         """Add Repos"""
         for repos in item["codes"]:
@@ -137,7 +132,6 @@ def init_db():
                 LOG.info("Done")
             except IntegrityError as ex:
                 LOG.error(ex)
-                continue
 
 if __name__ == '__main__':
     cfg.parse_config()
