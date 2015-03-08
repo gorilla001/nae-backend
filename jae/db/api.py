@@ -119,6 +119,10 @@ def get_project(id):
     #
     return model_query(models.Project, id=id).first()
 
+def get_project_by_name(name):
+    return model_query(models.Project, name=name).first()
+
+
 
 def delete_project(id):
     return model_query(models.Project, id=id).delete()
