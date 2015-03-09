@@ -398,6 +398,8 @@ class Manager(base.Base):
 
         """
         LOG.info("REFRESH +job refresh %s" % id)
+        self.db.update_container(id, status="refreshing")
+
         query = self.db.get_container(id)
         if query:
             uuid = query.uuid
