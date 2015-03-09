@@ -169,7 +169,8 @@ def host_init(uuid):
 
         """Startup Host Init"""
         LOG.info("Init host")
-        subprocess.check_call("sudo nsenter -t %s --mount --uts --ipc --net --pid -- /usr/local/bin/host.init" % pid.strip(), shell=True)
+        #subprocess.check_call("sudo nsenter -t %s --mount --uts --ipc --net --pid -- /usr/local/bin/host.init" % pid.strip(), shell=True)
+        subprocess.check_call("sudo docker exec %s /usr/local/bin/host.init" % uuid, shell=True)
     except subprocess.CalledProcessError:
         """Raise the exception, the caller will be catch it"""
         raise
