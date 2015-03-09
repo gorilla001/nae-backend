@@ -37,8 +37,11 @@ def maven_code(uuid, user_id, repos, maven_flags):
         LOG.info("/etc/init.d/tomcat stop")
         subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- /etc/init.d/tomcat stop" % pid.strip(), shell=True)
 
-        LOG.info("rm -rf /home/jm/tomcat/webapps/*")
-        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- rm -rf /home/jm/tomcat/webapps/*" % pid.strip(), shell=True)
+        LOG.info("rm -rf /home/jm/tomcat/webapps")
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- rm -rf /home/jm/tomcat/webapps" % pid.strip(), shell=True)
+
+        LOG.info("mkdir /home/jm/tomcat/webapps")
+        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- mkdir /home/jm/tomcat/webapps" % pid.strip(), shell=True)
    
         LOG.info("cp %s /home/jm/tomcat/webapps/ROOT.war" % new_root_war)
         subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- cp %s /home/jm/tomcat/webapps/ROOT.war" % (pid.strip(),new_root_war), shell=True)
