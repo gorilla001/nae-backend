@@ -29,7 +29,7 @@ class MercurialControl(object):
         source = repo_path
         dest = os.path.join(root_path, os.path.basename(repo_path))
         try:
-            LOG.debug('Clone docker file from %s' % repo_path)
+            LOG.debug('Clone file from %s' % repo_path)
             mercurial.commands.clone(self._ui,
                                      str(source),
                                      str(dest),
@@ -75,10 +75,6 @@ class MercurialControl(object):
         local_repo_path = os.path.join(path, os.path.basename(repo_path))
         repo = mercurial.hg.repository(self._ui,
                                        local_repo_path)
-        LOG.info("repo: %s" % repo)
-        if isinstance(repo,unicode):
-            LOG.info("unicode object: %s" % repo)
-
         try:
             mercurial.commands.update(self._ui,
                                       repo,
