@@ -11,12 +11,12 @@ from jae.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
+
 class Controller(base.Base):
-
     def __init__(self):
-	super(Controller,self).__init__()
+        super(Controller, self).__init__()
 
-    def index(self,request):
+    def index(self, request):
         """
         List all repos by `project_id`.
    
@@ -27,24 +27,24 @@ class Controller(base.Base):
          
         If no repos was found, a empty list will be returned.
         """
-        repos=[]
+        repos = []
         project_id = request.GET.get('project_id')
         project = self.db.get_project(project_id)
         if not project:
             LOG.error("no such project %s" % project_id)
-            return webob.exc.HTTPNotFound() 
+            return webob.exc.HTTPNotFound()
 
-        for item in project.repos: 
-            repo={
-                'id':item.id,
-                'repo_path':item.repo_path,
-                'created':isotime(item.created),
-                }
+        for item in project.repos:
+            repo = {
+                'id': item.id,
+                'repo_path': item.repo_path,
+                'created': isotime(item.created),
+            }
             repos.append(repo)
 
-        return ResponseObject(repos) 
+        return ResponseObject(repos)
 
-    def show(self,request,id):
+    def show(self, request, id):
         """
         Show the repo detail according repo `id`.
  
@@ -58,57 +58,57 @@ class Controller(base.Base):
         """
         query = self.db.get_repo(id)
         if query is None:
-	    return {}
+            return {}
         repo = {
-            'id':query.id,
-            'repo_path':query.repo_path,
-            'project_id':query.project_id,
-            'created':isotime(query.created)
+            'id': query.id,
+            'repo_path': query.repo_path,
+            'project_id': query.project_id,
+            'created': isotime(query.created)
         }
 
-	return ResponseObject(repo)
+        return ResponseObject(repo)
 
-    def create(self,request,body):
+    def create(self, request, body):
         """create repos by body dict."""
         schema = {
             "type": "object",
             "properties": {
-                "project_id" : { "type": "string",
-                                 "minLength": 32,
-                                 "maxLength": 64,
-                                 "pattern": "^[a-zA-Z0-9]*$",
-                 },
-                "repo_path" : { "type": "string",
-                                "minLength": 1,
-                                "maxLength": 255
+                "project_id": {"type": "string",
+                               "minLength": 32,
+                               "maxLength": 64,
+                               "pattern": "^[a-zA-Z0-9]*$",
+                },
+                "repo_path": {"type": "string",
+                              "minLength": 1,
+                              "maxLength": 255
                 }
-             },
-             "required" : ["project_id","repo_path"]
+            },
+            "required": ["project_id", "repo_path"]
         }
         try:
-            self.validator(body,schema)
+            self.validator(body, schema)
         except:
             raise
 
-        project_id=body.pop('project_id')
-        repo_path=body.pop('repo_path')
+        project_id = body.pop('project_id')
+        repo_path = body.pop('repo_path')
 
         project = self.db.get_project(id=project_id)
         if not project:
             LOG.error("Add repos: no such project %s" % project_id)
             return webob.exc.HTTPNotFound()
-	try:
+        try:
             self.db.add_repo(dict(
-		id = uuid.uuid4().hex,
-                repo_path= repo_path),
-                project = project)
+                id=uuid.uuid4().hex,
+                repo_path=repo_path),
+                             project=project)
         except IntegrityError as ex:
-	    LOG.error(ex)
-	    return webob.exc.HTTPInternalServerError() 
+            LOG.error(ex)
+            return webob.exc.HTTPInternalServerError()
 
-        return webob.exc.HTTPCreated() 
+        return webob.exc.HTTPCreated()
 
-    def delete(self,request,id):
+    def delete(self, request, id):
         """delete repos by id."""
         try:
             self.db.delete_repo(id)
@@ -117,6 +117,7 @@ class Controller(base.Base):
 
         """return webob.exc.HTTPNoContent seems more better."""
         return webob.exc.HTTPNoContent()
+
 
 def create_resource():
     return wsgi.Resource(Controller())

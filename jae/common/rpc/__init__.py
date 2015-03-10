@@ -8,5 +8,5 @@ LOG = logging.getLogger(__name__)
 
 
 def create_connection(new=True):
-    """Create a new connection to the message bus""" 
-    return kombu.create_connection(CONF,new=new)
+    """Create a new connection to the message bus"""
+    return kombu.create_connection(CONF, new=new)

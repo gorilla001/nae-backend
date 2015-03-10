@@ -14,8 +14,10 @@ import itertools
 
 from jae.common.rpc import base
 
+
 class Pool(pools.Pool):
     """Class that implements a Pool of Connections."""
+
     def __init__(self, conf, connection_cls, *args, **kwargs):
         self.connection_cls = connection_cls
         self.conf = conf
@@ -25,11 +27,13 @@ class Pool(pools.Pool):
         super(Pool, self).__init__(*args, **kwargs)
 
     def create(self):
-        return self.connection_cls(self.conf) 
+        return self.connection_cls(self.conf)
+
 
 class ConsumerBase(object):
     """Consumer base class"""
-    def __init__(self,channel, callback, tag, **kwargs):
+
+    def __init__(self, channel, callback, tag, **kwargs):
         self.callback = callback
         self.tag = str(tag)
         self.channel = channel
@@ -37,7 +41,7 @@ class ConsumerBase(object):
         self.queue = kombu.entity.Queue(**self.kwargs)
         self.queue.declare()
 
-    def consume(self,*args,**kwargs):
+    def consume(self, *args, **kwargs):
         """"""
         options = {'consumer_tag': self.tag}
         options['nowait'] = kwargs.get('nowait', False)
@@ -55,15 +59,16 @@ class ConsumerBase(object):
 
         self.queue.consume(*args, callback=_callback, **options)
 
+
 class FanoutConsumer(ConsumerBase):
     """Consumer class for 'fanout'"""
-    
+
     def __init__(self, conf, channel, topic, callback, tag, **kwargs):
         """Init a 'fanout' consumer"""
         unique = uuid.uuid4().hex
         exchange_name = '%s_fanout' % topic
         queue_name = '%s_fanout_%s' % (topic, unique)
-        
+
         # Default options
         options = {'durable': False,
                    'auto_delete': True,
@@ -79,8 +84,9 @@ class FanoutConsumer(ConsumerBase):
                                              routing_key=topic,
                                              **options)
 
+
 class Connection(object):
-    def __init__(self,conf):
+    def __init__(self, conf):
         self.conf = conf
         self.max_retries = 5
         self.retry_interval = 5.0
@@ -95,14 +101,14 @@ class Connection(object):
         params.setdefault('password', self.conf.rabbit_password)
         params.setdefault('virtual_host', self.conf.rabbit_virtual_host)
 
-        self.params = params        
+        self.params = params
         self.connection = None
         self.channel = None
 
         self.reconnect()
 
     def _connect(self):
-        """Connect to rabbit"""        
+        """Connect to rabbit"""
         if self.connection is not None:
             LOG.info("Connecting to AMQP server on %(hostname)s:%(port)d" % self.params)
             try:
@@ -110,86 +116,96 @@ class Connection(object):
             except:
                 pass
             self.connection = None
-         self.connection = kombu.connection.BrokerConnection(**self.params)
-         self.connection.connect()
-         self.channel = self.connection.channel()
-         
-    def reconnect(self):
-        """"""
-        attempt = 0
-        while True:
-            attempt += 1
-            try:
-                self._connect()
-                return
-            except:
-                 pass
+        self.connection = kombu.connection.BrokerConnection(**self.params)
+        self.connection.connect()
+        self.channel = self.connection.channel()
 
-            if attempt >= self.max_retries:
-                LOG.info("Connecting to AMQP server on %(hostname)s:%(port)d falied" % self.params)
-                sys.exit(1)
-            time.sleep(self.retry_interval)
 
-    def ensure(self,error_callback,method,*args,**kwargs):
-        """Make sure the method was invoked succeed""" 
-        while True:
-            try:
-                return method(*args, **kwargs)
-            except Exception as ex:
-                error_callback(ex)
+def reconnect(self):
+    """"""
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            self._connect()
+            return
+        except:
+            pass
 
-            self.reconnect()
+        if attempt >= self.max_retries:
+            LOG.info("Connecting to AMQP server on %(hostname)s:%(port)d falied" % self.params)
+            sys.exit(1)
+        time.sleep(self.retry_interval)
 
-    def consume_in_thread(self):
-        """Start consume in a greenthread"""
-        def _consumer_thread():
-            try:
-                self.consume()
-            except greenlet.GreenletExit:
-                return
-        if self.consumer_thread is None:          
-            self.consumer_thread = eventlet.spawn(_consumer_thread)
-        return self.consumer_thread
 
-    def declare_consumer(self, consumer_cls, topic, callback):
-        """Create a Consumer using the class that was passed in and
-           add it to our list of consumers"""
+def ensure(self, error_callback, method, *args, **kwargs):
+    """Make sure the method was invoked succeed"""
+    while True:
+        try:
+            return method(*args, **kwargs)
+        except Exception as ex:
+            error_callback(ex)
 
-        def _connect_error(exc):
-            log_info = {'topic': topic, 'err_str': str(exc)}
-            LOG.error("Failed to declare consumer for topic '%(topic)s': %(err_str)s" % log_info)
+        self.reconnect()
 
-        def _declare_consumer():
-            consumer = consumer_cls(self.conf, self.channel, topic, callback,self.consumer_num.next())
-            self.consumers.append(consumer)
-            return consumer
 
-        return self.ensure(_connect_error, _declare_consumer)
+def consume_in_thread(self):
+    """Start consume in a greenthread"""
 
-    def declare_fanout_consumer(self, topic, callback):
-        """Create a 'fanout' consumer"""
-        self.declare_consumer(FanoutConsumer, topic, callback)
+    def _consumer_thread():
+        try:
+            self.consume()
+        except greenlet.GreenletExit:
+            return
 
-    def declare_topic_consumer(self, topic, callback):
-        """Create a 'topic' consumer"""
-        self.declare_consumer(TopicConsumer, topic, callback)
+    if self.consumer_thread is None:
+        self.consumer_thread = eventlet.spawn(_consumer_thread)
+    return self.consumer_thread
 
-    def create_consumer(self, topic, proxy, fanout=False):
-        """Create a consumer that calls a method in a proxy object"""
-        callback=ProxyCallback(proxy)
-        if fanout:
-            self.declare_fanout_consumer(topic, callback)        
-        else:
-            self.declare_topic_consumer(topic, callback)
+
+def declare_consumer(self, consumer_cls, topic, callback):
+    """Create a Consumer using the class that was passed in and
+       add it to our list of consumers"""
+
+    def _connect_error(exc):
+        log_info = {'topic': topic, 'err_str': str(exc)}
+        LOG.error("Failed to declare consumer for topic '%(topic)s': %(err_str)s" % log_info)
+
+    def _declare_consumer():
+        consumer = consumer_cls(self.conf, self.channel, topic, callback, self.consumer_num.next())
+        self.consumers.append(consumer)
+        return consumer
+
+    return self.ensure(_connect_error, _declare_consumer)
+
+
+def declare_fanout_consumer(self, topic, callback):
+    """Create a 'fanout' consumer"""
+    self.declare_consumer(FanoutConsumer, topic, callback)
+
+
+def declare_topic_consumer(self, topic, callback):
+    """Create a 'topic' consumer"""
+    self.declare_consumer(TopicConsumer, topic, callback)
+
+
+def create_consumer(self, topic, proxy, fanout=False):
+    """Create a consumer that calls a method in a proxy object"""
+    callback = ProxyCallback(proxy)
+    if fanout:
+        self.declare_fanout_consumer(topic, callback)
+    else:
+        self.declare_topic_consumer(topic, callback)
+
 
 class ConnectionContext(base.Connection):
-    def __init__(self,conf,connection_pool,pooled=True):
+    def __init__(self, conf, connection_pool, pooled=True):
         self.conf = conf
         self.connection_pool = connection_pool
         self.pooled = pooled
 
         if self.pooled:
-            self.connection = self.connection_pool.get() 
+            self.connection = self.connection_pool.get()
         else:
             self.connection = self.connection_pool.connection_cls(self.conf)
 
@@ -207,29 +223,32 @@ class ConnectionContext(base.Connection):
     def consume_in_thread(self):
         self.connection.consume_in_thread()
 
+
 class ProxyCallback(object):
-    def __init__(self,proxy):
+    def __init__(self, proxy):
         self.proxy = proxy
         self.pool = greenpool.GreenPool()
 
-    def __call__(self,message):
+    def __call__(self, message):
         method = message.pop('method')
         if not message:
             LOG.warn("no method for message %s process" % message)
             return
-        args = message.pop("args",{})
-        self.pool.spawn_n(self._process_data, method, args) 
+        args = message.pop("args", {})
+        self.pool.spawn_n(self._process_data, method, args)
 
-    def _process_data(self,method,args):
+    def _process_data(self, method, args):
         try:
-            self.proxy.dispatch(method,args)
+            self.proxy.dispatch(method, args)
         except Exception:
             LOG.exception("Something goes wrong during message handling")
 
+
 def create_connection(conf, new=True):
     """Create a connection"""
-    return ConnectionContext(conf, Pool(conf, Connection)) 
-#class Connection(object):
+    return ConnectionContext(conf, Pool(conf, Connection))
+
+# class Connection(object):
 #    def __init__(self):
 #        self.connection = kombu.connection.BrokerConnection(hostname='localhost',
 #                                                            port=5672,

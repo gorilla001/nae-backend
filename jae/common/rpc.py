@@ -5,6 +5,7 @@ import kombu
 import kombu.entity
 import kombu.messaging
 
+
 class Connection(object):
     def __init__(self):
         self.connection = kombu.connection.BrokerConnection(hostname='localhost',
@@ -14,9 +15,11 @@ class Connection(object):
                                                             virtual_host='/')
         self.channel = self.connection.channel()
 
+
 def Publisher(object):
     """Base Publisher Class"""
-    def __init__(self,channel,exchange_name,routing_key,**kwargs):
+
+    def __init__(self, channel, exchange_name, routing_key, **kwargs):
         """Init the Publisher class with the exchange_name,routing_key,
            and kwargs options
         """
@@ -30,20 +33,23 @@ def Publisher(object):
                                                  channel=self.channel,
                                                  routing_key=self.routing_key)
 
-    def send(self,msg):
+    def send(self, msg):
         self.producer.publish(msg)
+
 
 def TopicPublisher(Publisher):
     """Topic Publisher Class"""
-    def __init__(self,channel,topic,**kwargs):
+
+    def __init__(self, channel, topic, **kwargs):
         """Init a 'topic' publisher"""
         options = {'durable': True,
                    'auto_delete': False,
                    'exclusive': False}
-        super(TopicPublisher,self).__init__(channel)
+        super(TopicPublisher, self).__init__(channel)
+
 
 class TopicConsumer(object):
-    def __init__(self,channel,topic,callback):
+    def __init__(self, channel, topic, callback):
         self.channel = channel
         self.callback = callback
         self.exchange = kombu.entity.Exchange(name='container',
@@ -61,7 +67,6 @@ class TopicConsumer(object):
 
     def consume(self):
         self.queue.consume(callback=None)
-
 
 
 def call(msg):
