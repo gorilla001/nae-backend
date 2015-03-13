@@ -50,7 +50,8 @@ def maven_code(uuid, user_id, repos, maven_flags):
         subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- chown -R tomcat:tomcat /home/jm/tomcat/webapps/" % pid.strip(), shell=True)
 
         LOG.info("/etc/init.d/tomcat start")
-        subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- /etc/init.d/tomcat start" % pid.strip(), shell=True)
+        #subprocess.check_call("sudo nsenter -t %s --mount -n --pid -- /etc/init.d/tomcat start" % pid.strip(), shell=True)
+        subprocess.check_call("sudo docker exec %s /etc/init.d/tomcat start" % uuid, shell=True)
         LOG.info("Start tomcat succeed")
     except subprocess.CalledProcessError as ex:
         LOG.error("Tomcat start failed...check it")

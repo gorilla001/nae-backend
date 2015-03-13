@@ -301,6 +301,8 @@ class Controller(Base):
             LOG.error("nu such container %s" % id)
             return webob.exc.HTTPNotFound()
 
+        """update container status"""
+
         """get host id from container info,
            if host id is None,return 404"""
 
