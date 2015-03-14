@@ -119,14 +119,15 @@ def generate_docker_file(is_java):
     LOG.info("temp_path:%s" % temp_path)
     IMAGE_REGISTRY = CONF.image_registry_endpoint
     with open(os.path.join(temp_path, "Dockerfile"), 'w') as docker_file:
-        if is_java:
-            LOG.info("Baseimage would be %s/%s%s:%s cause i am a java" % (IMAGE_REGISTRY, "centos", "6.4","java"))
-            docker_file.write("FROM %s/%s%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4","java"))
-            docker_file.write("EXPOSE 8080 22\n")
-        else:
-            LOG.info("Baseimage would be %s/%s%s:%s cause i am a php" % (IMAGE_REGISTRY, "centos", "6.4","php"))
-            docker_file.write("FROM %s/%s%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4","php"))
-            docker_file.write("EXPOSE 80 22\n")
+        #if is_java:
+        #    LOG.info("Baseimage would be %s/%s%s:%s cause i am a java" % (IMAGE_REGISTRY, "centos", "6.4","java"))
+        #    docker_file.write("FROM %s/%s%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4","java"))
+        #    docker_file.write("EXPOSE 8080 22\n")
+        #else:
+        #    LOG.info("Baseimage would be %s/%s%s:%s cause i am a php" % (IMAGE_REGISTRY, "centos", "6.4","php"))
+        #    docker_file.write("FROM %s/%s%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4","php"))
+        #    docker_file.write("EXPOSE 80 22\n")
+        docker_file.write("FROM %s/%s:%s\n" % (IMAGE_REGISTRY, "centos", "6.4"))
     return temp_path
 
 
