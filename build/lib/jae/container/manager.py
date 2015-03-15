@@ -312,10 +312,11 @@ class Manager(base.Base):
 
         """Try to delete container's virtual interface"""
         try:
-            nwutils.delete_virtual_interface(query.uuid[:8])
+            #nwutils.delete_virtual_interface(query.uuid[:8])
             self.db.delete_network(id)
         except:
-            LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8])
+            #LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8])
+            LOG.warning("network of the container %s clean up failed" % uuid)
 
         LOG.info("DELETE -job delete %s" % id)
 
