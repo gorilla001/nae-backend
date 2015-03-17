@@ -33,6 +33,7 @@ class Controller(base.Base):
                 'name': item.name,
                 'email': item.email,
                 'role_id': item.role_id,
+                'swan': item.swan,
                 'created': isotime(item.created),
             }
             users.append(user)
@@ -61,6 +62,7 @@ class Controller(base.Base):
                 'name': query.name,
                 'email': query.email,
                 'role_id': query.role_id,
+                'swan': query.swan,
                 'projects': projects_list,
                 'created': isotime(query.created)}
         return ResponseObject(user)
@@ -90,7 +92,10 @@ class Controller(base.Base):
                     "pattern": "^.*@.*$",
                 },
                 "role_id": {
-                    "enum": ['0', '1', '2']
+                    "enum": ['0', '1', '2','3']
+                },
+                "swan": {
+                    "enum": ['0','1']
                 },
                 "project_id": {
                     "type": "string",
@@ -109,6 +114,7 @@ class Controller(base.Base):
         name = body.pop("name", "")
         email = body.pop("email", "")
         role_id = body.pop("role_id", "")
+        swan = body.pop("swan","-1")
         project_id = body.pop("project_id", "")
         project = self.db.get_project(project_id)
 
@@ -116,7 +122,8 @@ class Controller(base.Base):
             user_ref = self.db.add_user(dict(id=uuid.uuid4().hex,
                                              name=name,
                                              email=email,
-                                             role_id=role_id),
+                                             role_id=role_id,
+                                             swan=swan),
                                         project=project)
         except IntegrityError, err:
             LOG.error(err)

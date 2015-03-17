@@ -21,7 +21,9 @@ setup(name='jae',
 
       scripts=['bin/jae-api',
 	       'bin/jae-container',
-	       'bin/jae-image'],
+	       'bin/jae-image',
+               'bin/jae-db-init',
+               'bin/jae-db-update'],
 
       data_files=[('/etc/jae',['etc/jae.conf',
 			       'etc/api-paste.ini',

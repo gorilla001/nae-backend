@@ -44,6 +44,7 @@ class Controller(base.Base):
                     "name": user_instance.name,
                     "email": user_instance.email,
                     "role_id": user_instance.role_id,
+                    "swan": user_instance.swan,
                     "created": isotime(user_instance.created)}
             user_list.append(user)
 

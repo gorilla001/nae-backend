@@ -101,6 +101,7 @@ class User(BaseModel):
     name = Column(String(60), nullable=False)
     email = Column(String(150))
     role_id = Column(Integer)
+    swan = Column(Integer)
     created = Column(DateTime, default=func.now())
 
     projects = relationship(Project,

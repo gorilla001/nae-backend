@@ -2,6 +2,8 @@ setup.cfg
 setup.py
 bin/jae-api
 bin/jae-container
+bin/jae-db-init
+bin/jae-db-update
 bin/jae-image
 jae/__init__.py
 jae/base.py
