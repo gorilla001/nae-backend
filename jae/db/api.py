@@ -160,7 +160,7 @@ def get_users(project_id):
 
 def get_user(name):
     return model_query(models.User,
-                       name=name).first()
+                       name=name).all()
 
 
 def delete_user(id):

@@ -44,19 +44,20 @@ class Controller(base.Base):
         """
         Get user detail according `id`
         """
-        query = self.db.get_user(id)
-        if query is None:
+        querys = self.db.get_user(id)
+        if querys is None:
             LOG.error("no such user %s" % id)
             return ResponseObject({'projects': []})
 
         projects_list = []
-        project_instances = query.projects
-        for project in project_instances:
-            project = {"id": project.id,
-                       "name": project.name,
-                       "desc": project.desc,
-                       "created": isotime(project.created)}
-            projects_list.append(project)
+        for query in querys:
+            project_instances = query.projects
+            for project in project_instances:
+                project = {"id": project.id,
+                           "name": project.name,
+                           "desc": project.desc,
+                           "created": isotime(project.created)}
+                projects_list.append(project)
 
         user = {'id': query.id,
                 'name': query.name,
