@@ -97,4 +97,6 @@ class APIRouter(wsgi.Router):
            >>> PUT    /repos/id    => repos.update(id)
            >>> GET    /repos/new   => repos.new()
         """
+        self.mapper.resource('host', 'hosts',
+                             controller = repos.create_resource())
 

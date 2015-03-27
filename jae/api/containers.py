@@ -38,6 +38,7 @@ class Controller(Base):
 
             This method returns a dictionary list and each dict contains the following keys:
                 - id
+                - uuid
                 - name
                 - repos
                 - branch
@@ -57,6 +58,7 @@ class Controller(Base):
         for item in query:
             container = {
                 'id': item.id,
+                'uuid': item.uuid,
                 'name': item.name,
                 'repos': item.repos,
                 'branch': item.branch,
@@ -79,7 +81,9 @@ class Controller(Base):
 
     def show(self, request, id):
         """
-        Show the container info according by container's id `id`.
+        Show the container info according container's id.
+
+        :params id: container's id
 
         This method returns a dictionary with following keys:
             - id
