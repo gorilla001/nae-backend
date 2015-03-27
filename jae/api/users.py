@@ -59,13 +59,13 @@ class Controller(base.Base):
                            "created": isotime(project.created)}
                 projects_list.append(project)
 
-        user = {'id': query.id,
-                'name': query.name,
-                'email': query.email,
-                'role_id': query.role_id,
-                'swan': query.swan,
+        user = {'id': querys[0].id,
+                'name': querys[0].name,
+                'email': querys[0].email,
+                'role_id': querys[0].role_id,
+                'swan': querys[0].swan,
                 'projects': projects_list,
-                'created': isotime(query.created)}
+                'created': isotime(querys[0].created)}
         return ResponseObject(user)
 
     def create(self, request, body):
