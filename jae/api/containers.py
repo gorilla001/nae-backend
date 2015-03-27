@@ -43,6 +43,8 @@ class Controller(Base):
                 - repos
                 - branch
                 - image
+                - project_id 
+                - user_id 
                 - network
                 - created
                 - status
@@ -51,8 +53,8 @@ class Controller(Base):
         """
         containers = []
 
-        project_id = request.GET.get('project_id')
-        user_id = request.GET.get('user_id')
+        project_id = request.GET.get('project_id',None)
+        user_id = request.GET.get('user_id',None)
 
         query = self.db.get_containers(project_id, user_id)
         for item in query:
@@ -63,6 +65,8 @@ class Controller(Base):
                 'repos': item.repos,
                 'branch': item.branch,
                 'image_id': item.image_id,
+                'project_id': item.project_id,
+                'user_id': item.user_id,
                 'network': item.fixed_ip,
                 'created': timeutils.isotime(item.created),
                 'status': item.status,
