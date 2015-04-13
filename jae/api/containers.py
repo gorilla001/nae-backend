@@ -329,10 +329,13 @@ class Controller(Base):
         """get ip address and port for host instance."""
         host, port = host.host, host.port
 
+
+        """get data branch"""
+        branch = request.get('branch')
         """make post request to the host where container on."""
         # FIXME: exception shoud be catch?
-        response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
-                                  % (host, port, id))
+        response = self.http.post("http://%s:%s/v1/containers/%s/refresh?branch=%s" \
+                                  % (host, port, id,branch))
 
         return Response(response.status_code)
 

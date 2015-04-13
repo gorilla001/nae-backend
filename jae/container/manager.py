@@ -142,7 +142,7 @@ class Manager(base.Base):
             repo_name = os.path.basename(repos)
             if utils.repo_exist(root_path, repo_name):
                 try:
-                    self.mercurial.pull(root_path, repos)
+                    self.mercurial.pull(root_path, repos, branch)
                 except:
                     LOG.error("Pull code from %s failed" % repos)
                     LOG.error(traceback.format_exc())
@@ -152,6 +152,12 @@ class Manager(base.Base):
                     self.mercurial.clone(root_path, repos)
                 except:
                     LOG.error("Clone code from %s failed" % repos)
+                    LOG.error(traceback.format_exc())
+                    return
+                try:
+                    self.mercurial.pull(root_path, repos, branch)
+                except:
+                    LOG.error("Pull code from %s failed" % repos)
                     LOG.error(traceback.format_exc())
                     return
             try:
@@ -391,7 +397,7 @@ class Manager(base.Base):
         self.driver.stop(name)
         self.driver.delete(name)
 
-    def refresh(self, id):
+    def refresh(self, id, branch):
         """
         Refresh code in container
 
@@ -406,7 +412,7 @@ class Manager(base.Base):
             uuid = query.uuid
             user_id = query.user_id
             repos = query.repos
-            branch = query.branch
+            branch = branch
             maven_flags=query.flags
             app_type=query.app_type
             try:

@@ -42,7 +42,7 @@ class MercurialControl(object):
             LOG.error(error)
             raise
 
-    def pull(self, root_path, repo_path):
+    def pull(self, root_path, repo_path, branch):
         """
         Pull repository from `repo_path`.
 
@@ -56,10 +56,13 @@ class MercurialControl(object):
                                        os.path.basename(repo_path))
         repo = mercurial.hg.repository(self._ui,
                                        local_repo_path)
+
+        opts = {'branch': [branch,],'remotecmd': "jmpull=%s" % branch}
         try:
             mercurial.commands.pull(self._ui,
                                     repo,
-                                    source=source)
+                                    source=source,
+                                    **opts)
         except:
             LOG.error('Could not pull repo:%s' % repo_path)
             raise
