@@ -424,6 +424,7 @@ class Manager(base.Base):
                                     app_type=app_type,
                                     mercurial=self.mercurial)
                 self.db.update_container(id, status="running")
+                self.db.update_container(id, branch=branch)
             except:
                 LOG.info("REFRESH -job refresh %s = ERR" % id)
                 self.db.update_container(id, status="refresh-failed")
