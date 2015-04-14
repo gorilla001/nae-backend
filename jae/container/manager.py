@@ -381,10 +381,10 @@ class Manager(base.Base):
         self.db.update_container(id, status="stoping")
         status = self.driver.stop(query.uuid)
         if status == 204:
-            try:
-                nwutils.delete_virtual_interface(query.uuid)
-            except:
-                LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8])
+            #try:
+            #    nwutils.delete_virtual_interface(query.uuid)
+            #except:
+            #    LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8])
             self.db.update_container(id, status="stoped")
 
         LOG.info("STOP -job stop %s" % id)
