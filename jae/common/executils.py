@@ -18,4 +18,3 @@ def inject_key(uuid, key):
         subprocess.check_call("sudo nsenter -t %s --mount echo %s >> /root/.ssh/authorized_keys" % (pid.strip(), key), shell=True)
     except subprocess.CalledProcessError:
         LOG.error("Falied")
-        raise

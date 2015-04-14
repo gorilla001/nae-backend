@@ -328,15 +328,15 @@ class Manager(base.Base):
 
     def start(self, id):
         """
-            Start container by id.
+        Start container by id.
 
-            :params id: container id
-            """
+        :params id: container id
+        """
         LOG.info("START +job start %s" % id)
         self.db.update_container(id, status="starting")
-        """Update container's code first"""
-        query = self.db.get_container(id)
-        self.refresh(id, query.branch)
+        #"""Update container's code first"""
+        #query = self.db.get_container(id)
+        #self.refresh(id, query.branch)
        
         """Get container's uuid from db entry"""
         query = self.db.get_container(id)
