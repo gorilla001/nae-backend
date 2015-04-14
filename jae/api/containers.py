@@ -331,7 +331,7 @@ class Controller(Base):
 
 
         """get data branch"""
-        branch = request.get('branch')
+        branch = request.GET.get('branch')
         """make post request to the host where container on."""
         # FIXME: exception shoud be catch?
         response = self.http.post("http://%s:%s/v1/containers/%s/refresh?branch=%s" \

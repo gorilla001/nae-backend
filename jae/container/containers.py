@@ -187,7 +187,7 @@ class Controller(Base):
             return Response(404)
         # FIXME(nmg) 
         # eventlet.spawn(self._manager.refresh,id)
-        branch = request.get('branch')
+        branch = request.GET.get('branch')
         try:
             self._process_task(self._manager.refresh, id, branch)
         except:

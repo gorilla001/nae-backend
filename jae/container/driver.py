@@ -147,7 +147,7 @@ class API(object):
 
         repo_path = repos
         try:
-            mercurial.pull(root_path, repo_path)
+            mercurial.pull(root_path, repo_path,branch)
         except:
             LOG.error("Pull code failed for code refresh...droped")
             return
