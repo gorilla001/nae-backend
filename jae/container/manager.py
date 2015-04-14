@@ -444,4 +444,6 @@ class Manager(base.Base):
             self.driver.share(uuid,key)
             self.db.update_container(id,status="shared")
         except:
-            pass 
+            LOG.info("SHARE -job share %s = ERR" % id)
+            self.db.update_container(id, status="shared-failed")
+            raise

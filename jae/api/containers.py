@@ -379,6 +379,21 @@ class Controller(Base):
             status="sharing"),
             project=project)
       
+        host_id = query.host_id
+        if not host_id:
+            LOG.error("container %s has no host_id" % id)
+            return webob.exc.HTTPNotFound()
+
+        """get host instance by `host_id`,
+           if host instance is None,return 404"""
+        host = self.db.get_host(host_id)
+        if not host:
+            LOG.error("no such host")
+            return webob.exc.HTTPNotFound()
+
+        """get ip address and port for host instance."""
+        host, port = host.host, host.port
+
         response = self.http.post("http://%s:%s/v1/containers/%s/share?new_id=%s&user_key=%s" \
                                  % (host,port,id,new_id,user_key))
         return Response(response.status_code)

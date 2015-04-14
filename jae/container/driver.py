@@ -9,6 +9,7 @@ from jae.common.cfg import Int, Str
 from jae.common import client
 from jae.common import log as logging
 from jae.common import codeutils
+from jae.common import executils
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -177,3 +178,9 @@ class API(object):
         """Change the directory's owner back to orginal owner"""
         LOG.info("Change owner of root_path %s back to %s:%s" % (root_path, origin_uid, origin_gid)) 
         os.system("sudo chown -R %s:%s %s" % (origin_uid, origin_gid, root_path))
+
+    def share(self, uuid, key): 
+        try:
+            executils.inject_key(uuid, key)
+        except:
+            raise 

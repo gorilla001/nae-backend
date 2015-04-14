@@ -70,7 +70,7 @@ class Manager(base.Base):
             os.mkdir(user_home)
         if utils.repo_exist(user_id, repo_name):
             try:
-                self.mercurial.pull(user_home, repo_path)
+                self.mercurial.pull(user_home, repo_path,branch)
             except RepoError:
                 self.db.update_image(id, status="CREATED-FAILED")
                 msg = "Pull repos %s failed: no such repos" % repo_path
@@ -87,6 +87,12 @@ class Manager(base.Base):
                 self.db.update_image(id, errmsg=msg)
                 LOG.error(msg)
                 LOG.info("BUILD -job build %s = ERR" % name)
+                return
+            try:
+                self.mercurial.pull(root_path, repos, branch)
+            except:
+                LOG.error("Pull code from %s failed" % repos)
+                LOG.error(traceback.format_exc())
                 return
         try:
             self.mercurial.update(user_home, repo_path, branch)
