@@ -1,5 +1,6 @@
 import webob.exc
 import requests
+import uuid
 
 from jae import wsgi
 from jae.common import log as logging
@@ -339,6 +340,47 @@ class Controller(Base):
 
         return Response(response.status_code)
 
+    def share(self, request, id):
+        query = self.db.get_container(id)
+        if not query:
+            LOG.error("no such container %s" % id)
+            return
+        new_id = uuid.uuid4().hex 
+        _uuid = query.uuid
+        name = query.name
+        env = query.env
+        project_id = query.project_id
+        repos = query.repos
+        branch = query.branch
+        image_id = query.image_id
+        host_id = query.host_id
+        app_type = query.app_type
+        user_id = request.GET.get("user_id")
+        user_key = request.GET.get("user_key")
+        fixed_ip = query.fixed_ip
 
+        """creating db entry for new container"""
+        project = self.db.get_project(project_id)
+        if not project:
+            LOG.error("no such project %s" % project_id)
+            return Response(404)
+        self.db.add_container(dict(
+            id=new_id,
+            uuid=_uuid,
+            name=name,
+            env=env,
+            repos=repos,
+            branch=branch,
+            image_id=image_id,
+            user_id=user_id,
+            host_id=host_id,
+            app_type=app_type,
+            fixed_ip=fixed_ip,
+            status="sharing"),
+            project=project)
+      
+        response = self.http.post("http://%s:%s/v1/containers/%s/share?new_id=%s&user_key=%s" \
+                                 % (host,port,id,new_id,user_key))
+        return Response(response.status_code)
 def create_resource():
     return wsgi.Resource(Controller())

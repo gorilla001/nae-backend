@@ -25,6 +25,7 @@ class APIRouter(wsgi.Router):
                                      'reboot': 'POST',
                                      'commit': 'POST',
                                      'destroy': 'POST',
+                                     'share': 'POST',
                                      'refresh': 'GET'})
         """The above commands establishes the following convention:
            >>> GET    /containers         => containers.index()

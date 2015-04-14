@@ -335,7 +335,8 @@ class Manager(base.Base):
         LOG.info("START +job start %s" % id)
         self.db.update_container(id, status="starting")
         """Update container's code first"""
-        self.refresh(id)
+        query = self.db.get_container(id)
+        self.refresh(id, query.branch)
        
         """Get container's uuid from db entry"""
         query = self.db.get_container(id)
@@ -430,3 +431,17 @@ class Manager(base.Base):
                 self.db.update_container(id, status="refresh-failed")
                 raise
             LOG.info("REFRESH -job refresh %s = OK" % id)
+
+    def share(self,id,key):
+        """Add public key to container identified by id"""
+        LOG.info("SHARE +job sharing %s" % id) 
+        query = self.db.get_container(id)
+        if not query:
+            LOG.error("no such container")
+            return
+        uuid = query.uuid
+        try:
+            self.driver.share(uuid,key)
+            self.db.update_container(id,status="shared")
+        except:
+            pass 

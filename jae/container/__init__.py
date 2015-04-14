@@ -17,4 +17,5 @@ class APIRouter(wsgi.Router):
                                      'reboot': 'POST',
                                      'commit': 'POST',
                                      'destroy': 'POST',
+                                     'share': 'POST',
                                      'refresh': 'POST'})

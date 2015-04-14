@@ -195,6 +195,17 @@ class Controller(Base):
 
         return Response(204)
 
+    def share(self, request, id):
+        """Share the container whith others"""
+        new_id = request.GET.get("new_id") 
+        user_key = request.GET.get("user_key")
+        
+        try:
+            self._process_task(self._manager.share,new_id,user_key)
+        except:
+            raise
+        return Response(204)
+
     @staticmethod
     def _process_task(func, *args):
         """generate a eventlet greenthread to process the task."""
