@@ -89,7 +89,7 @@ class Manager(base.Base):
                 LOG.info("BUILD -job build %s = ERR" % name)
                 return
             try:
-                self.mercurial.pull(root_path, repos, branch)
+                self.mercurial.pull(user_home, repo_path,branch)
             except:
                 LOG.error("Pull code from %s failed" % repos)
                 LOG.error(traceback.format_exc())
