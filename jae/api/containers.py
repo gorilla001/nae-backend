@@ -222,7 +222,7 @@ class Controller(Base):
 
     def delete(self, request, id):
         """
-        send delete `request` to remote server for deleting.
+        Send delete `request` to remote server for deleting.
         if failed,excepiton will be occured.
 
         :param request: `wsgi.Request`
@@ -231,6 +231,7 @@ class Controller(Base):
         container = self.db.get_container(id)
         if not container:
             return webob.exc.HTTPOk()
+
         host_id = container.host_id
         host = self.db.get_host(host_id)
         if not host:
@@ -241,6 +242,7 @@ class Controller(Base):
         # FIXME: try to catch exceptions and dealing with it. 
         response = self.http.delete("http://%s:%s/v1/containers/%s" \
                                     % (host, port, id))
+
         return Response(response.status_code)
 
     def start(self, request, id):
@@ -293,7 +295,7 @@ class Controller(Base):
 
     def refresh(self, request, id):
         """
-        refresh code in container. refresh request will be 
+        Refresh code in container. refresh request will be 
         send to remote container server for refreshing.
         if send request failed,exception will occured.
         is it necessary to catch the exception? I don't
@@ -345,8 +347,8 @@ class Controller(Base):
         if not query:
             LOG.error("no such container %s" % id)
             return
-        new_id = uuid.uuid4().hex 
-        _uuid = query.uuid
+        shared_id = uuid.uuid4().hex 
+        origin_uuid = query.uuid
         name = query.name
         env = query.env
         project_id = query.project_id
@@ -355,7 +357,8 @@ class Controller(Base):
         image_id = query.image_id
         host_id = query.host_id
         app_type = query.app_type
-        user_id = request.GET.get("user_id")
+        origin_user_id = query.user_id
+        shared_user_id = request.GET.get("user_id")
         user_key = request.GET.get("user_key")
         fixed_ip = query.fixed_ip
 
@@ -365,14 +368,14 @@ class Controller(Base):
             LOG.error("no such project %s" % project_id)
             return Response(404)
         self.db.add_container(dict(
-            id=new_id,
-            uuid=_uuid,
+            id=shared_id,
+            uuid=origin_uuid,
             name=name,
             env=env,
             repos=repos,
             branch=branch,
             image_id=image_id,
-            user_id=user_id,
+            user_id=shared_user_id,
             host_id=host_id,
             app_type=app_type,
             fixed_ip=fixed_ip,
@@ -394,8 +397,9 @@ class Controller(Base):
         """get ip address and port for host instance."""
         host, port = host.host, host.port
 
-        response = self.http.post("http://%s:%s/v1/containers/%s/share?new_id=%s&user_key=%s" \
-                                 % (host,port,id,new_id,user_key))
+        response = self.http.post("http://%s:%s/v1/containers/%s/share?shared_id=%s&uuid=%s&user_key=%s&origin_user=%s&shared_user=%s" \
+                                 % (host,port,id,shared_id,origin_uuid,user_key,origin_user_id,shared_user_id))
         return Response(response.status_code)
+
 def create_resource():
     return wsgi.Resource(Controller())

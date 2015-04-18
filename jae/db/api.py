@@ -75,6 +75,10 @@ def get_containers(project_id=None, user_id=None):
                        project_id=project_id,
                        user_id=user_id).all()
 
+def get_shared_container(uuid):
+    """Get all containers have the same uuid"""
+    return model_query(models.Container,
+                       uuid=uuid).all()
 
 def get_containers_by_host(host_id):
     if not host_id:

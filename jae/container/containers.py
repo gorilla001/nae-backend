@@ -197,11 +197,19 @@ class Controller(Base):
 
     def share(self, request, id):
         """Share the container whith others"""
-        new_id = request.GET.get("new_id") 
+        shared_id = request.GET.get("shared_id")
+        uuid= request.GET.get("uuid") 
         user_key = request.GET.get("user_key")
-        
+        origin_user = request.GET.get("origin_user")
+        shared_user = request.GET.get("shared_user") 
         try:
-            self._process_task(self._manager.share,new_id,user_key)
+            self._process_task(self._manager.share,
+                               id,
+                               shared_id,
+                               uuid,
+                               user_key,
+                               origin_user,
+                               shared_user)
         except:
             raise
         return Response(204)

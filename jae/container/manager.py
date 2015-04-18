@@ -3,6 +3,7 @@ import os
 import traceback
 import requests
 
+
 from jae.common import cfg
 from jae.common import log as logging
 from jae.common.cfg import Int, Str
@@ -11,6 +12,7 @@ from jae.common.mercu import MercurialControl
 from jae.common.exception import NetWorkError
 from jae.common import nwutils
 from jae.common import codeutils
+from jae.common import executils
 
 from jae.container import driver
 from jae import base
@@ -275,53 +277,21 @@ class Manager(base.Base):
         # #FIXME(nmg):
         LOG.info("DELETE +job delete %s" % id)
         query = self.db.get_container(id)
-        self.db.update_container(id, status="deleting")
+        associate_query = self.db.get_shared_container(query.uuid)
+        for associate in associate_query:
+            LOG.info("Delete associate containers")
+            self.db.update_container(associate.id, status="deleting")
+            self.db.delete_container(associate.id)
+            try:
+                executils.cleanup_data(associate.uuid[:12],associate.user_id)
+            except:
+                LOG.error("Cleanup data for container %s" % associate.uuid[:12])
         status = self.driver.delete(query.uuid)
         if status == 500:
             LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
-        self.db.delete_container(id)
-        #if query.status == 'running':
-        #    #self.db.update_container(id,status="stoping")
-        #    #status = self.driver.stop(query.uuid)
-        #    #if status in (204,304,404):
-        #    #    self.db.update_container(id,status="deleting")
-        #    #    status = self.driver.delete(query.uuid)
-        #    #    if status in (204,404):
-        #    #        self.db.delete_container(id)
-        #    #        self.db.delete_network(id)
-        #    #if status == 500:
-        #    #    LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
-        #    #    self.db.delete_container(id)
-        #    #    self.db.delete_network(id)
-        #    self.db.update_container(id,status="deleting")
-        #    status = self.driver.delete(query.uuid)
-        #    if status == 500:
-        #        LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
-        #        self.db.delete_container(id)
-        #        self.db.delete_network(id)
-        #elif query.status == 'error':
-        #    self.db.update_container(id,status="deleting")
-        #    status = self.driver.delete(query.uuid)
-        #    if status in (204,404):
-        #	self.db.delete_container(id)
-        #        self.db.delete_network(id)
-        #elif query.status == "stoped":
-        #    self.db.update_container(id,status="deleting")
-        #    status = self.driver.delete(query.uuid)
-        #    if status in (204,404):
-        #	self.db.delete_container(id)
-        #        self.db.delete_network(id)
-        #else:
-        #   self.db.update_container(id,status="deleting")
-        #   self.db.delete_container(id)
-        #   self.db.delete_network(id)
-
-        #"""Try to delete container's virtual interface"""
         try:
-            #nwutils.delete_virtual_interface(query.uuid[:8])
             self.db.delete_network(id)
         except:
-            #LOG.warning("veth%s delete failed,please do it manual" % query.uuid[:8])
             LOG.warning("network of the container %s clean up failed" % uuid)
 
         LOG.info("DELETE -job delete %s" % id)
@@ -425,25 +395,44 @@ class Manager(base.Base):
                                     app_type=app_type,
                                     mercurial=self.mercurial)
                 self.db.update_container(id, status="running")
-                self.db.update_container(id, branch=branch)
+                #self.db.update_container(id, branch=branch)
+        
+                associate_query = self.db.get_shared_container(query.uuid)
+                for associate in associate_query:
+                    #if associate.uuid != query.uuid:
+                    LOG.info("Update associate container's branch")
+                    self.db.update_container(associate.id, branch=branch)
             except:
                 LOG.info("REFRESH -job refresh %s = ERR" % id)
                 self.db.update_container(id, status="refresh-failed")
                 raise
             LOG.info("REFRESH -job refresh %s = OK" % id)
 
-    def share(self,id,key):
+    def share(self,id,shared_id,uuid,key,origin_user,shared_user):
         """Add public key to container identified by id"""
         LOG.info("SHARE +job sharing %s" % id) 
-        query = self.db.get_container(id)
-        if not query:
-            LOG.error("no such container")
-            return
-        uuid = query.uuid
+
         try:
-            self.driver.share(uuid,key)
+            """Update the origin container's status"""
+            self.db.update_container(id,status="sharing")
+
+            """Update the shared container's status"""
+            self.db.update_container(shared_id,status="sharing")
+
+            self.driver.share(uuid,key,origin_user,shared_user)
+
+            """Update the origin container's status"""
             self.db.update_container(id,status="shared")
+
+            """Update the shared container's status"""
+            self.db.update_container(shared_id,status="shared")
+
+            LOG.info("SHARE -job share %s = OK" % id)
         except:
             LOG.info("SHARE -job share %s = ERR" % id)
+            """Update the origin container's status"""
             self.db.update_container(id, status="shared-failed")
+
+            """Update the shared container's status"""
+            self.db.update_container(shared_id, status="shared-failed")
             raise

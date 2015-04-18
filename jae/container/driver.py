@@ -179,8 +179,14 @@ class API(object):
         LOG.info("Change owner of root_path %s back to %s:%s" % (root_path, origin_uid, origin_gid)) 
         os.system("sudo chown -R %s:%s %s" % (origin_uid, origin_gid, root_path))
 
-    def share(self, uuid, key): 
+    def share(self,uuid,key,origin_user,shared_user): 
+        """Share your containers with others"""
         try:
             executils.inject_key(uuid, key)
         except:
             raise 
+
+        try:
+            executils.copy_files(uuid[:12], origin_user, shared_user)
+        except:
+            raise
