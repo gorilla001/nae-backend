@@ -37,7 +37,9 @@ def copy_files(uuid, origin_user, shared_user):
     try:
         if not os.path.exists(dest):
             LOG.info("Copy files...")
-            shutil.copytree(source,dest)
+            #shutil.copytree(source,dest)
+            subprocess.check_call("sudo mkdir -p %s" % dest, shell=True)
+            subprocess.check_call("sudo cp -av %s/. %s/" % (source,dest), shell=True)
             LOG.info("Done")
     except:
         LOG.error("Copy data for container shared failed")
