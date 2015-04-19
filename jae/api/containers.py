@@ -400,7 +400,7 @@ class Controller(Base):
         data = {'shared_id': shared_id,
                 'uuid': origin_uuid,
                 'user_key': user_key,
-                'origin_user': origin_user,
+                'origin_user': origin_user_id,
                 'shared_user': shared_user_id} 
         headers={'content-type': 'application/json'}
         response = self.http.post("http://%s:%s/v1/containers/%s/share" \
