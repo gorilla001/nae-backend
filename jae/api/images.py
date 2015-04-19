@@ -36,39 +36,39 @@ class Controller(Base):
 
     def index(self, request):
         images = []
-        project_id = request.GET.get('project_id')
-        if not project_id:
-            LOG.error("project_id cannot be None")
-            return webob.exc.HTTPNotFound()
-        project_instance = self.db.get_project(project_id)
-        if project_instance is None:
-            LOG.error("no such project %s" % project_id)
-            return webob.exc.HTTPNotFound()
-        for image_instance in project_instance.images:
-            image = {'id': image_instance.id,
-                     'uuid': image_instance.uuid,
-                     'name': image_instance.name,
-                     'tag': image_instance.tag,
-                     'desc': image_instance.desc,
-                     'project_id': image_instance.project_id,
-                     'created': isotime(image_instance.created),
-                     'user_id': image_instance.user_id,
-                     'status': image_instance.status}
-            images.append(image)
-
-        #query = self.db.get_images(project_id)
-        #if query is not None:
-        #    for item in query:
-        #        image={'id':item.id,
-        #               'uuid':item.uuid,
-        #               'name':item.name,
-        #	       'tag':item.tag,
-        #               'desc':item.desc,
-        #               'project_id':item.project_id,
-        #               'created':isotime(item.created),
-        #               'user_id':item.user_id,
-        #               'status' : item.status}
-        #        images.append(image)
+        #project_id = request.GET.get('project_id')
+        #if not project_id:
+        #    LOG.error("project_id cannot be None")
+        #    return webob.exc.HTTPNotFound()
+        #project_instance = self.db.get_project(project_id)
+        #if project_instance is None:
+        #    LOG.error("no such project %s" % project_id)
+        #    return webob.exc.HTTPNotFound()
+        #for image_instance in project_instance.images:
+        #    image = {'id': image_instance.id,
+        #             'uuid': image_instance.uuid,
+        #             'name': image_instance.name,
+        #             'tag': image_instance.tag,
+        #             'desc': image_instance.desc,
+        #             'project_id': image_instance.project_id,
+        #             'created': isotime(image_instance.created),
+        #             'user_id': image_instance.user_id,
+        #             'status': image_instance.status}
+        #    images.append(image)
+        project_id = request.GET.get('project_id',None)
+        query = self.db.get_images(project_id)
+        if query is not None:
+            for item in query:
+                image={'id':item.id,
+                       'uuid':item.uuid,
+                       'name':item.name,
+        	       'tag':item.tag,
+                       'desc':item.desc,
+                       'project_id':item.project_id,
+                       'created':isotime(item.created),
+                       'user_id':item.user_id,
+                       'status' : item.status}
+                images.append(image)
         return ResponseObject(images)
 
     def show(self, request, id):
