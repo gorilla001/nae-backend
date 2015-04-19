@@ -358,8 +358,8 @@ class Controller(Base):
         host_id = query.host_id
         app_type = query.app_type
         origin_user_id = query.user_id
-        shared_user_id = request.GET.get("user_id")
-        user_key = request.GET.get("user_key")
+        shared_user_id = request.POST.get("user_id")
+        user_key = request.POST.get("user_key")
         fixed_ip = query.fixed_ip
 
         """creating db entry for new container"""
