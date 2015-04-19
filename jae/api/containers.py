@@ -342,7 +342,7 @@ class Controller(Base):
 
         return Response(response.status_code)
 
-    def share(self, request, id):
+    def share(self, request, id, body):
         query = self.db.get_container(id)
         if not query:
             LOG.error("no such container %s" % id)
@@ -358,8 +358,8 @@ class Controller(Base):
         host_id = query.host_id
         app_type = query.app_type
         origin_user_id = query.user_id
-        shared_user_id = request.POST.get("user_id")
-        user_key = request.POST.get("user_key")
+        shared_user_id = body.get("user_id")
+        user_key = body.get("user_key")
         fixed_ip = query.fixed_ip
 
         """creating db entry for new container"""
