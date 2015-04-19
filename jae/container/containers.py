@@ -195,13 +195,13 @@ class Controller(Base):
 
         return Response(204)
 
-    def share(self, request, id):
+    def share(self, request, id, body):
         """Share the container whith others"""
-        shared_id = request.GET.get("shared_id")
-        uuid= request.GET.get("uuid") 
-        user_key = request.GET.get("user_key")
-        origin_user = request.GET.get("origin_user")
-        shared_user = request.GET.get("shared_user") 
+        shared_id = body.get("shared_id")
+        uuid= body.get("uuid") 
+        user_key = body.get("user_key")
+        origin_user = body.get("origin_user")
+        shared_user = body.get("shared_user") 
         try:
             self._process_task(self._manager.share,
                                id,

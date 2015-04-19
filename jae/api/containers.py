@@ -1,6 +1,7 @@
 import webob.exc
 import requests
 import uuid
+import json
 
 from jae import wsgi
 from jae.common import log as logging
@@ -396,9 +397,14 @@ class Controller(Base):
 
         """get ip address and port for host instance."""
         host, port = host.host, host.port
-
-        response = self.http.post("http://%s:%s/v1/containers/%s/share?shared_id=%s&uuid=%s&user_key=%s&origin_user=%s&shared_user=%s" \
-                                 % (host,port,id,shared_id,origin_uuid,user_key,origin_user_id,shared_user_id))
+        data = {'shared_id': shared_id,
+                'uuid': origin_uuid,
+                'user_key': user_key,
+                'origin_user': origin_user,
+                'shared_user': shared_user_id} 
+        headers={'content-type': 'application/json'}
+        response = self.http.post("http://%s:%s/v1/containers/%s/share" \
+                                 % (host,port,id),headers=headers,data=json.dumps(data))
         return Response(response.status_code)
 
 def create_resource():
