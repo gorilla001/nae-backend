@@ -4,6 +4,7 @@ from jae.api import images
 from jae.api import projects
 from jae.api import users
 from jae.api import repos
+from jae.api import hosts 
 import routes
 
 
@@ -99,5 +100,5 @@ class APIRouter(wsgi.Router):
            >>> GET    /repos/new   => repos.new()
         """
         self.mapper.resource('host', 'hosts',
-                             controller = repos.create_resource())
+                             controller = hosts.create_resource())
 

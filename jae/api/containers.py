@@ -47,6 +47,7 @@ class Controller(Base):
                 - image
                 - project_id 
                 - user_id 
+                - host_id 
                 - network
                 - created
                 - status
@@ -69,6 +70,7 @@ class Controller(Base):
                 'image_id': item.image_id,
                 'project_id': item.project_id,
                 'user_id': item.user_id,
+                'host_id': item.host_id,
                 'network': item.fixed_ip,
                 'created': timeutils.isotime(item.created),
                 'status': item.status,

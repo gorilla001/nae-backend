@@ -161,6 +161,15 @@ class Host(BaseModel):
     port = Column(Integer)
     zone = Column(String(10))
 
+class Zone(BaseModel):
+    __tablename__ = 'zones'
+
+    id = Column(String(32), primary_key=True)
+    mark = Column(String(20))
+    name = Column(String(20))
+    status = Column(String(20))
+    
+
 
 class BaseImage(BaseModel):
     __tablename__ = 'baseimages'

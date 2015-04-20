@@ -16,6 +16,7 @@ jae.egg-info/dependency_links.txt
 jae.egg-info/top_level.txt
 jae/api/__init__.py
 jae/api/containers.py
+jae/api/hosts.py
 jae/api/images.py
 jae/api/projects.py
 jae/api/repos.py
