@@ -23,11 +23,15 @@ class Register(object):
         """
         use the last 12 bit of uuid1 to unique a machine.
         """
-        id = uuid.uuid1().hex[-12:]
+        #id = uuid.uuid1().hex[-12:]
+        id = CONF.uuid
+        if not id:
+            id = '00000000000000000000000000000000'
 
         zone = CONF.current_zone
         if not zone:
             zone = 'BJ'
+
         try:
             self.db.register(dict(
                 id=id,
