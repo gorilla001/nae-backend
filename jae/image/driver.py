@@ -85,7 +85,8 @@ class API(object):
             return 404
         if not image_registry_endpoint.startswith("http://"):
             image_registry_endpoint = "http://" + image_registry_endpoint
-         auth_entry = {
+
+        auth_entry = {
             "username":"jae",
             "password":"jae",
             "auth":"",    # leave empty
