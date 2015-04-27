@@ -85,8 +85,18 @@ class API(object):
             return 404
         if not image_registry_endpoint.startswith("http://"):
             image_registry_endpoint = "http://" + image_registry_endpoint
+         auth_entry = {
+            "username":"jae",
+            "password":"jae",
+            "auth":"",    # leave empty
+            "email":"minguon@jumei.com"
+        }
+        auth_json = json.dumps(auth_entry).encode('ascii')
+        registry_auth = base64.b64encode(auth_json)
+
         response = requests.delete("%s/v1/repositories/%s/tags/%s" % \
-                                   (image_registry_endpoint, repository, tag))
+                                   (image_registry_endpoint, repository, tag),
+                                   headers = {'X-Registry-Auth': registry_auth})
         return response.status_code
 
     def tag(self, name, tag="latest"):
