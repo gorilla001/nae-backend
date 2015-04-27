@@ -92,8 +92,8 @@ class API(object):
         #    "auth":"",    # leave empty
         #    "email":"minguon@jumei.com"
         #}
-        auth_json = json.dumps(auth_entry).encode('ascii')
-        registry_auth = base64.b64encode(auth_json)
+        #auth_json = json.dumps(auth_entry).encode('ascii')
+        #registry_auth = base64.b64encode(auth_json)
 
         response = requests.delete("%s/v1/repositories/%s/tags/%s" % \
                                    (image_registry_endpoint, repository, tag))
