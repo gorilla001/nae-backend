@@ -145,7 +145,7 @@ class Manager(base.Base):
             self.db.update_image(id,
                                  status="deleting")
             status = self.driver.delete(repository, tag)
-            if status in (200, 404):
+            if status in (200, 404, 400):
                 self.db.delete_image(id)
             if status in (409, 500):
                 self.db.update_image(id, status=status)

@@ -1,6 +1,8 @@
 import requests
 import uuid
 import json
+import base64
+from requests.auth import HTTPBasicAuth
 from jae.common import cfg
 from jae.common import log as logging
 
@@ -101,9 +103,18 @@ class API(object):
         return response.status_code, "%s/%s" % (image_registry_endpoint, name)
 
     def push(self, name, tag="latest"):
+        auth_entry = {
+            "username":"jae",
+            "password":"jae",
+            "auth":"",    # leave empty
+            "email":"minguon@jumei.com"
+        }
+        auth_json = json.dumps(auth_entry).encode('ascii')
+        registry_auth = base64.b64encode(auth_json)
+ 
         response = requests.post("http://%s:%s/images/%s/push?tag=%s" % \
                                  (self.host, self.port, name, tag),
-                                 headers={'X-Registry-Auth': uuid.uuid4().hex})
+                                 headers={'X-Registry-Auth': registry_auth })
         return response.status_code
 
     def destroy(self, name):

@@ -32,6 +32,7 @@ jae/common/exception.py
 jae/common/executils.py
 jae/common/importutils.py
 jae/common/log.py
+jae/common/mail.py
 jae/common/mercu.py
 jae/common/nwutils.py
 jae/common/parser.py
