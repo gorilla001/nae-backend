@@ -97,6 +97,7 @@ class API(object):
 
         response = requests.delete("%s/v1/repositories/%s/tags/%s" % \
                                    (image_registry_endpoint, repository, tag),
+                                   auth = ('jae','jae'),
                                    headers = {'X-Registry-Auth': registry_auth})
         return response.status_code
 
