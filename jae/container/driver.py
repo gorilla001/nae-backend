@@ -3,6 +3,7 @@ import json
 import os
 import pwd
 import subprocess
+import base64
 
 from jae.common import cfg
 from jae.common.cfg import Int, Str
@@ -75,9 +76,19 @@ class API(object):
         url = "http://%s:%s/images/create" % (host, port)
         from_image = image_registry_endpoint + "/" + "%s:%s" % (repository, tag)
 
+        auth_entry = {
+            "username":"jae",
+            "password":"jae",
+            "auth":"",    # leave empty
+            "email":"minguon@jumei.com"
+        }
+        auth_json = json.dumps(auth_entry).encode('ascii')
+        registry_auth = base64.b64encode(auth_json)
+
         # TODO(nmg): exceptions should be catched.
         # response = requests.post("%s?fromImage=%s" % (url,from_image))
-        response = self.http.post("%s?fromImage=%s" % (url, from_image))
+        response = self.http.post("%s?fromImage=%s" % (url, from_image),
+                                  headers={'X-Registry-Auth': registry_auth})
         return response.status_code
 
     def start(self, uuid, kwargs):
