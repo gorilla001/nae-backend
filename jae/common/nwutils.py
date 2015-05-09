@@ -116,11 +116,13 @@ def set_fixed_ip(uuid, addr):
 
         """Rename internal veth web-int to eth0"""
         LOG.info("Rename internal veth %s to eth0" % veth_int)
-        subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(), veth_int), shell=True)
+        #subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(), veth_int), shell=True)
+        subprocess.check_call("sudo docker exec %s ip link set %s name eth0" % (uuid,), shell=True)
 
         """Set internal veth to UP"""
         LOG.info("UP internal veth eth0")
-        subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 up" % pid.strip(), shell=True)
+        #subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 up" % pid.strip(), shell=True)
+        subprocess.check_call("sudo docker exec  %s ip link set eth0 up" % (uuid,), shell=True)
 
         """Set external veth to UP"""
         LOG.info("UP external %s" % veth_ext)
@@ -130,14 +132,18 @@ def set_fixed_ip(uuid, addr):
         IP_ADDR = "%s/%s" % (addr, DEFAULT_NET_MASK)
 
         LOG.info("Attach fixed IP to internal veth eth0")
-        subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth0" % (pid.strip(), IP_ADDR), shell=True)
+        #subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth0" % (pid.strip(), IP_ADDR), shell=True)
+        subprocess.check_call("sudo docker exec  %s ip addr add %s dev eth0" % (uuid, IP_ADDR), shell=True)
 
         """Set default gateway to br0's gateway"""
         DEFAULT_GATEWAY = get_default_gateway()
         LOG.info("Set default gateway to %s" % DEFAULT_GATEWAY)
         #subprocess.check_call("sudo nsenter -t %s -n ip route del default" % pid.strip(),shell=True)
+        #subprocess.check_call(
+        #    "sudo nsenter -t %s -n ip route add default via %s dev eth0" % (pid.strip(), DEFAULT_GATEWAY), shell=True)
         subprocess.check_call(
-            "sudo nsenter -t %s -n ip route add default via %s dev eth0" % (pid.strip(), DEFAULT_GATEWAY), shell=True)
+            "sudo docker exec  %s ip route add default via %s dev eth0" % (uuid, DEFAULT_GATEWAY), shell=True)
+
 
         #"""Flush gateway's arp caching"""
         #LOG.info("Flush gateway's arp caching")
@@ -145,7 +151,8 @@ def set_fixed_ip(uuid, addr):
 
         """Ping gateway"""
         LOG.info("Flush gateway's arp caching")
-        subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(), DEFAULT_GATEWAY), shell=True)
+        #subprocess.check_call("sudo nsenter -t %s -n ping -c 3 %s" % (pid.strip(), DEFAULT_GATEWAY), shell=True)
+        subprocess.check_call("sudo docker exec  %s ping -c 3 %s" % (uuid, DEFAULT_GATEWAY), shell=True)
 
     except subprocess.CalledProcessError:
         raise
