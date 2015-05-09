@@ -46,17 +46,17 @@ class SimpleScheduler(driver.Scheduler):
         # FIXME: zone should be get from database by zone_id
         # TODO:  add get_zone(zone_id) 
         """
-        if zone_id == 0:
+        if zone_id == '0':
             self.zone = 'BJ'
-        elif zone_id == 1:
+        elif zone_id == '1':
             self.zone = 'CD'
         else:
             self.zone = 'BJ'
 
         """filter and weighted hosts"""
         weighted_hosts = self._scheduler()
-        for host in weighted_hosts:
-            print host.addr, host.port, host.weight
+        #for host in weighted_hosts:
+        #    print host.addr, host.port, host.weight
         try:
             weighted_host = weighted_hosts.pop(0)
         except IndexError:
