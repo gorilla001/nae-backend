@@ -89,7 +89,8 @@ def set_fixed_ip(uuid, addr):
         uuid = uuid[:8]
 
     uuid_reverse = uuid[::-1]
-    veth_int = "%s%s" % ("veth", uuid_reverse)
+    #veth_int = "%s%s" % ("veth", uuid_reverse)
+    veth_int = "eth0" 
     veth_ext = "%s%s" % ("veth", uuid)
 
     try:
@@ -115,9 +116,9 @@ def set_fixed_ip(uuid, addr):
         #subprocess.check_call("sudo nsenter -t %s -n ip link set eth0 name eth1" % pid.strip(),shell=True)
 
         """Rename internal veth web-int to eth0"""
-        LOG.info("Rename internal veth %s to eth0" % veth_int)
-        #subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(), veth_int), shell=True)
-        subprocess.check_call("sudo docker exec %s ip link set %s name eth0" % (uuid,veth_int), shell=True)
+        #LOG.info("Rename internal veth %s to eth0" % veth_int)
+        ##subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(), veth_int), shell=True)
+        #subprocess.check_call("sudo docker exec %s ip link set %s name eth0" % (uuid,veth_int), shell=True)
 
         """Set internal veth to UP"""
         LOG.info("UP internal veth eth0")
