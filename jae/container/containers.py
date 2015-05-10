@@ -45,7 +45,7 @@ class Controller(Base):
         query = self.db.get_container(id)
         if not query:
             LOG.error("no such container")
-            return webob.exc.HttpNotFound()
+            return webob.exc.HTTPNotFound()
 
             # eventlet.spawn_n(self._manager.delete,id)
         try:
