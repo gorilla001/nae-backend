@@ -117,7 +117,7 @@ def set_fixed_ip(uuid, addr):
         """Rename internal veth web-int to eth0"""
         LOG.info("Rename internal veth %s to eth0" % veth_int)
         #subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth0" % (pid.strip(), veth_int), shell=True)
-        subprocess.check_call("sudo docker exec %s ip link set %s name eth0" % (uuid,), shell=True)
+        subprocess.check_call("sudo docker exec %s ip link set %s name eth0" % (uuid,veth_int), shell=True)
 
         """Set internal veth to UP"""
         LOG.info("UP internal veth eth0")
