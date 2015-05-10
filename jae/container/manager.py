@@ -214,7 +214,8 @@ class Manager(base.Base):
                     self.db.delete_network(id)
                     """Update container's status"""
                     self.db.update_container(id, status="error")
-                    return
+                    #return
+                    raise
 
                 """Update container's network"""
                 self.db.update_container(id, fixed_ip=network)
