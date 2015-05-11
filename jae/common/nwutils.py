@@ -52,11 +52,11 @@ def set_fixed_ip(uuid, addr):
     try:
         """First create veth pair: web-int and vethuuid"""
         LOG.info("Create veth pair: %s and %s" % (veth_int, veth_ext))
-        cmdutils.run_command("sudo ip link add %s type veth peer name %s" % (veth_int, veth_ext))
+        cmdutils.cast("sudo ip link add %s type veth peer name %s" % (veth_int, veth_ext))
 
         """Second add external veth to bridge `br0`"""
         LOG.info("Attach external veth %s to bridge `br0`" % veth_ext)
-        cmdutils.run_command("sudo brctl addif br0 %s" % veth_ext)
+        cmdutils.cast("sudo brctl addif br0 %s" % veth_ext)
 
         """Get container's pid namespace"""
         LOG.info("Get container's namespace pid")
@@ -67,7 +67,7 @@ def set_fixed_ip(uuid, addr):
         """Add internal veth web-int to container"""
         LOG.info("Attach internal %s to container" % veth_int)
         #subprocess.check_call("sudo ip link set netns %s dev %s" % (pid.strip(), veth_int), shell=True)
-        cmdutils.run_command("sudo ip link set netns %s dev %s" % (pid.strip(), veth_int))
+        cmdutils.cast("sudo ip link set netns %s dev %s" % (pid.strip(), veth_int))
 
         """Rename internal veth web-int to eth0"""
         LOG.info("Rename internal veth %s to eth0" % veth_int)
