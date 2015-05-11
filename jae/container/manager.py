@@ -283,10 +283,11 @@ class Manager(base.Base):
             LOG.info("Delete associate containers")
             self.db.update_container(associate.id, status="deleting")
             self.db.delete_container(associate.id)
-            try:
-                executils.cleanup_data(associate.uuid[:12],associate.user_id)
-            except:
-                LOG.error("Cleanup data for container %s" % associate.uuid[:12])
+            if not associate.uuid:
+                try:
+                    executils.cleanup_data(associate.uuid[:12],associate.user_id)
+                except:
+                    LOG.error("Cleanup data for container %s" % associate.uuid[:12])
         status = self.driver.delete(query.uuid)
         if status == 500:
             LOG.error("Delete container %s return 500,please check the docker's log for what happend.")
