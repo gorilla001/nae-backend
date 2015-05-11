@@ -283,7 +283,7 @@ class Manager(base.Base):
             LOG.info("Delete associate containers")
             self.db.update_container(associate.id, status="deleting")
             self.db.delete_container(associate.id)
-            if not associate.uuid:
+            if associate.uuid is not None:
                 try:
                     executils.cleanup_data(associate.uuid[:12],associate.user_id)
                 except:
