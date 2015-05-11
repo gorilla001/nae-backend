@@ -162,6 +162,6 @@ def delete_virtual_interface(uuid):
 
         LOG.info("Delete interface %s" % veth_ext)
         #subprocess.check_call("sudo ip link del %s" % veth_ext, shell=True)
-        cmdutils.cast(""sudo ip link del %s" % (veth_ext,))
+        cmdutils.cast("sudo ip link del %s" % (veth_ext,))
     except subprocess.CalledProcessError:
         raise
