@@ -2,8 +2,10 @@ import os
 import subprocess
 
 from jae.common import log as logging
+from jae.common import cfg
 
 
+CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
