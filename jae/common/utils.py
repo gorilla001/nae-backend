@@ -150,7 +150,9 @@ def generate_docker_file(is_java):
 def create_root_path(user_id, uuid):
     """Create container root directory for each container and
        each user."""
-    path = os.path.expandvars('$HOME')
+    path = CONF.base_data_dir
+    if path is None: 
+        path = os.path.expandvars('$HOME')
     root_path = os.path.join(path, user_id, uuid, "www")
     if not os.path.exists(root_path):
         os.makedirs(root_path)

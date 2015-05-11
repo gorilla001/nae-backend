@@ -10,7 +10,10 @@ LOG = logging.getLogger(__name__)
 def maven_code(uuid, user_id, repos, maven_flags):
     root_war = maven_flags.split("-JM")[1]
     maven_flags = maven_flags.split("-JM")[0]
-    code_path = "/home/jae/%s/%s/www/%s" % (user_id,uuid[:12],os.path.basename(repos))
+    path = CONF.base_data_dir
+    if path is None:
+        path = os.path.expandvars('$HOME')
+    code_path = "%s/%s/%s/www/%s" % (path,user_id,uuid[:12],os.path.basename(repos))
 
     """Packaging..."""
     LOG.info("Begin packaging...")
@@ -58,7 +61,10 @@ def maven_code(uuid, user_id, repos, maven_flags):
         LOG.error(ex)
 
 def composer_code(uuid, user_id, repos):
-    code_path = "/home/jae/%s/%s/www/%s" % (user_id,uuid[:12],os.path.basename(repos))
+    path = CONF.base_data_dir
+    if path is None:
+        path = os.path.expandvars('$HOME')
+    code_path = "%s/%s/%s/www/%s" % (path,user_id,uuid[:12],os.path.basename(repos))
     origin_uid, origin_gid = os.stat(code_path).st_uid, os.stat(code_path).st_gid 
     try:
         LOG.info("Running %s" % ("cd %s && sudo /usr/local/bin/composer update -q" % code_path))

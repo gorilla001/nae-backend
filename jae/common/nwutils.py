@@ -97,7 +97,10 @@ def service_init(uuid, user_id, repos):
     """This method is used for service init"""
     try: 
         LOG.info("Start maven packaging...")
-        root_path = "/home/jae/%s/%s/www/%s" % (user_id, uuid[:12], os.path.basename(repos)) 
+        path = CONF.base_data_dir
+        if path is None:
+            path = os.path.expandvars('$HOME')
+        root_path = "%s/%s/%s/www/%s" % (path, user_id, uuid[:12], os.path.basename(repos)) 
         cmdutils.cast("sudo")
     except subprocess.CalledProcessError:
         """Reraise the exception, the caller will catch it"""

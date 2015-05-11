@@ -144,7 +144,10 @@ class API(object):
         The container code is placed in the following path:
         >>>/home/jae/{user_id}/{uuid}/www/{repos}<<< 
         """
-        root_path = "/home/jae/%s/%s/www" % (user_id, uuid[:12])
+        path = CONF.base_data_dir
+        if path is None:
+            path = os.path.expandvars('$HOME')
+        root_path = "%s/%s/%s/www" % (path, user_id, uuid[:12])
         if not os.path.exists(root_path):
             LOG.info("%s not exists...skip" % root_path)
 
