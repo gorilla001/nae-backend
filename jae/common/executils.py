@@ -30,7 +30,7 @@ def copy_files(uuid, origin_user, shared_user):
     """Copy data for container shared"""
 
     base_dir = CONF.base_data_dir
-    if not base_dir:
+    if base_dir is None:
         base_dir = "/home/jae"
     source = os.path.join(base_dir,origin_user,uuid,"www")
     dest = os.path.join(base_dir,shared_user,uuid,"www") 
@@ -49,7 +49,7 @@ def copy_files(uuid, origin_user, shared_user):
 def cleanup_data(uuid,user_id):
     """Cleanup data when container was deleted"""
     base_dir = CONF.base_data_dir
-    if not base_dir:
+    if base_dir is None:
         base_dir = "/home/jae"
     dest = os.path.join(base_dir,user_id,uuid)
     try:
