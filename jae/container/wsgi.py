@@ -130,8 +130,8 @@ class Server(object):
         (self.host, self.port) = self._socket.getsockname()
         self._register.register(self.host, self.port)
 
-        """start all containers on this host."""
-        self._start_manager.start_all()
+        #"""start all containers on this host."""
+        #self._start_manager.start_all()
 
     def start(self):
         dup_socket = self._socket.dup()
