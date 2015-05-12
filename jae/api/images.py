@@ -35,26 +35,8 @@ class Controller(Base):
         self.http = client.HTTPClient()
 
     def index(self, request):
+        """List all images"""
         images = []
-        #project_id = request.GET.get('project_id')
-        #if not project_id:
-        #    LOG.error("project_id cannot be None")
-        #    return webob.exc.HTTPNotFound()
-        #project_instance = self.db.get_project(project_id)
-        #if project_instance is None:
-        #    LOG.error("no such project %s" % project_id)
-        #    return webob.exc.HTTPNotFound()
-        #for image_instance in project_instance.images:
-        #    image = {'id': image_instance.id,
-        #             'uuid': image_instance.uuid,
-        #             'name': image_instance.name,
-        #             'tag': image_instance.tag,
-        #             'desc': image_instance.desc,
-        #             'project_id': image_instance.project_id,
-        #             'created': isotime(image_instance.created),
-        #             'user_id': image_instance.user_id,
-        #             'status': image_instance.status}
-        #    images.append(image)
         project_id = request.GET.get('project_id',None)
         query = self.db.get_images(project_id)
         if query is not None:
@@ -72,7 +54,7 @@ class Controller(Base):
         return ResponseObject(images)
 
     def show(self, request, id):
-        """get image detail by image `id`"""
+        """Show image detail according to image's `id`"""
         image = {}
         query = self.db.get_image(id)
         if query is not None:
@@ -94,6 +76,7 @@ class Controller(Base):
         return ResponseObject(image)
 
     def create(self, request, body=None):
+        """Create new image"""
         if not body:
             LOG.error('body cannot be empty!')
             return webob.exc.HTTPBadRequest()
@@ -151,7 +134,7 @@ class Controller(Base):
         return ResponseObject(image.json())
 
     def delete(self, request, id):
-        """delete image from registry."""
+        """Delete image from registry."""
         image_instance = self.db.get_image(id)
         if not image_instance:
             LOG.warning("no such image %s" % id)
@@ -171,7 +154,7 @@ class Controller(Base):
         return Response(response.status_code)
 
     def edit(self, request, id):
-        """edit image online."""
+        """Edit image online."""
         image_service_endpoint = CONF.image_service_endpoint
         if not image_service_endpoint:
             LOG.error("no image service endpoint found!")
@@ -185,7 +168,7 @@ class Controller(Base):
         return ResponseObject(response.json())
 
     def destroy(self, request, id):
-        """destroy temporary containers for image online edit."""
+        """Destroy temporary containers for image online edit."""
         image_service_endpoint = CONF.image_service_endpoint
         if not image_service_endpoint:
             LOG.error("no image service endpoint found!")
