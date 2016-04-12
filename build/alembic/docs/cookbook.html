@@ -1,0 +1,918 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cookbook &mdash; Alembic 0.8.5 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature_override.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/changelog.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Alembic 0.8.5 documentation" href="index.html" />
+    <link rel="next" title="API Details" href="api/index.html" />
+    <link rel="prev" title="Operation Reference" href="ops.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api/index.html" title="API Details"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ops.html" title="Operation Reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Alembic 0.8.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cookbook">
+<h1>Cookbook<a class="headerlink" href="#cookbook" title="Permalink to this headline">¶</a></h1>
+<p>A collection of &#8220;How-Tos&#8221;, highlighting various ways to extend
+Alembic.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is a new section where we hope to start cataloguing various &#8220;how-tos&#8221;
+we come up with based on user requests.  It is often the case that users
+will request a feature only to learn that simple customization can
+provide the same thing.   There&#8217;s only one recipe at the moment but
+we hope to get more soon!</p>
+</div>
+<div class="section" id="building-an-up-to-date-database-from-scratch">
+<span id="building-uptodate"></span><h2>Building an Up to Date Database from Scratch<a class="headerlink" href="#building-an-up-to-date-database-from-scratch" title="Permalink to this headline">¶</a></h2>
+<p>There&#8217;s a theory of database migrations that says that the revisions in existence for a database should be
+able to go from an entirely blank schema to the finished product, and back again.   Alembic can roll
+this way.   Though we think it&#8217;s kind of overkill, considering that SQLAlchemy itself can emit
+the full CREATE statements for any given model using <a class="reference external" href="http://www.sqlalchemy.org/docs/core/metadata.html#sqlalchemy.schema.MetaData.create_all" title="(in SQLAlchemy v1.0)"><code class="xref py py-meth docutils literal"><span class="pre">create_all()</span></code></a>.   If you check out
+a copy of an application, running this will give you the entire database in one shot, without the need
+to run through all those migration files, which are instead tailored towards applying incremental
+changes to an existing database.</p>
+<p>Alembic can integrate with a <a class="reference external" href="http://www.sqlalchemy.org/docs/core/metadata.html#sqlalchemy.schema.MetaData.create_all" title="(in SQLAlchemy v1.0)"><code class="xref py py-meth docutils literal"><span class="pre">create_all()</span></code></a> script quite easily.  After running the
+create operation, tell Alembic to create a new version table, and to stamp it with the most recent
+revision (i.e. <code class="docutils literal"><span class="pre">head</span></code>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># inside of a &quot;create the database&quot; script, first create</span>
+<span class="c"># tables:</span>
+<span class="n">my_metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+
+<span class="c"># then, load the Alembic configuration and generate the</span>
+<span class="c"># version table, &quot;stamping&quot; it with the most recent rev:</span>
+<span class="kn">from</span> <span class="nn">alembic.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">command</span>
+<span class="n">alembic_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="s">&quot;/path/to/yourapp/alembic.ini&quot;</span><span class="p">)</span>
+<span class="n">command</span><span class="o">.</span><span class="n">stamp</span><span class="p">(</span><span class="n">alembic_cfg</span><span class="p">,</span> <span class="s">&quot;head&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When this approach is used, the application can generate the database using normal SQLAlchemy
+techniques instead of iterating through hundreds of migration scripts.   Now, the purpose of the
+migration scripts is relegated just to movement between versions on out-of-date databases, not
+<em>new</em> databases.    You can now remove old migration files that are no longer represented
+on any existing environments.</p>
+<p>To prune old migration files, simply delete the files.   Then, in the earliest, still-remaining
+migration file, set <code class="docutils literal"><span class="pre">down_revision</span></code> to <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># replace this:</span>
+<span class="c">#down_revision = &#39;290696571ad2&#39;</span>
+
+<span class="c"># with this:</span>
+<span class="n">down_revision</span> <span class="o">=</span> <span class="bp">None</span>
+</pre></div>
+</div>
+<p>That file now becomes the &#8220;base&#8221; of the migration series.</p>
+</div>
+<div class="section" id="conditional-migration-elements">
+<h2>Conditional Migration Elements<a class="headerlink" href="#conditional-migration-elements" title="Permalink to this headline">¶</a></h2>
+<p>This example features the basic idea of a common need, that of affecting
+how a migration runs based on command line switches.</p>
+<p>The technique to use here is simple; within a migration script, inspect
+the <a class="reference internal" href="api/runtime.html#alembic.runtime.environment.EnvironmentContext.get_x_argument" title="alembic.runtime.environment.EnvironmentContext.get_x_argument"><code class="xref py py-meth docutils literal"><span class="pre">EnvironmentContext.get_x_argument()</span></code></a> collection for any additional,
+user-defined parameters.  Then take action based on the presence of those
+arguments.</p>
+<p>To make it such that the logic to inspect these flags is easy to use and
+modify, we modify our <code class="docutils literal"><span class="pre">script.py.mako</span></code> template to make this feature
+available in all new revision files:</p>
+<div class="highlight-mako"><div class="highlight"><pre><span class="x">&quot;&quot;&quot;</span><span class="cp">${</span><span class="n">message</span><span class="cp">}</span><span class="x"></span>
+
+<span class="x">Revision ID: </span><span class="cp">${</span><span class="n">up_revision</span><span class="cp">}</span><span class="x"></span>
+<span class="x">Revises: </span><span class="cp">${</span><span class="n">down_revision</span><span class="cp">}</span><span class="x"></span>
+<span class="x">Create Date: </span><span class="cp">${</span><span class="n">create_date</span><span class="cp">}</span><span class="x"></span>
+
+<span class="x">&quot;&quot;&quot;</span>
+
+<span class="x"># revision identifiers, used by Alembic.</span>
+<span class="x">revision = </span><span class="cp">${</span><span class="nb">repr</span><span class="p">(</span><span class="n">up_revision</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">down_revision = </span><span class="cp">${</span><span class="nb">repr</span><span class="p">(</span><span class="n">down_revision</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+
+<span class="x">from alembic import op</span>
+<span class="x">import sqlalchemy as sa</span>
+<span class="cp">${</span><span class="n">imports</span> <span class="k">if</span> <span class="n">imports</span> <span class="k">else</span> <span class="s">&quot;&quot;</span><span class="cp">}</span><span class="x"></span>
+
+<span class="x">from alembic import context</span>
+
+
+<span class="x">def upgrade():</span>
+<span class="x">    schema_upgrades()</span>
+<span class="x">    if context.get_x_argument(as_dictionary=True).get(&#39;data&#39;, None):</span>
+<span class="x">        data_upgrades()</span>
+
+<span class="x">def downgrade():</span>
+<span class="x">    if context.get_x_argument(as_dictionary=True).get(&#39;data&#39;, None):</span>
+<span class="x">        data_downgrades()</span>
+<span class="x">    schema_downgrades()</span>
+
+<span class="x">def schema_upgrades():</span>
+<span class="x">    &quot;&quot;&quot;schema upgrade migrations go here.&quot;&quot;&quot;</span>
+<span class="x">    </span><span class="cp">${</span><span class="n">upgrades</span> <span class="k">if</span> <span class="n">upgrades</span> <span class="k">else</span> <span class="s">&quot;pass&quot;</span><span class="cp">}</span><span class="x"></span>
+
+<span class="x">def schema_downgrades():</span>
+<span class="x">    &quot;&quot;&quot;schema downgrade migrations go here.&quot;&quot;&quot;</span>
+<span class="x">    </span><span class="cp">${</span><span class="n">downgrades</span> <span class="k">if</span> <span class="n">downgrades</span> <span class="k">else</span> <span class="s">&quot;pass&quot;</span><span class="cp">}</span><span class="x"></span>
+
+<span class="x">def data_upgrades():</span>
+<span class="x">    &quot;&quot;&quot;Add any optional data upgrade migrations here!&quot;&quot;&quot;</span>
+<span class="x">    pass</span>
+
+<span class="x">def data_downgrades():</span>
+<span class="x">    &quot;&quot;&quot;Add any optional data downgrade migrations here!&quot;&quot;&quot;</span>
+<span class="x">    pass</span>
+</pre></div>
+</div>
+<p>Now, when we create a new migration file, the <code class="docutils literal"><span class="pre">data_upgrades()</span></code> and <code class="docutils literal"><span class="pre">data_downgrades()</span></code>
+placeholders will be available, where we can add optional data migrations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;rev one</span>
+
+<span class="sd">Revision ID: 3ba2b522d10d</span>
+<span class="sd">Revises: None</span>
+<span class="sd">Create Date: 2014-03-04 18:05:36.992867</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># revision identifiers, used by Alembic.</span>
+<span class="n">revision</span> <span class="o">=</span> <span class="s">&#39;3ba2b522d10d&#39;</span>
+<span class="n">down_revision</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">op</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="kn">as</span> <span class="nn">sa</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span>
+
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">context</span>
+
+<span class="k">def</span> <span class="nf">upgrade</span><span class="p">():</span>
+    <span class="n">schema_upgrades</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">get_x_argument</span><span class="p">(</span><span class="n">as_dictionary</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">data_upgrades</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">downgrade</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">get_x_argument</span><span class="p">(</span><span class="n">as_dictionary</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">data_downgrades</span><span class="p">()</span>
+    <span class="n">schema_downgrades</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">schema_upgrades</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;schema upgrade migrations go here.&quot;&quot;&quot;</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s">&quot;my_table&quot;</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">schema_downgrades</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;schema downgrade migrations go here.&quot;&quot;&quot;</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="s">&quot;my_table&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">data_upgrades</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Add any optional data upgrade migrations here!&quot;&quot;&quot;</span>
+
+    <span class="n">my_table</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;my_table&#39;</span><span class="p">,</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">op</span><span class="o">.</span><span class="n">bulk_insert</span><span class="p">(</span><span class="n">my_table</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="p">{</span><span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&#39;data 1&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&#39;data 2&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&#39;data 3&#39;</span><span class="p">},</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">data_downgrades</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Add any optional data downgrade migrations here!&quot;&quot;&quot;</span>
+
+    <span class="n">op</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;delete from my_table&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To invoke our migrations with data included, we use the <code class="docutils literal"><span class="pre">-x</span></code> flag:</p>
+<div class="highlight-python"><div class="highlight"><pre>alembic -x data=true upgrade head
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="api/runtime.html#alembic.runtime.environment.EnvironmentContext.get_x_argument" title="alembic.runtime.environment.EnvironmentContext.get_x_argument"><code class="xref py py-meth docutils literal"><span class="pre">EnvironmentContext.get_x_argument()</span></code></a> is an easy way to support
+new commandline options within environment and migration scripts.</p>
+</div>
+<div class="section" id="sharing-a-connection-with-a-series-of-migration-commands-and-environments">
+<span id="connection-sharing"></span><h2>Sharing a Connection with a Series of Migration Commands and Environments<a class="headerlink" href="#sharing-a-connection-with-a-series-of-migration-commands-and-environments" title="Permalink to this headline">¶</a></h2>
+<p>It is often the case that an application will need to call upon a series
+of commands within <a class="reference internal" href="api/commands.html#alembic-command-toplevel"><span>Commands</span></a>, where it would be advantageous
+for all operations to proceed along a single transaction.   The connectivity
+for a migration is typically solely determined within the <code class="docutils literal"><span class="pre">env.py</span></code> script
+of a migration environment, which is called within the scope of a command.</p>
+<p>The steps to take here are:</p>
+<ol class="arabic simple">
+<li>Produce the <a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Connection" title="(in SQLAlchemy v1.0)"><code class="xref py py-class docutils literal"><span class="pre">Connection</span></code></a> object to use.</li>
+<li>Place it somewhere that <code class="docutils literal"><span class="pre">env.py</span></code> will be able to access it.  This
+can be either a. a module-level global somewhere, or b.
+an attribute which we place into the <a class="reference internal" href="api/config.html#alembic.config.Config.attributes" title="alembic.config.Config.attributes"><code class="xref py py-attr docutils literal"><span class="pre">Config.attributes</span></code></a>
+dictionary (if we are on an older Alembic version, we may also attach
+an attribute directly to the <a class="reference internal" href="api/config.html#alembic.config.Config" title="alembic.config.Config"><code class="xref py py-class docutils literal"><span class="pre">Config</span></code></a> object).</li>
+<li>The <code class="docutils literal"><span class="pre">env.py</span></code> script is modified such that it looks for this
+<a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Connection" title="(in SQLAlchemy v1.0)"><code class="xref py py-class docutils literal"><span class="pre">Connection</span></code></a> and makes use of it, in lieu
+of building up its own <a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Engine" title="(in SQLAlchemy v1.0)"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> instance.</li>
+</ol>
+<p>We illustrate using <a class="reference internal" href="api/config.html#alembic.config.Config.attributes" title="alembic.config.Config.attributes"><code class="xref py py-attr docutils literal"><span class="pre">Config.attributes</span></code></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">command</span><span class="p">,</span> <span class="n">config</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="s">&quot;/path/to/yourapp/alembic.ini&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span>
+    <span class="n">command</span><span class="o">.</span><span class="n">upgrade</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s">&quot;head&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then in <code class="docutils literal"><span class="pre">env.py</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">run_migrations_online</span><span class="p">():</span>
+    <span class="n">connectable</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;connection&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">connectable</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># only create Engine if we don&#39;t have a Connection</span>
+        <span class="c"># from the outside</span>
+        <span class="n">connectable</span> <span class="o">=</span> <span class="n">engine_from_config</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">get_section</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">config_ini_section</span><span class="p">),</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;sqlalchemy.&#39;</span><span class="p">,</span>
+            <span class="n">poolclass</span><span class="o">=</span><span class="n">pool</span><span class="o">.</span><span class="n">NullPool</span><span class="p">)</span>
+
+    <span class="c"># when connectable is already a Connection object, calling</span>
+    <span class="c"># connect() gives us a *branched connection*.</span>
+
+    <span class="k">with</span> <span class="n">connectable</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+            <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">,</span>
+            <span class="n">target_metadata</span><span class="o">=</span><span class="n">target_metadata</span>
+        <span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">context</span><span class="o">.</span><span class="n">begin_transaction</span><span class="p">():</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">run_migrations</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="topic">
+<p class="topic-title first">Branched Connections</p>
+<p>Note that we are calling the <code class="docutils literal"><span class="pre">connect()</span></code> method, <strong>even if we are
+using a</strong> <a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Connection" title="(in SQLAlchemy v1.0)"><code class="xref py py-class docutils literal"><span class="pre">Connection</span></code></a> <strong>object to start with</strong>.
+The effect this has when calling <a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Connection.connect" title="(in SQLAlchemy v1.0)"><code class="xref py py-meth docutils literal"><span class="pre">connect()</span></code></a>
+is that SQLAlchemy passes us a <strong>branch</strong> of the original connection; it
+is in every way the same as the <a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Connection" title="(in SQLAlchemy v1.0)"><code class="xref py py-class docutils literal"><span class="pre">Connection</span></code></a>
+we started with, except it provides <strong>nested scope</strong>; the
+context we have here as well as the
+<a class="reference external" href="http://www.sqlalchemy.org/docs/core/connections.html#sqlalchemy.engine.Connection.close" title="(in SQLAlchemy v1.0)"><code class="xref py py-meth docutils literal"><span class="pre">close()</span></code></a> method of this branched
+connection doesn&#8217;t actually close the outer connection, which stays
+active for continued use.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.7.5: </span>Added <a class="reference internal" href="api/config.html#alembic.config.Config.attributes" title="alembic.config.Config.attributes"><code class="xref py py-attr docutils literal"><span class="pre">Config.attributes</span></code></a>.</p>
+</div>
+</div>
+<div class="section" id="replaceable-objects">
+<span id="id1"></span><h2>Replaceable Objects<a class="headerlink" href="#replaceable-objects" title="Permalink to this headline">¶</a></h2>
+<p>This recipe proposes a hypothetical way of dealing with
+what we might call a <em>replaceable</em> schema object.  A replaceable object
+is a schema object that needs to be created and dropped all at once.
+Examples of such objects include views, stored procedures, and triggers.</p>
+<p>Replaceable objects present a problem in that in order to make incremental
+changes to them, we have to refer to the whole definition at once.
+If we need to add a new column to a view, for example, we have to drop
+it entirely and recreate it fresh with the extra column added, referring to
+the whole structure; but to make it even tougher, if we wish to support
+downgrade operarations in our migration scripts,
+we need to refer to the <em>previous</em> version of that
+construct fully, and we&#8217;d much rather not have to type out the whole
+definition in multiple places.</p>
+<p>This recipe proposes that we may refer to the older version of a
+replaceable construct by directly naming the migration version in
+which it was created, and having a migration refer to that previous
+file as migrations run.   We will also demonstrate how to integrate this
+logic within the <a class="reference internal" href="api/operations.html#operation-plugins"><span>Operation Plugins</span></a> feature introduced in
+Alembic 0.8.  It may be very helpful to review
+this section first to get an overview of this API.</p>
+<div class="section" id="the-replaceable-object-structure">
+<h3>The Replaceable Object Structure<a class="headerlink" href="#the-replaceable-object-structure" title="Permalink to this headline">¶</a></h3>
+<p>We first need to devise a simple format that represents the &#8220;CREATE XYZ&#8221; /
+&#8220;DROP XYZ&#8221; aspect of what it is we&#8217;re building.  We will work with an object
+that represents a textual definition; while a SQL view is an object that we can define
+using a <a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/Views">table-metadata-like system</a>,
+this is not so much the case for things like stored procedures, where
+we pretty much need to have a full string definition written down somewhere.
+We&#8217;ll use a simple value object called <code class="docutils literal"><span class="pre">ReplaceableObject</span></code> that can
+represent any named set of SQL text to send to a &#8220;CREATE&#8221; statement of
+some kind:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ReplaceableObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sqltext</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqltext</span> <span class="o">=</span> <span class="n">sqltext</span>
+</pre></div>
+</div>
+<p>Using this object in a migration script, assuming a Postgresql-style
+syntax, looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">customer_view</span> <span class="o">=</span> <span class="n">ReplaceableObject</span><span class="p">(</span>
+    <span class="s">&quot;customer_view&quot;</span><span class="p">,</span>
+    <span class="s">&quot;SELECT name, order_count FROM customer WHERE order_count &gt; 0&quot;</span>
+<span class="p">)</span>
+
+<span class="n">add_customer_sp</span> <span class="o">=</span> <span class="n">ReplaceableObject</span><span class="p">(</span>
+    <span class="s">&quot;add_customer_sp(name varchar, order_count integer)&quot;</span><span class="p">,</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RETURNS integer AS $$</span>
+<span class="sd">    BEGIN</span>
+<span class="sd">        insert into customer (name, order_count)</span>
+<span class="sd">        VALUES (in_name, in_order_count);</span>
+<span class="sd">    END;</span>
+<span class="sd">    $$ LANGUAGE plpgsql;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">ReplaceableObject</span></code> class is only one very simplistic way to do this.
+The structure of how we represent our schema objects
+is not too important for the purposes of this example; we can just
+as well put strings inside of tuples or dictionaries, as well as
+that we could define any kind of series of fields and class structures we want.
+The only important part is that below we will illustrate how organize the
+code that can consume the structure we create here.</p>
+</div>
+<div class="section" id="create-operations-for-the-target-objects">
+<h3>Create Operations for the Target Objects<a class="headerlink" href="#create-operations-for-the-target-objects" title="Permalink to this headline">¶</a></h3>
+<p>We&#8217;ll use the <a class="reference internal" href="ops.html#alembic.operations.Operations" title="alembic.operations.Operations"><code class="xref py py-class docutils literal"><span class="pre">Operations</span></code></a> extension API to make new operations
+for create, drop, and replace of views and stored procedures.  Using this
+API is also optional; we can just as well make any kind of Python
+function that we would invoke from our migration scripts.
+However, using this API gives us operations
+built directly into the Alembic <code class="docutils literal"><span class="pre">op.*</span></code> namespace very nicely.</p>
+<p>The most intricate class is below.  This is the base of our &#8220;replaceable&#8221;
+operation, which includes not just a base operation for emitting
+CREATE and DROP instructions on a <code class="docutils literal"><span class="pre">ReplaceableObject</span></code>, it also assumes
+a certain model of &#8220;reversibility&#8221; which makes use of references to
+other migration files in order to refer to the &#8220;previous&#8221; version
+of an object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">alembic.operations</span> <span class="kn">import</span> <span class="n">Operations</span><span class="p">,</span> <span class="n">MigrateOperation</span>
+
+<span class="k">class</span> <span class="nc">ReversibleOp</span><span class="p">(</span><span class="n">MigrateOperation</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">invoke_for_target</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">operations</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">operations</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_get_object_from_version</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">operations</span><span class="p">,</span> <span class="n">ident</span><span class="p">):</span>
+        <span class="n">version</span><span class="p">,</span> <span class="n">objname</span> <span class="o">=</span> <span class="n">ident</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">)</span>
+
+        <span class="n">module</span> <span class="o">=</span> <span class="n">operations</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span><span class="o">.</span><span class="n">script</span><span class="o">.</span><span class="n">get_revision</span><span class="p">(</span><span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">module</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">objname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">operations</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">replaces</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">replace_with</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">replaces</span><span class="p">:</span>
+            <span class="n">old_obj</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_get_object_from_version</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">replaces</span><span class="p">)</span>
+            <span class="n">drop_old</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">old_obj</span><span class="p">)</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="n">create_new</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">replace_with</span><span class="p">:</span>
+            <span class="n">old_obj</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_get_object_from_version</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">replace_with</span><span class="p">)</span>
+            <span class="n">drop_old</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="n">create_new</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">old_obj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;replaces or replace_with is required&quot;</span><span class="p">)</span>
+
+        <span class="n">operations</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">drop_old</span><span class="p">)</span>
+        <span class="n">operations</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">create_new</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The workings of this class should become clear as we walk through the
+example.   To create usable operations from this base, we will build
+a series of stub classes and use <a class="reference internal" href="ops.html#alembic.operations.Operations.register_operation" title="alembic.operations.Operations.register_operation"><code class="xref py py-meth docutils literal"><span class="pre">Operations.register_operation()</span></code></a>
+to make them part of the <code class="docutils literal"><span class="pre">op.*</span></code> namespace:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@Operations.register_operation</span><span class="p">(</span><span class="s">&quot;create_view&quot;</span><span class="p">,</span> <span class="s">&quot;invoke_for_target&quot;</span><span class="p">)</span>
+<span class="nd">@Operations.register_operation</span><span class="p">(</span><span class="s">&quot;replace_view&quot;</span><span class="p">,</span> <span class="s">&quot;replace&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CreateViewOp</span><span class="p">(</span><span class="n">ReversibleOp</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DropViewOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+
+
+<span class="nd">@Operations.register_operation</span><span class="p">(</span><span class="s">&quot;drop_view&quot;</span><span class="p">,</span> <span class="s">&quot;invoke_for_target&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DropViewOp</span><span class="p">(</span><span class="n">ReversibleOp</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CreateViewOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">)</span>
+
+
+<span class="nd">@Operations.register_operation</span><span class="p">(</span><span class="s">&quot;create_sp&quot;</span><span class="p">,</span> <span class="s">&quot;invoke_for_target&quot;</span><span class="p">)</span>
+<span class="nd">@Operations.register_operation</span><span class="p">(</span><span class="s">&quot;replace_sp&quot;</span><span class="p">,</span> <span class="s">&quot;replace&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CreateSPOp</span><span class="p">(</span><span class="n">ReversibleOp</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DropSPOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+
+
+<span class="nd">@Operations.register_operation</span><span class="p">(</span><span class="s">&quot;drop_sp&quot;</span><span class="p">,</span> <span class="s">&quot;invoke_for_target&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DropSPOp</span><span class="p">(</span><span class="n">ReversibleOp</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CreateSPOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To actually run the SQL like &#8220;CREATE VIEW&#8221; and &#8220;DROP SEQUENCE&#8221;, we&#8217;ll provide
+implementations using <a class="reference internal" href="ops.html#alembic.operations.Operations.implementation_for" title="alembic.operations.Operations.implementation_for"><code class="xref py py-meth docutils literal"><span class="pre">Operations.implementation_for()</span></code></a>
+that run straight into <a class="reference internal" href="ops.html#alembic.operations.Operations.execute" title="alembic.operations.Operations.execute"><code class="xref py py-meth docutils literal"><span class="pre">Operations.execute()</span></code></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@Operations.implementation_for</span><span class="p">(</span><span class="n">CreateViewOp</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">create_view</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+    <span class="n">operations</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;CREATE VIEW </span><span class="si">%s</span><span class="s"> AS </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">operation</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">operation</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">sqltext</span>
+    <span class="p">))</span>
+
+
+<span class="nd">@Operations.implementation_for</span><span class="p">(</span><span class="n">DropViewOp</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">drop_view</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+    <span class="n">operations</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;DROP VIEW </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">operation</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+
+<span class="nd">@Operations.implementation_for</span><span class="p">(</span><span class="n">CreateSPOp</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">create_sp</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+    <span class="n">operations</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="s">&quot;CREATE FUNCTION </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">operation</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">operation</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">sqltext</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@Operations.implementation_for</span><span class="p">(</span><span class="n">DropSPOp</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">drop_sp</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+    <span class="n">operations</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;DROP FUNCTION </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">operation</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All of the above code can be present anywhere within an application&#8217;s
+source tree; the only requirement is that when the <code class="docutils literal"><span class="pre">env.py</span></code> script is
+invoked, it includes imports that ultimately call upon these classes
+as well as the <a class="reference internal" href="ops.html#alembic.operations.Operations.register_operation" title="alembic.operations.Operations.register_operation"><code class="xref py py-meth docutils literal"><span class="pre">Operations.register_operation()</span></code></a> and
+<a class="reference internal" href="ops.html#alembic.operations.Operations.implementation_for" title="alembic.operations.Operations.implementation_for"><code class="xref py py-meth docutils literal"><span class="pre">Operations.implementation_for()</span></code></a> sequences.</p>
+</div>
+<div class="section" id="create-initial-migrations">
+<h3>Create Initial Migrations<a class="headerlink" href="#create-initial-migrations" title="Permalink to this headline">¶</a></h3>
+<p>We can now illustrate how these objects look during use.  For the first step,
+we&#8217;ll create a new migration to create a &#8220;customer&#8221; table:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic revision -m &quot;create table&quot;
+</pre></div>
+</div>
+<p>We build the first revision as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;create table</span>
+
+<span class="sd">Revision ID: 3ab8b2dfb055</span>
+<span class="sd">Revises:</span>
+<span class="sd">Create Date: 2015-07-27 16:22:44.918507</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># revision identifiers, used by Alembic.</span>
+<span class="n">revision</span> <span class="o">=</span> <span class="s">&#39;3ab8b2dfb055&#39;</span>
+<span class="n">down_revision</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">branch_labels</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">depends_on</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">op</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="kn">as</span> <span class="nn">sa</span>
+
+
+<span class="k">def</span> <span class="nf">upgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span>
+        <span class="s">&quot;customer&quot;</span><span class="p">,</span>
+        <span class="n">sa</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">sa</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">sa</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">sa</span><span class="o">.</span><span class="n">String</span><span class="p">),</span>
+        <span class="n">sa</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;order_count&#39;</span><span class="p">,</span> <span class="n">sa</span><span class="o">.</span><span class="n">Integer</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">downgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="s">&#39;customer&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the second migration, we will create a view and a stored procedure
+which act upon this table:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic revision -m &quot;create views/sp&quot;
+</pre></div>
+</div>
+<p>This migration will use the new directives:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;create views/sp</span>
+
+<span class="sd">Revision ID: 28af9800143f</span>
+<span class="sd">Revises: 3ab8b2dfb055</span>
+<span class="sd">Create Date: 2015-07-27 16:24:03.589867</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># revision identifiers, used by Alembic.</span>
+<span class="n">revision</span> <span class="o">=</span> <span class="s">&#39;28af9800143f&#39;</span>
+<span class="n">down_revision</span> <span class="o">=</span> <span class="s">&#39;3ab8b2dfb055&#39;</span>
+<span class="n">branch_labels</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">depends_on</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">op</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="kn">as</span> <span class="nn">sa</span>
+
+<span class="kn">from</span> <span class="nn">foo</span> <span class="kn">import</span> <span class="n">ReplaceableObject</span>
+
+<span class="n">customer_view</span> <span class="o">=</span> <span class="n">ReplaceableObject</span><span class="p">(</span>
+    <span class="s">&quot;customer_view&quot;</span><span class="p">,</span>
+    <span class="s">&quot;SELECT name, order_count FROM customer WHERE order_count &gt; 0&quot;</span>
+<span class="p">)</span>
+
+<span class="n">add_customer_sp</span> <span class="o">=</span> <span class="n">ReplaceableObject</span><span class="p">(</span>
+    <span class="s">&quot;add_customer_sp(name varchar, order_count integer)&quot;</span><span class="p">,</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RETURNS integer AS $$</span>
+<span class="sd">    BEGIN</span>
+<span class="sd">        insert into customer (name, order_count)</span>
+<span class="sd">        VALUES (in_name, in_order_count);</span>
+<span class="sd">    END;</span>
+<span class="sd">    $$ LANGUAGE plpgsql;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">upgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">create_view</span><span class="p">(</span><span class="n">customer_view</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">create_sp</span><span class="p">(</span><span class="n">add_customer_sp</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">downgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">drop_view</span><span class="p">(</span><span class="n">customer_view</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">drop_sp</span><span class="p">(</span><span class="n">add_customer_sp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We see the use of our new <code class="docutils literal"><span class="pre">create_view()</span></code>, <code class="docutils literal"><span class="pre">create_sp()</span></code>,
+<code class="docutils literal"><span class="pre">drop_view()</span></code>, and <code class="docutils literal"><span class="pre">drop_sp()</span></code> directives.  Running these to &#8220;head&#8221;
+we get the following (this includes an edited view of SQL emitted):</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic upgrade 28af9800143
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [sqlalchemy.engine.base.Engine] BEGIN (implicit)
+INFO  [sqlalchemy.engine.base.Engine] select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=%(name)s
+INFO  [sqlalchemy.engine.base.Engine] {&#39;name&#39;: u&#39;alembic_version&#39;}
+INFO  [sqlalchemy.engine.base.Engine] SELECT alembic_version.version_num
+FROM alembic_version
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=%(name)s
+INFO  [sqlalchemy.engine.base.Engine] {&#39;name&#39;: u&#39;alembic_version&#39;}
+INFO  [alembic.runtime.migration] Running upgrade  -&gt; 3ab8b2dfb055, create table
+INFO  [sqlalchemy.engine.base.Engine]
+CREATE TABLE customer (
+    id SERIAL NOT NULL,
+    name VARCHAR,
+    order_count INTEGER,
+    PRIMARY KEY (id)
+)
+
+
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] INSERT INTO alembic_version (version_num) VALUES (&#39;3ab8b2dfb055&#39;)
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [alembic.runtime.migration] Running upgrade 3ab8b2dfb055 -&gt; 28af9800143f, create views/sp
+INFO  [sqlalchemy.engine.base.Engine] CREATE VIEW customer_view AS SELECT name, order_count FROM customer WHERE order_count &gt; 0
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] CREATE FUNCTION add_customer_sp(name varchar, order_count integer)
+    RETURNS integer AS $$
+    BEGIN
+        insert into customer (name, order_count)
+        VALUES (in_name, in_order_count);
+    END;
+    $$ LANGUAGE plpgsql;
+
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] UPDATE alembic_version SET version_num=&#39;28af9800143f&#39; WHERE alembic_version.version_num = &#39;3ab8b2dfb055&#39;
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] COMMIT
+</pre></div>
+</div>
+<p>We see that our CREATE TABLE proceeded as well as the CREATE VIEW and CREATE
+FUNCTION operations produced by our new directives.</p>
+</div>
+<div class="section" id="create-revision-migrations">
+<h3>Create Revision Migrations<a class="headerlink" href="#create-revision-migrations" title="Permalink to this headline">¶</a></h3>
+<p>Finally, we can illustrate how we would &#8220;revise&#8221; these objects.
+Let&#8217;s consider we added a new column <code class="docutils literal"><span class="pre">email</span></code> to our <code class="docutils literal"><span class="pre">customer</span></code> table:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic revision -m &quot;add email col&quot;
+</pre></div>
+</div>
+<p>The migration is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;add email col</span>
+
+<span class="sd">Revision ID: 191a2d20b025</span>
+<span class="sd">Revises: 28af9800143f</span>
+<span class="sd">Create Date: 2015-07-27 16:25:59.277326</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># revision identifiers, used by Alembic.</span>
+<span class="n">revision</span> <span class="o">=</span> <span class="s">&#39;191a2d20b025&#39;</span>
+<span class="n">down_revision</span> <span class="o">=</span> <span class="s">&#39;28af9800143f&#39;</span>
+<span class="n">branch_labels</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">depends_on</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">op</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="kn">as</span> <span class="nn">sa</span>
+
+
+<span class="k">def</span> <span class="nf">upgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s">&quot;customer&quot;</span><span class="p">,</span> <span class="n">sa</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&quot;email&quot;</span><span class="p">,</span> <span class="n">sa</span><span class="o">.</span><span class="n">String</span><span class="p">()))</span>
+
+
+<span class="k">def</span> <span class="nf">downgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">drop_column</span><span class="p">(</span><span class="s">&quot;customer&quot;</span><span class="p">,</span> <span class="s">&quot;email&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We now need to recreate the <code class="docutils literal"><span class="pre">customer_view</span></code> view and the
+<code class="docutils literal"><span class="pre">add_customer_sp</span></code> function.   To include downgrade capability, we will
+need to refer to the <strong>previous</strong> version of the construct; the
+<code class="docutils literal"><span class="pre">replace_view()</span></code> and <code class="docutils literal"><span class="pre">replace_sp()</span></code> operations we&#8217;ve created make
+this possible, by allowing us to refer to a specific, previous revision.
+the <code class="docutils literal"><span class="pre">replaces</span></code> and <code class="docutils literal"><span class="pre">replace_with</span></code> arguments accept a dot-separated
+string, which refers to a revision number and an object name, such
+as <code class="docutils literal"><span class="pre">&quot;28af9800143f.customer_view&quot;</span></code>.  The <code class="docutils literal"><span class="pre">ReversibleOp</span></code> class makes use
+of the <a class="reference internal" href="ops.html#alembic.operations.Operations.get_context" title="alembic.operations.Operations.get_context"><code class="xref py py-meth docutils literal"><span class="pre">Operations.get_context()</span></code></a> method to locate the version file
+we refer to:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic revision -m &quot;update views/sp&quot;
+</pre></div>
+</div>
+<p>The migration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;update views/sp</span>
+
+<span class="sd">Revision ID: 199028bf9856</span>
+<span class="sd">Revises: 191a2d20b025</span>
+<span class="sd">Create Date: 2015-07-27 16:26:31.344504</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># revision identifiers, used by Alembic.</span>
+<span class="n">revision</span> <span class="o">=</span> <span class="s">&#39;199028bf9856&#39;</span>
+<span class="n">down_revision</span> <span class="o">=</span> <span class="s">&#39;191a2d20b025&#39;</span>
+<span class="n">branch_labels</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">depends_on</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">op</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="kn">as</span> <span class="nn">sa</span>
+
+<span class="kn">from</span> <span class="nn">foo</span> <span class="kn">import</span> <span class="n">ReplaceableObject</span>
+
+<span class="n">customer_view</span> <span class="o">=</span> <span class="n">ReplaceableObject</span><span class="p">(</span>
+    <span class="s">&quot;customer_view&quot;</span><span class="p">,</span>
+    <span class="s">&quot;SELECT name, order_count, email &quot;</span>
+    <span class="s">&quot;FROM customer WHERE order_count &gt; 0&quot;</span>
+<span class="p">)</span>
+
+<span class="n">add_customer_sp</span> <span class="o">=</span> <span class="n">ReplaceableObject</span><span class="p">(</span>
+    <span class="s">&quot;add_customer_sp(name varchar, order_count integer, email varchar)&quot;</span><span class="p">,</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RETURNS integer AS $$</span>
+<span class="sd">    BEGIN</span>
+<span class="sd">        insert into customer (name, order_count, email)</span>
+<span class="sd">        VALUES (in_name, in_order_count, email);</span>
+<span class="sd">    END;</span>
+<span class="sd">    $$ LANGUAGE plpgsql;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">upgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">replace_view</span><span class="p">(</span><span class="n">customer_view</span><span class="p">,</span> <span class="n">replaces</span><span class="o">=</span><span class="s">&quot;28af9800143f.customer_view&quot;</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">replace_sp</span><span class="p">(</span><span class="n">add_customer_sp</span><span class="p">,</span> <span class="n">replaces</span><span class="o">=</span><span class="s">&quot;28af9800143f.add_customer_sp&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">downgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">replace_view</span><span class="p">(</span><span class="n">customer_view</span><span class="p">,</span> <span class="n">replace_with</span><span class="o">=</span><span class="s">&quot;28af9800143f.customer_view&quot;</span><span class="p">)</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">replace_sp</span><span class="p">(</span><span class="n">add_customer_sp</span><span class="p">,</span> <span class="n">replace_with</span><span class="o">=</span><span class="s">&quot;28af9800143f.add_customer_sp&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Above, instead of using <code class="docutils literal"><span class="pre">create_view()</span></code>, <code class="docutils literal"><span class="pre">create_sp()</span></code>,
+<code class="docutils literal"><span class="pre">drop_view()</span></code>, and <code class="docutils literal"><span class="pre">drop_sp()</span></code> methods, we now use <code class="docutils literal"><span class="pre">replace_view()</span></code> and
+<code class="docutils literal"><span class="pre">replace_sp()</span></code>.  The replace operation we&#8217;ve built always runs a DROP <em>and</em>
+a CREATE.  Running an upgrade to head we see:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic upgrade head
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [sqlalchemy.engine.base.Engine] BEGIN (implicit)
+INFO  [sqlalchemy.engine.base.Engine] select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=%(name)s
+INFO  [sqlalchemy.engine.base.Engine] {&#39;name&#39;: u&#39;alembic_version&#39;}
+INFO  [sqlalchemy.engine.base.Engine] SELECT alembic_version.version_num
+FROM alembic_version
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [alembic.runtime.migration] Running upgrade 28af9800143f -&gt; 191a2d20b025, add email col
+INFO  [sqlalchemy.engine.base.Engine] ALTER TABLE customer ADD COLUMN email VARCHAR
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] UPDATE alembic_version SET version_num=&#39;191a2d20b025&#39; WHERE alembic_version.version_num = &#39;28af9800143f&#39;
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [alembic.runtime.migration] Running upgrade 191a2d20b025 -&gt; 199028bf9856, update views/sp
+INFO  [sqlalchemy.engine.base.Engine] DROP VIEW customer_view
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] CREATE VIEW customer_view AS SELECT name, order_count, email FROM customer WHERE order_count &gt; 0
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] DROP FUNCTION add_customer_sp(name varchar, order_count integer)
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] CREATE FUNCTION add_customer_sp(name varchar, order_count integer, email varchar)
+    RETURNS integer AS $$
+    BEGIN
+        insert into customer (name, order_count, email)
+        VALUES (in_name, in_order_count, email);
+    END;
+    $$ LANGUAGE plpgsql;
+
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] UPDATE alembic_version SET version_num=&#39;199028bf9856&#39; WHERE alembic_version.version_num = &#39;191a2d20b025&#39;
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] COMMIT
+</pre></div>
+</div>
+<p>After adding our new <code class="docutils literal"><span class="pre">email</span></code> column, we see that both <code class="docutils literal"><span class="pre">customer_view</span></code>
+and <code class="docutils literal"><span class="pre">add_customer_sp()</span></code> are dropped before the new version is created.
+If we downgrade back to the old version, we see the old version of these
+recreated again within the downgrade for this migration:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ alembic downgrade 28af9800143
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [sqlalchemy.engine.base.Engine] BEGIN (implicit)
+INFO  [sqlalchemy.engine.base.Engine] select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=%(name)s
+INFO  [sqlalchemy.engine.base.Engine] {&#39;name&#39;: u&#39;alembic_version&#39;}
+INFO  [sqlalchemy.engine.base.Engine] SELECT alembic_version.version_num
+FROM alembic_version
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [alembic.runtime.migration] Running downgrade 199028bf9856 -&gt; 191a2d20b025, update views/sp
+INFO  [sqlalchemy.engine.base.Engine] DROP VIEW customer_view
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] CREATE VIEW customer_view AS SELECT name, order_count FROM customer WHERE order_count &gt; 0
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] DROP FUNCTION add_customer_sp(name varchar, order_count integer, email varchar)
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] CREATE FUNCTION add_customer_sp(name varchar, order_count integer)
+    RETURNS integer AS $$
+    BEGIN
+        insert into customer (name, order_count)
+        VALUES (in_name, in_order_count);
+    END;
+    $$ LANGUAGE plpgsql;
+
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] UPDATE alembic_version SET version_num=&#39;191a2d20b025&#39; WHERE alembic_version.version_num = &#39;199028bf9856&#39;
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [alembic.runtime.migration] Running downgrade 191a2d20b025 -&gt; 28af9800143f, add email col
+INFO  [sqlalchemy.engine.base.Engine] ALTER TABLE customer DROP COLUMN email
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] UPDATE alembic_version SET version_num=&#39;28af9800143f&#39; WHERE alembic_version.version_num = &#39;191a2d20b025&#39;
+INFO  [sqlalchemy.engine.base.Engine] {}
+INFO  [sqlalchemy.engine.base.Engine] COMMIT
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="don-t-generate-empty-migrations-with-autogenerate">
+<h2>Don&#8217;t Generate Empty Migrations with Autogenerate<a class="headerlink" href="#don-t-generate-empty-migrations-with-autogenerate" title="Permalink to this headline">¶</a></h2>
+<p>A common request is to have the <code class="docutils literal"><span class="pre">alembic</span> <span class="pre">revision</span> <span class="pre">--autogenerate</span></code> command not
+actually generate a revision file if no changes to the schema is detected.  Using
+the <a class="reference internal" href="api/runtime.html#alembic.runtime.environment.EnvironmentContext.configure.params.process_revision_directives" title="alembic.runtime.environment.EnvironmentContext.configure"><code class="xref py py-paramref docutils literal"><span class="pre">EnvironmentContext.configure.process_revision_directives</span></code></a>
+hook, this is straightforward; place a <code class="docutils literal"><span class="pre">process_revision_directives</span></code>
+hook in <a class="reference internal" href="api/runtime.html#alembic.runtime.migration.MigrationContext.configure" title="alembic.runtime.migration.MigrationContext.configure"><code class="xref py py-meth docutils literal"><span class="pre">MigrationContext.configure()</span></code></a> which removes the
+single <a class="reference internal" href="api/operations.html#alembic.operations.ops.MigrationScript" title="alembic.operations.ops.MigrationScript"><code class="xref py py-class docutils literal"><span class="pre">MigrationScript</span></code></a> directive if it is empty of
+any operations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">run_migrations_online</span><span class="p">():</span>
+
+    <span class="c"># ...</span>
+
+    <span class="k">def</span> <span class="nf">process_revision_directives</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">revision</span><span class="p">,</span> <span class="n">directives</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">cmd_opts</span><span class="o">.</span><span class="n">autogenerate</span><span class="p">:</span>
+            <span class="n">script</span> <span class="o">=</span> <span class="n">directives</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">script</span><span class="o">.</span><span class="n">upgrade_ops</span><span class="o">.</span><span class="n">is_empty</span><span class="p">():</span>
+                <span class="n">directives</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="c"># connectable = ...</span>
+
+    <span class="k">with</span> <span class="n">connectable</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+            <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">,</span>
+            <span class="n">target_metadata</span><span class="o">=</span><span class="n">target_metadata</span><span class="p">,</span>
+            <span class="n">process_revision_directives</span><span class="o">=</span><span class="n">process_revision_directives</span>
+        <span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">context</span><span class="o">.</span><span class="n">begin_transaction</span><span class="p">():</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">run_migrations</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Cookbook</a><ul>
+<li><a class="reference internal" href="#building-an-up-to-date-database-from-scratch">Building an Up to Date Database from Scratch</a></li>
+<li><a class="reference internal" href="#conditional-migration-elements">Conditional Migration Elements</a></li>
+<li><a class="reference internal" href="#sharing-a-connection-with-a-series-of-migration-commands-and-environments">Sharing a Connection with a Series of Migration Commands and Environments</a></li>
+<li><a class="reference internal" href="#replaceable-objects">Replaceable Objects</a><ul>
+<li><a class="reference internal" href="#the-replaceable-object-structure">The Replaceable Object Structure</a></li>
+<li><a class="reference internal" href="#create-operations-for-the-target-objects">Create Operations for the Target Objects</a></li>
+<li><a class="reference internal" href="#create-initial-migrations">Create Initial Migrations</a></li>
+<li><a class="reference internal" href="#create-revision-migrations">Create Revision Migrations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#don-t-generate-empty-migrations-with-autogenerate">Don&#8217;t Generate Empty Migrations with Autogenerate</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ops.html"
+                        title="previous chapter">Operation Reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api/index.html"
+                        title="next chapter">API Details</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cookbook.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api/index.html" title="API Details"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ops.html" title="Operation Reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Alembic 0.8.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2010-2016, Mike Bayer.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

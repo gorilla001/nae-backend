@@ -1,0 +1,244 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Commands &mdash; Alembic 0.8.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature_override.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Alembic 0.8.5 documentation" href="../index.html" />
+    <link rel="up" title="API Details" href="index.html" />
+    <link rel="next" title="Operation Directives" href="operations.html" />
+    <link rel="prev" title="Configuration" href="config.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="operations.html" title="Operation Directives"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Configuration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Alembic 0.8.5 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API Details</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="commands">
+<span id="alembic-command-toplevel"></span><h1>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">this section discusses the <strong>internal API of Alembic</strong>
+as regards its command invocation system.
+This section is only useful for developers who wish to extend the
+capabilities of Alembic.  For documentation on using Alembic commands,
+please see <a class="reference internal" href="../tutorial.html"><em>Tutorial</em></a>.</p>
+</div>
+<p>Alembic commands are all represented by functions in the <a class="reference internal" href="#alembic-command-toplevel"><span>Commands</span></a>
+package.  They all accept the same style of usage, being sent
+the <a class="reference internal" href="config.html#alembic.config.Config" title="alembic.config.Config"><code class="xref py py-class docutils literal"><span class="pre">Config</span></code></a> object as the first argument.</p>
+<p>Commands can be run programmatically, by first constructing a <a class="reference internal" href="config.html#alembic.config.Config" title="alembic.config.Config"><code class="xref py py-class docutils literal"><span class="pre">Config</span></code></a>
+object, as in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">alembic.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">alembic</span> <span class="kn">import</span> <span class="n">command</span>
+<span class="n">alembic_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="s">&quot;/path/to/yourapp/alembic.ini&quot;</span><span class="p">)</span>
+<span class="n">command</span><span class="o">.</span><span class="n">upgrade</span><span class="p">(</span><span class="n">alembic_cfg</span><span class="p">,</span> <span class="s">&quot;head&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In many cases, and perhaps more often than not, an application will wish
+to call upon a series of Alembic commands and/or other features.  It is
+usually a good idea to link multiple commands along a single connection
+and transaction, if feasible.  This can be achieved using the
+<a class="reference internal" href="config.html#alembic.config.Config.attributes" title="alembic.config.Config.attributes"><code class="xref py py-attr docutils literal"><span class="pre">Config.attributes</span></code></a> dictionary in order to share a connection:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+    <span class="n">alembic_cfg</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span>
+    <span class="n">command</span><span class="o">.</span><span class="n">upgrade</span><span class="p">(</span><span class="n">alembic_cfg</span><span class="p">,</span> <span class="s">&quot;head&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This recipe requires that <code class="docutils literal"><span class="pre">env.py</span></code> consumes this connection argument;
+see the example in <a class="reference internal" href="../cookbook.html#connection-sharing"><span>Sharing a Connection with a Series of Migration Commands and Environments</span></a> for details.</p>
+<p>To write small API functions that make direct use of database and script directory
+information, rather than just running one of the built-in commands,
+use the <a class="reference internal" href="script.html#alembic.script.ScriptDirectory" title="alembic.script.ScriptDirectory"><code class="xref py py-class docutils literal"><span class="pre">ScriptDirectory</span></code></a> and <a class="reference internal" href="runtime.html#alembic.runtime.migration.MigrationContext" title="alembic.runtime.migration.MigrationContext"><code class="xref py py-class docutils literal"><span class="pre">MigrationContext</span></code></a>
+classes directly.</p>
+<span class="target" id="module-alembic.command"></span><dl class="function">
+<dt id="alembic.command.branches">
+<code class="descclassname">alembic.command.</code><code class="descname">branches</code><span class="sig-paren">(</span><em>config</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.branches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current branch points</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.current">
+<code class="descclassname">alembic.command.</code><code class="descname">current</code><span class="sig-paren">(</span><em>config</em>, <em>verbose=False</em>, <em>head_only=False</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the current revision for a database.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.downgrade">
+<code class="descclassname">alembic.command.</code><code class="descname">downgrade</code><span class="sig-paren">(</span><em>config</em>, <em>revision</em>, <em>sql=False</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.downgrade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revert to a previous version.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.edit">
+<code class="descclassname">alembic.command.</code><code class="descname">edit</code><span class="sig-paren">(</span><em>config</em>, <em>rev</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit revision script(s) using $EDITOR</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.heads">
+<code class="descclassname">alembic.command.</code><code class="descname">heads</code><span class="sig-paren">(</span><em>config</em>, <em>verbose=False</em>, <em>resolve_dependencies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.heads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current available heads in the script directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.history">
+<code class="descclassname">alembic.command.</code><code class="descname">history</code><span class="sig-paren">(</span><em>config</em>, <em>rev_range=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.history" title="Permalink to this definition">¶</a></dt>
+<dd><p>List changeset scripts in chronological order.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.init">
+<code class="descclassname">alembic.command.</code><code class="descname">init</code><span class="sig-paren">(</span><em>config</em>, <em>directory</em>, <em>template='generic'</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a new scripts directory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.list_templates">
+<code class="descclassname">alembic.command.</code><code class="descname">list_templates</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.list_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>List available templates</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.merge">
+<code class="descclassname">alembic.command.</code><code class="descname">merge</code><span class="sig-paren">(</span><em>config</em>, <em>revisions</em>, <em>message=None</em>, <em>branch_label=None</em>, <em>rev_id=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge two revisions together.  Creates a new migration file.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.7.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><span class="xref std std-ref">branches</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.revision">
+<code class="descclassname">alembic.command.</code><code class="descname">revision</code><span class="sig-paren">(</span><em>config</em>, <em>message=None</em>, <em>autogenerate=False</em>, <em>sql=False</em>, <em>head='head'</em>, <em>splice=False</em>, <em>branch_label=None</em>, <em>version_path=None</em>, <em>rev_id=None</em>, <em>depends_on=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.revision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new revision file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.show">
+<code class="descclassname">alembic.command.</code><code class="descname">show</code><span class="sig-paren">(</span><em>config</em>, <em>rev</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the revision(s) denoted by the given symbol.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.stamp">
+<code class="descclassname">alembic.command.</code><code class="descname">stamp</code><span class="sig-paren">(</span><em>config</em>, <em>revision</em>, <em>sql=False</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.stamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;stamp&#8217; the revision table with the given revision; don&#8217;t
+run any migrations.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alembic.command.upgrade">
+<code class="descclassname">alembic.command.</code><code class="descname">upgrade</code><span class="sig-paren">(</span><em>config</em>, <em>revision</em>, <em>sql=False</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alembic.command.upgrade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upgrade to a later version.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="config.html"
+                        title="previous chapter">Configuration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="operations.html"
+                        title="next chapter">Operation Directives</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/commands.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="operations.html" title="Operation Directives"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Configuration"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Alembic 0.8.5 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Details</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2010-2016, Mike Bayer.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

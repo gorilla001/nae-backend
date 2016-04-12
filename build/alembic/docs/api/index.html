@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Details &mdash; Alembic 0.8.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature_override.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Alembic 0.8.5 documentation" href="../index.html" />
+    <link rel="next" title="Overview" href="overview.html" />
+    <link rel="prev" title="Cookbook" href="../cookbook.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../cookbook.html" title="Cookbook"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Alembic 0.8.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-details">
+<span id="api"></span><h1>API Details<a class="headerlink" href="#api-details" title="Permalink to this headline">¶</a></h1>
+<p>Alembic&#8217;s internal API has many public integration points that can be used
+to extend Alembic&#8217;s functionality as well as to re-use its functionality
+in new ways.   As the project has grown, more APIs are created and exposed
+for this purpose.</p>
+<p>Direct use of the vast majority of API details discussed here is not needed
+for rudimentary use of Alembic; the only API that is used normally by end users is
+the methods provided by the <a class="reference internal" href="../ops.html#alembic.operations.Operations" title="alembic.operations.Operations"><code class="xref py py-class docutils literal"><span class="pre">Operations</span></code></a> class, which is discussed
+outside of this subsection, and the parameters that can be passed to
+the <a class="reference internal" href="runtime.html#alembic.runtime.environment.EnvironmentContext.configure" title="alembic.runtime.environment.EnvironmentContext.configure"><code class="xref py py-meth docutils literal"><span class="pre">EnvironmentContext.configure()</span></code></a> method, used when configuring
+one&#8217;s <code class="docutils literal"><span class="pre">env.py</span></code> environment.  However, real-world applications will
+usually end up using more of the internal API, in particular being able
+to run commands programmatically, as discussed in the section <a class="reference internal" href="commands.html"><em>Commands</em></a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="runtime.html">Runtime Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="runtime.html#the-environment-context">The Environment Context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="runtime.html#the-migration-context">The Migration Context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations.html">Operation Directives</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operations.html#operation-plugins">Operation Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations.html#built-in-operation-objects">Built-in Operation Objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="autogenerate.html">Autogeneration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autogenerate.html#getting-diffs">Getting Diffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autogenerate.html#customizing-revision-generation">Customizing Revision Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autogenerate.html#autogenerating-custom-operation-directives">Autogenerating Custom Operation Directives</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="script.html">Script Directory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="script.html#revision">Revision</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ddl.html">DDL Internals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ddl.html#module-alembic.ddl.mysql">MySQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddl.html#module-alembic.ddl.mssql">MS-SQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddl.html#module-alembic.ddl.postgresql">Postgresql</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddl.html#module-alembic.ddl.sqlite">SQLite</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../cookbook.html"
+                        title="previous chapter">Cookbook</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="next chapter">Overview</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../cookbook.html" title="Cookbook"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Alembic 0.8.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2010-2016, Mike Bayer.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
