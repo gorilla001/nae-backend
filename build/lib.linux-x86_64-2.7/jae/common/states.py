@@ -1,3 +1,0 @@
-RUNNING = 'running'
-
-STOPED = 'stoped'
